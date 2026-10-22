@@ -1,0 +1,12 @@
+package pt.isep.lp3.g2.hotel4youg2.dal;
+
+public class DataAccessException extends RuntimeException {
+
+    public DataAccessException(String message) {
+        super(message);
+    }
+
+    public DataAccessException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}

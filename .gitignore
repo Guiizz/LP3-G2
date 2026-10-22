@@ -1,4 +1,6 @@
+.env
 target/
+.idea/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -37,3 +39,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
+.idea/material_theme_project_new.xml
