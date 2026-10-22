@@ -7,9 +7,9 @@
 <VBox alignment="CENTER" spacing="15.0"
       xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
-fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.InicialController">
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.InicialController">
 
-    <Label fx:id="estadoLabel" text="Hotel4You"/>
+    <Label fx:id="estadoLabel" text="Hotel4You" wrapText="true" maxWidth="360"/>
     <Button text="Testar ligação" onAction="#aoTestarLigacao"/>
 
 </VBox>
