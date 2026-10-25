@@ -11,5 +11,6 @@
 
     <Label fx:id="estadoLabel" text="Hotel4You" wrapText="true" maxWidth="360"/>
     <Button text="Testar ligação" onAction="#aoTestarLigacao"/>
+    <Button text="Consultar quartos" onAction="#aoConsultarQuartos"/>
 
 </VBox>
