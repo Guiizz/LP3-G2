@@ -1,0 +1,190 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Casos de Uso" id="hotel4you-uc">
+    <mxGraphModel dx="1434" dy="714" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1320" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sys" parent="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=16;fillColor=none;" value="Hotel4You" vertex="1">
+          <mxGeometry height="1250" width="780" x="220" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="FR" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Rececionista" vertex="1">
+          <mxGeometry height="60" width="30" x="80" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="G" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Gestor" vertex="1">
+          <mxGeometry height="60" width="30" x="80" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="C" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Cliente" vertex="1">
+          <mxGeometry height="60" width="30" x="1070" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="FRest" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Funcionário de Restauração" vertex="1">
+          <mxGeometry height="60" width="30" x="1070" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="UC1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Registar cliente" vertex="1">
+          <mxGeometry height="60" width="180" x="230" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="UC2" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Criar reserva" vertex="1">
+          <mxGeometry height="60" width="180" x="290" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="UC4" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Cancelar reserva" vertex="1">
+          <mxGeometry height="60" width="180" x="300" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="UC5" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Efetuar check-in" vertex="1">
+          <mxGeometry height="60" width="180" x="280" y="235" as="geometry" />
+        </mxCell>
+        <mxCell id="UC7" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Efetuar check-out" vertex="1">
+          <mxGeometry height="60" width="180" x="270" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="UC9" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Adicionar serviço à estadia" vertex="1">
+          <mxGeometry height="60" width="180" x="350" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="UC10" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Importar entrega de fornecedor (XML)" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="UC12" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Apagar reserva (sem check-in)" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="UC13" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Gerir funcionários" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="815" as="geometry" />
+        </mxCell>
+        <mxCell id="UC14" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Gerir quartos e equipamento" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="UC15" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Gerir tarifas e serviços" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="965" as="geometry" />
+        </mxCell>
+        <mxCell id="UC16" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Consultar acessos por cartão" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="UC17" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Consultar acessos por quarto" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="UC18" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Consultar sugestões/queixas" vertex="1">
+          <mxGeometry height="60" width="180" x="260" y="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="UC3" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Consultar disponibilidade de quartos" vertex="1">
+          <mxGeometry height="60" width="180" x="550" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="UC6" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Atribuir cartão magnético" vertex="1">
+          <mxGeometry height="60" width="180" x="540" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="UC8" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Calcular valor da estadia" vertex="1">
+          <mxGeometry height="60" width="180" x="570" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="UC11" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Registar Movimento de Stock" vertex="1">
+          <mxGeometry height="60" width="180" x="560" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="UC21" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Submeter sugestão/queixa" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="UC0" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Autenticar" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="UC19" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Aceder a zona com cartão" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="665" as="geometry" />
+        </mxCell>
+        <mxCell id="UC20" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Registar acesso (local e hora)" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="gen1" edge="1" parent="1" source="G" style="endArrow=block;endFill=0;endSize=14;" target="FR">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a8" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC0">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235" y="605" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a22" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC19">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a9" edge="1" parent="1" source="G" style="endArrow=none;" target="UC12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a10" edge="1" parent="1" source="G" style="endArrow=none;" target="UC13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a11" edge="1" parent="1" source="G" style="endArrow=none;" target="UC14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a12" edge="1" parent="1" source="G" style="endArrow=none;" target="UC15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a13" edge="1" parent="1" source="G" style="endArrow=none;" target="UC16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a14" edge="1" parent="1" source="G" style="endArrow=none;" target="UC17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a15" edge="1" parent="1" source="G" style="endArrow=none;" target="UC18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a17" edge="1" parent="1" source="C" style="endArrow=none;" target="UC19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a18" edge="1" parent="1" source="C" style="endArrow=none;" target="UC21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a20" edge="1" parent="1" source="FRest" style="endArrow=none;" target="UC19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i1" edge="1" parent="1" source="UC2" style="endArrow=open;endFill=0;dashed=1;" target="UC3" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i2" edge="1" parent="1" source="UC5" style="endArrow=open;endFill=0;dashed=1;" target="UC6" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i3" edge="1" parent="1" source="UC7" style="endArrow=open;endFill=0;dashed=1;" target="UC8" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="i4" edge="1" parent="1" source="UC19" style="endArrow=open;endFill=0;dashed=1;" target="UC20" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="zTYPzhLqcjIlk3VxRZew-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Consultar quartos" vertex="1">
+          <mxGeometry height="60" width="180" x="310" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="zTYPzhLqcjIlk3VxRZew-2" edge="1" parent="1" style="endArrow=none;entryX=0;entryY=0;entryDx=0;entryDy=0;" target="zTYPzhLqcjIlk3VxRZew-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="110" y="330" as="sourcePoint" />
+            <mxPoint x="546" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="zTYPzhLqcjIlk3VxRZew-4" edge="1" parent="1" source="UC10" style="endArrow=open;endFill=0;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="UC11" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="520" y="550" />
+            </Array>
+            <mxPoint x="480" y="530" as="sourcePoint" />
+            <mxPoint x="600" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
