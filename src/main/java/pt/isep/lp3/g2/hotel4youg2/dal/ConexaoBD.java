@@ -9,8 +9,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.security.Security;
 
 public final class ConexaoBD {
+
+    static {
+        Security.setProperty("jdk.tls.disabledAlgorithms",
+                "SSLv3, DTLSv1.0, RC4, DES, MD5withRSA, DH keySize < 1024, "
+                        + "EC keySize < 224, 3DES_EDE_CBC, anon, NULL, ECDH");
+    }
 
     private static final Dotenv DOTENV = Dotenv.configure().ignoreIfMissing().load();
 
