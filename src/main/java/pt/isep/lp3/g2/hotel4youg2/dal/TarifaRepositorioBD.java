@@ -10,7 +10,7 @@ import java.util.List;
 public class TarifaRepositorioBD implements TarifaRepositorio {
 
     private static final String LISTAR = "SELECT tipo, vista, valorNoite FROM Tarifa ORDER BY tipo, vista";
-    private static final String ATUALIZAR = "UPDATE Tarifa SET valorNoite = ? WHERE tipo = ? AND vista = =";
+    private static final String ATUALIZAR = "UPDATE Tarifa SET valorNoite = ? WHERE tipo = ? AND vista = ?";
 
     @Override
     public List<Tarifa> listar() {
