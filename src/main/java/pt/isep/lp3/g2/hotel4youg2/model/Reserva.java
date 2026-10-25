@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class Reserva {
 
@@ -13,6 +14,8 @@ public class Reserva {
     private int numHospedes;
     private EstadoReserva estado;
     private BigDecimal precoTotal;
+    private LocalDateTime checkinEm;
+    private LocalDateTime checkoutEm;
 
     public int getId() {
         return id;
@@ -78,7 +81,23 @@ public class Reserva {
         this.precoTotal = precoTotal;
     }
 
-    public Reserva(int id, int clienteId, int quartoNumero, LocalDate dataEntrada, LocalDate dataSaida, int numHospedes, EstadoReserva estado, BigDecimal precoTotal) {
+    public LocalDateTime getCheckinEm() {
+        return checkinEm;
+    }
+
+    public void setCheckinEm(LocalDateTime checkinEm) {
+        this.checkinEm = checkinEm;
+    }
+
+    public LocalDateTime getCheckoutEm() {
+        return checkoutEm;
+    }
+
+    public void setCheckoutEm(LocalDateTime checkoutEm) {
+        this.checkoutEm = checkoutEm;
+    }
+
+    public Reserva(int id, int clienteId, int quartoNumero, LocalDate dataEntrada, LocalDate dataSaida, int numHospedes, EstadoReserva estado, BigDecimal precoTotal, LocalDateTime checkinEm, LocalDateTime checkoutEm) {
         this.id = id;
         this.clienteId = clienteId;
         this.quartoNumero = quartoNumero;
@@ -87,5 +106,7 @@ public class Reserva {
         this.numHospedes = numHospedes;
         this.estado = estado;
         this.precoTotal = precoTotal;
+        this.checkinEm = checkinEm;
+        this.checkoutEm = checkoutEm;
     }
 }
