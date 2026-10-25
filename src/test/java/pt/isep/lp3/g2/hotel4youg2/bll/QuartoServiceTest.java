@@ -1,7 +1,6 @@
-package bll;
+package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.bll.QuartoService;
 import pt.isep.lp3.g2.hotel4youg2.dal.QuartoRepositorio;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
@@ -36,7 +35,7 @@ class QuartoServiceTest {
     private final QuartoService service = new QuartoService(new RepositorioFalso());
 
     @Test
-    void semFiltoMostraTodos() {
+    void semFiltroMostraTodos() {
         assertEquals(4, service.listar(null, null).size());
     }
 
@@ -49,7 +48,7 @@ class QuartoServiceTest {
     }
 
     @Test
-    void filtraPorTipoPiso() {
+    void filtraTipoPiso() {
         assertEquals(2, service.listar(null, 3).size());
     }
 
