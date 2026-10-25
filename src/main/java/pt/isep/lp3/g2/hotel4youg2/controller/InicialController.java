@@ -1,8 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoService;
+
+import java.io.IOException;
 
 public class InicialController {
 
@@ -14,5 +19,15 @@ public class InicialController {
     @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoService.testarLigacao());
+    }
+
+    @FXML
+    private void aoConsultarQuartos() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/quartos-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Quartos");
+        stage.setScene(new Scene(loader.load(), 700, 500));
+        stage.show();
     }
 }
