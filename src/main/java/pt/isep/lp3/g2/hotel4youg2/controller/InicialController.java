@@ -30,7 +30,16 @@ public class InicialController {
         stage.setScene(new Scene(loader.load(), 700, 500));
         stage.show();
     }
-
+    @FXML
+    private void aoAbrirTarifas() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/tarifas-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Tarifas");
+        stage.setScene(new Scene(loader.load(), 520, 460));
+        stage.show();
+    }
+  
     @FXML
     private void aoPesquisarDisponibilidade() throws IOException {
        FXMLLoader loader = new FXMLLoader(
