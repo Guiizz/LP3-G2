@@ -8,14 +8,6 @@ public class Quarto {
     private Vista vista;
     private int capacidade;
 
-    public Quarto(int numero, int piso, TipoQuarto tipo, Vista vista, int capacidade) {
-        this.numero = numero;
-        this.piso = piso;
-        this.tipo = tipo;
-        this.vista = vista;
-        this.capacidade = capacidade;
-    }
-
     public int getNumero() {
         return numero;
     }
@@ -53,6 +45,14 @@ public class Quarto {
     }
 
     public void setCapacidade(int capacidade) {
+        this.capacidade = capacidade;
+    }
+
+    public Quarto(int numero, int piso, TipoQuarto tipo, Vista vista, int capacidade) {
+        this.numero = numero;
+        this.piso = piso;
+        this.tipo = tipo;
+        this.vista = vista;
         this.capacidade = capacidade;
     }
 }
