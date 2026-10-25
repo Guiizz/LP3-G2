@@ -46,7 +46,7 @@ public class DisponibilidadeController {
        try {
            List<Quarto> quartos = quartoService.pesquisarDisponiveis(entradaPicker.getValue(), saidaPicker.getValue(), hospedesSpinner.getValue(), tipoCombo.getValue(), vistaCombo.getValue());
            if (quartos.isEmpty()) {
-               mensagemLabel.setText("Sem disponibilidade para estas datas.");
+               mensagemLabel.setText("Sem disponibilidade para estas datas");
            } else {
                quartosTabela.getItems().setAll(quartos);
                mensagemLabel.setText(quartos.size() + " quarto(s) disponível(eis)");
