@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import java.math.BigDecimal;
+
 public class Quarto {
 
     private int numero;
@@ -7,6 +9,7 @@ public class Quarto {
     private TipoQuarto tipo;
     private Vista vista;
     private int capacidade;
+    private Tarifa tarifa;
 
     public Quarto(int numero, int piso, TipoQuarto tipo, Vista vista, int capacidade) {
         this.numero = numero;
@@ -54,5 +57,17 @@ public class Quarto {
 
     public void setCapacidade(int capacidade) {
         this.capacidade = capacidade;
+    }
+
+    public Tarifa getTarifa() {
+        return tarifa;
+    }
+
+    public void setTarifa(Tarifa tarifa) {
+        this.tarifa = tarifa;
+    }
+
+    public BigDecimal getValorNoite() {
+        return tarifa != null ? tarifa.getValorNoite() : null;
     }
 }
