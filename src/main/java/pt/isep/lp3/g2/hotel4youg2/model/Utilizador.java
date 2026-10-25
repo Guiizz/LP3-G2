@@ -6,6 +6,7 @@ public class Utilizador {
     private int funcionarioId;
     private String nomeUtilizador;
     private String passwordHash;
+    private String passwordSalt;
     private Perfil perfil;
     private boolean ativo;
 
@@ -41,6 +42,14 @@ public class Utilizador {
         this.passwordHash = passwordHash;
     }
 
+    public String getPasswordSalt() {
+        return passwordSalt;
+    }
+
+    public void setPasswordSalt(String passwordSalt) {
+        this.passwordSalt = passwordSalt;
+    }
+
     public Perfil getPerfil() {
         return perfil;
     }
@@ -57,11 +66,12 @@ public class Utilizador {
         this.ativo = ativo;
     }
 
-    public Utilizador(int id, int funcionarioId, String nomeUtilizador, String passwordHash, Perfil perfil, boolean ativo) {
+    public Utilizador(int id, int funcionarioId, String nomeUtilizador, String passwordHash, String passwordSalt, Perfil perfil, boolean ativo) {
         this.id = id;
         this.funcionarioId = funcionarioId;
         this.nomeUtilizador = nomeUtilizador;
         this.passwordHash = passwordHash;
+        this.passwordSalt = passwordSalt;
         this.perfil = perfil;
         this.ativo = ativo;
     }
