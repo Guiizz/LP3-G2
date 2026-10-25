@@ -49,6 +49,14 @@ public class Quarto {
         this.capacidade = capacidade;
     }
 
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
+    }
+
     public Quarto(int numero, int piso, TipoQuarto tipo, Vista vista, int capacidade, boolean ativo) {
         this.numero = numero;
         this.piso = piso;
