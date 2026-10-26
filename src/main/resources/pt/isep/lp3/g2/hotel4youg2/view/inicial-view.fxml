@@ -14,5 +14,6 @@
     <Button text="Consultar quartos" onAction="#aoConsultarQuartos"/>
     <Button text="Tarifas" onAction="#aoAbrirTarifas"/>
     <Button text="Pesquisar disponibilidade" onAction="#aoPesquisarDisponibilidade"/>
+    <Button text="Registar cliente" onAction="#aoRegistarCliente"/>
     <Button fx:id="terminarSessaoButton" text="Terminar sessão" onAction="#aoTerminarSessao"/>
 </VBox>
