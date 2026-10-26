@@ -1,12 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import jdk.jshell.execution.Util;
 import pt.isep.lp3.g2.hotel4youg2.dal.IUtilizadorDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.UtilizadorDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
-import java.sql.Struct;
 import java.util.List;
 
 public class UtilizadorBLL {
