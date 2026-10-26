@@ -44,6 +44,11 @@ class ClienteServiceTest {
         public List<Cliente> pesquisarClientes(String termo) {
             return new ArrayList<>();
         }
+
+        @Override
+        public boolean atualizarCliente(Cliente c) {
+            return true;
+        }
     }
 
     private void esperaErro(RepositorioFalso repo, String nome, String nif, LocalDate data,

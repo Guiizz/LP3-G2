@@ -28,17 +28,73 @@ public class ClienteService {
         cc = limpar(cc);
         morada = limpar(morada);
 
-        if (nome == null) {
-            throw new ValidacaoException("O nome é obrigatório");
-        }
-        validarTamanho(nome, 100, "O nome");
-
         if (nif == null) {
             throw new ValidacaoException("O NIF é obrigatório");
         }
         if (!nif.matches("\\d{9}")) {
             throw new ValidacaoException("O NIF tem de ter exatamente 9 dígitos");
         }
+        validarDados(nome, dataNascimento, telemovel, email, cc, morada);
+
+        if (repositorio.existeNif(nif)) {
+            throw new ValidacaoException("Já existe uma pessoa registada com o NIF " + nif);
+        }
+
+        Cliente cliente = new Cliente(0, nome, cc, nif, morada, telemovel, dataNascimento, email);
+        repositorio.inserirCliente(cliente);
+        return cliente;
+    }
+
+    /**
+     * Altera os dados de um cliente já registado (US19).
+     * O NIF não pode ser alterado e aplicam-se as mesmas validações do registo.
+     * Se alguma validação falhar, o cliente fica como estava.
+     *
+     * @param cliente        o cliente escolhido na pesquisa
+     * @param nome           o nome (obrigatório)
+     * @param dataNascimento a data de nascimento (obrigatória, pelo menos 18 anos)
+     * @param telemovel      o telemóvel (obrigatório se não houver email)
+     * @param email          o email (obrigatório se não houver telemóvel)
+     * @param cc             o número do CC (opcional)
+     * @param morada         a morada (opcional)
+     * @return o mesmo cliente, já com os dados novos
+     * @throws ValidacaoException se não houver cliente escolhido, algum dado for inválido
+     *                            ou o cliente já não existir na base de dados
+     */
+    public Cliente editar(Cliente cliente, String nome, LocalDate dataNascimento,
+                          String telemovel, String email, String cc, String morada) {
+        if (cliente == null) {
+            throw new ValidacaoException("Escolha um cliente na pesquisa");
+        }
+        nome = limpar(nome);
+        telemovel = limpar(telemovel);
+        email = limpar(email);
+        cc = limpar(cc);
+        morada = limpar(morada);
+        validarDados(nome, dataNascimento, telemovel, email, cc, morada);
+
+        Cliente alterado = new Cliente(cliente.getId(), nome, cc, cliente.getNif(), morada, telemovel,
+                dataNascimento, email);
+        if (!repositorio.atualizarCliente(alterado)) {
+            throw new ValidacaoException("O cliente já não existe");
+        }
+
+        cliente.setNome(nome);
+        cliente.setDataNascimento(dataNascimento);
+        cliente.setTelemovel(telemovel);
+        cliente.setEmail(email);
+        cliente.setCc(cc);
+        cliente.setMorada(morada);
+        return cliente;
+    }
+
+    /** Validações comuns ao registo e à edição (tudo menos o NIF). */
+    private void validarDados(String nome, LocalDate dataNascimento, String telemovel,
+                              String email, String cc, String morada) {
+        if (nome == null) {
+            throw new ValidacaoException("O nome é obrigatório");
+        }
+        validarTamanho(nome, 100, "O nome");
 
         if (dataNascimento == null) {
             throw new ValidacaoException("A data de nascimento é obrigatória");
@@ -62,14 +118,6 @@ public class ClienteService {
         validarTamanho(email, 100, "O email");
         validarTamanho(cc, 12, "O CC");
         validarTamanho(morada, 200, "A morada");
-
-        if (repositorio.existeNif(nif)) {
-            throw new ValidacaoException("Já existe uma pessoa registada com o NIF " + nif);
-        }
-
-        Cliente cliente = new Cliente(0, nome, cc, nif, morada, telemovel, dataNascimento, email);
-        repositorio.inserirCliente(cliente);
-        return cliente;
     }
 
     public List<Cliente> pesquisar(String termo) {

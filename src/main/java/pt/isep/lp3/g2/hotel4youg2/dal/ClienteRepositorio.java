@@ -28,4 +28,13 @@ public interface ClienteRepositorio {
      * @return os clientes encontrados, ordenados por nome
      */
     List<Cliente> pesquisarClientes(String termo);
+
+    /**
+     * Grava as alterações aos dados de um cliente que já existe.
+     * O NIF não é alterado.
+     *
+     * @param c o cliente, com o id e os dados novos
+     * @return {@code true} se o cliente existia e foi alterado
+     */
+    boolean atualizarCliente(Cliente c);
 }

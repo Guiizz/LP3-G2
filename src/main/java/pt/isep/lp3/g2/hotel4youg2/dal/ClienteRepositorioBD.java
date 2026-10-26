@@ -45,6 +45,15 @@ public class ClienteRepositorioBD implements ClienteRepositorio {
     }
 
     @Override
+    public boolean atualizarCliente(Cliente c) {
+        return ConexaoBD.executar(
+                "UPDATE Pessoa SET nome = ?, dataNascimento = ?, telemovel = ?, email = ?, cc = ?, morada = ? "
+                        + "WHERE id = ? AND id IN (SELECT pessoaId FROM Cliente)",
+                c.getNome(), Date.valueOf(c.getDataNascimento()), c.getTelemovel(), c.getEmail(), c.getCc(), c.getMorada(),
+                c.getId()) > 0;
+    }
+
+    @Override
     public boolean existeNif(String nif) {
         try (Connection conn = ConexaoBD.abrir();
              PreparedStatement ps= conn.prepareStatement(

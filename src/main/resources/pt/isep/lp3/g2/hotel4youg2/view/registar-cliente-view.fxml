@@ -19,7 +19,7 @@
         <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
     </padding>
 
-    <Label text="Registar cliente" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label fx:id="tituloLabel" text="Registar cliente" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
 
     <GridPane hgap="10.0" vgap="8.0">
         <Label text="Nome *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
@@ -45,7 +45,11 @@
     </GridPane>
 
     <Label text="* obrigatório; indique também o telemóvel ou o email" style="-fx-font-size: 11;"/>
-    <Button text="Registar" onAction="#aoRegistar"/>
+    <HBox spacing="10.0">
+        <Button fx:id="registarButton" text="Registar" onAction="#aoRegistar"/>
+        <Button fx:id="cancelarButton" text="Cancelar edição" onAction="#aoCancelarEdicao"
+                visible="false" managed="false"/>
+    </HBox>
     <Label fx:id="mensagemLabel" wrapText="true"/>
 
     <Separator/>
@@ -56,4 +60,5 @@
         <Button text="Pesquisar" onAction="#aoPesquisar"/>
     </HBox>
     <ListView fx:id="resultadosList" prefHeight="150.0"/>
+    <Button text="Editar selecionado" onAction="#aoEditarSelecionado"/>
 </VBox>
