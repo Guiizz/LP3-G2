@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.RegistarClienteController">
+    <padding>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
+    </padding>
+
+    <Label text="Registar cliente" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <GridPane hgap="10.0" vgap="8.0">
+        <Label text="Nome *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nomeField" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="NIF *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="nifField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Data de nascimento *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <DatePicker fx:id="dataNascimentoPicker" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Telemóvel" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="telemovelField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Email" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="emailField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="CC" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="ccField" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label text="Morada" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <TextField fx:id="moradaField" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <Label text="* obrigatório; indique também o telemóvel ou o email" style="-fx-font-size: 11;"/>
+    <Button text="Registar" onAction="#aoRegistar"/>
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+
+    <Separator/>
+
+    <Label text="Pesquisar cliente (nome ou NIF)"/>
+    <HBox spacing="10.0">
+        <TextField fx:id="pesquisaField" HBox.hgrow="ALWAYS"/>
+        <Button text="Pesquisar" onAction="#aoPesquisar"/>
+    </HBox>
+    <ListView fx:id="resultadosList" prefHeight="150.0"/>
+</VBox>
