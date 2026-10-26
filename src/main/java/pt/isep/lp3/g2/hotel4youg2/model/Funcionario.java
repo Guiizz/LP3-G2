@@ -2,7 +2,10 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.time.LocalDate;
 
-public class Funcionario extends Pessoa{
+/**
+ * Funcionário do hotel. Pode ter uma conta ({@link Utilizador}) para entrar na aplicação.
+ */
+public class Funcionario extends Pessoa {
 
     private int numeroFuncionario;
     private LocalDate dataAdmissao;

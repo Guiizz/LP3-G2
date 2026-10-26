@@ -19,7 +19,19 @@ public interface IUtilizadorDAL {
      */
     Optional<Utilizador> procurarPorNomeUtilizador(String nomeUtilizador);
 
+    /**
+     * @return todas as contas, ordenadas pelo nome de utilizador
+     * @throws DataAccessException se não for possível consultar a base de dados
+     */
     List<Utilizador> listar();
 
+    /**
+     * Ativa ou desativa uma conta.
+     *
+     * @param utilizadorId o id da conta
+     * @param ativo        {@code true} para ativar, {@code false} para desativar
+     * @return {@code true} se a conta existia e foi alterada
+     * @throws DataAccessException se não for possível alterar a base de dados
+     */
     boolean atualizarAtivo(int utilizadorId, boolean ativo);
 }

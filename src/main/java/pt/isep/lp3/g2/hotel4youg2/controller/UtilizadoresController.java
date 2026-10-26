@@ -9,6 +9,9 @@ import pt.isep.lp3.g2.hotel4youg2.bll.UtilizadorBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Contas": lista as contas e deixa o gestor desativá-las ou reativá-las (US22).
+ */
 public class UtilizadoresController {
 
     private final UtilizadorBLL utilizadorBLL = new UtilizadorBLL();

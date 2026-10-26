@@ -11,6 +11,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Criar conta": o gestor cria um funcionário com a sua conta (US15).
+ */
 public class CriarContaController {
 
     private final FuncionarioBLL funcionarioBLL = new FuncionarioBLL();

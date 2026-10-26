@@ -1,5 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+/**
+ * Conta de acesso de um funcionário à aplicação.
+ * A password nunca é guardada: só o hash (SHA-256) e o salt, em hexadecimal.
+ */
 public class Utilizador {
 
     private int id;
@@ -66,6 +70,15 @@ public class Utilizador {
         this.ativo = ativo;
     }
 
+    /**
+     * @param id             o identificador da conta
+     * @param funcionarioId  o id do funcionário a quem a conta pertence
+     * @param nomeUtilizador o nome usado para entrar
+     * @param passwordHash   o hash da password
+     * @param passwordSalt   o salt usado no hash
+     * @param perfil         o perfil, que decide o que a pessoa pode fazer
+     * @param ativo          {@code false} se a conta estiver desativada
+     */
     public Utilizador(int id, int funcionarioId, String nomeUtilizador, String passwordHash, String passwordSalt, Perfil perfil, boolean ativo) {
         this.id = id;
         this.funcionarioId = funcionarioId;
