@@ -51,7 +51,7 @@ public class LoginController {
         FXMLLoader loader = new FXMLLoader(
                 LoginController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/inicial-view.fxml"));
         Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
-        stage.setScene(new Scene(loader.load(), 400, 250));
+        stage.setScene(new Scene(loader.load(), 400, 300));
         stage.setTitle("Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
     }
 }

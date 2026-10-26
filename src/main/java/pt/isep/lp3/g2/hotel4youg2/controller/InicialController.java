@@ -3,11 +3,15 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoService;
+import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class InicialController {
 
@@ -15,6 +19,9 @@ public class InicialController {
 
     @FXML
     private Label estadoLabel;
+
+    @FXML
+    private Button terminarSessaoButton;
 
     @FXML
     private void aoTestarLigacao() {
@@ -48,5 +55,26 @@ public class InicialController {
        stage.setTitle("Hotel4You - Disponibilidade");
        stage.setScene(new Scene(loader.load(), 800, 500));
        stage.show();
+    }
+
+    /**
+     * Termina a sessão do utilizador: fecha as outras janelas abertas
+     * e volta ao ecrã de login, onde é preciso entrar outra vez.
+     */
+    @FXML
+    private void aoTerminarSessao() throws IOException {
+        Sessao.terminar();
+
+        Stage janelaPrincipal = (Stage) terminarSessaoButton.getScene().getWindow();
+        for (Window janela : new ArrayList<>(Window.getWindows())) {
+            if (janela != janelaPrincipal && janela instanceof Stage outraJanela) {
+                outraJanela.close();
+            }
+        }
+
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/login-view.fxml"));
+        janelaPrincipal.setScene(new Scene(loader.load(), 360, 320));
+        janelaPrincipal.setTitle("Hotel4You · Entrar");
     }
 }
