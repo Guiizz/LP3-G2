@@ -10,6 +10,8 @@ import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.TarifaService;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
+import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.math.BigDecimal;
 
@@ -19,9 +21,6 @@ import java.math.BigDecimal;
 public class TarifaController {
 
     private final TarifaService tarifaService = new TarifaService();
-
-    // Por fazer - é preciso trocar pelo perfil de quem tem sessão iniciada (Guilherme)
-    private final Perfil perfilAtual = Perfil.GESTOR;
 
     @FXML
     private TableView<Tarifa> tabela;
@@ -61,7 +60,7 @@ public class TarifaController {
         }
         try {
             BigDecimal novoValor = new BigDecimal(campoPreco.getText().trim().replace(',', '.'));
-            tarifaService.alterarPreco(perfilAtual, selecionada.getTipo(), selecionada.getVista(), novoValor);
+            tarifaService.alterarPreco(perfilAtual(), selecionada.getTipo(), selecionada.getVista(), novoValor);
             mensagemLabel.setText("Preço atualizado");
             campoPreco.clear();
             carregar();
@@ -70,5 +69,16 @@ public class TarifaController {
         } catch (RuntimeException e) {
             mensagemLabel.setText(e.getMessage());
         }
+    }
+
+    /**
+     * @return o perfil de quem tem a sessão iniciada, ou {@code null} se ninguém tiver
+     */
+    private Perfil perfilAtual() {
+        Utilizador utilizador = Sessao.getUtilizador();
+        if (utilizador == null) {
+            return null;
+        }
+        return utilizador.getPerfil();
     }
 }
