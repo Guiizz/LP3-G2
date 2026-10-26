@@ -7,12 +7,21 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Arranque do JavaFX: abre a janela no ecrã de login.
+ */
 public class HelloApplication extends Application {
+    /**
+     * Mostra o ecrã de login na janela principal.
+     *
+     * @param stage a janela principal criada pelo JavaFX
+     * @throws IOException se não for possível carregar o login-view.fxml
+     */
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-        stage.setTitle("Hello!");
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("view/login-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 360, 320);
+        stage.setTitle("Hotel4You · Entrar");
         stage.setScene(scene);
         stage.show();
     }
