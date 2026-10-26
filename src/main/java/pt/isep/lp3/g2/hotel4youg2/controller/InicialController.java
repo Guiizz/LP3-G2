@@ -67,6 +67,16 @@ public class InicialController {
         stage.show();
     }
 
+    @FXML
+    private void aoPesquisarCliente() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/pesquisar-cliente-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Pesquisar cliente");
+        stage.setScene(new Scene(loader.load()));
+        stage.show();
+    }
+
     /**
      * Termina a sessão do utilizador: fecha as outras janelas abertas
      * e volta ao ecrã de login, onde é preciso entrar outra vez.

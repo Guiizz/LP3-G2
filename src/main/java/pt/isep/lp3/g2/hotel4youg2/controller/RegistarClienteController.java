@@ -181,4 +181,13 @@ public class RegistarClienteController {
         ccField.clear();
         moradaField.clear();
     }
+
+    /**
+     * US14: abre o registo já com o NIF que não foi encontrado na pesquisa.
+     *
+     * @param nif o NIF a preencher
+     */
+    public void preencherNif(String nif) {
+        nifField.setText(nif);
+    }
 }
