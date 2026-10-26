@@ -11,6 +11,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Implementação do {@link QuartoRepositorio} sobre as tabelas Quarto, Tarifa e Reserva do SQL Server.
+ */
 public class QuartoRepositorioBD implements QuartoRepositorio {
 
     private static final String LISTAR_COM_TARIFA =
