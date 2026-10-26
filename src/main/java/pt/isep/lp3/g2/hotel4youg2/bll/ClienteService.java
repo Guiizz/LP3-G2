@@ -52,12 +52,7 @@ public class ClienteService {
         cc = limpar(cc);
         morada = limpar(morada);
 
-        if (nif == null) {
-            throw new ValidacaoException("O NIF é obrigatório");
-        }
-        if (!nif.matches("\\d{9}")) {
-            throw new ValidacaoException("O NIF tem de ter exatamente 9 dígitos");
-        }
+        validarNif(nif);
         validarDados(nome, dataNascimento, telemovel, email, cc, morada);
 
         if (repositorio.existeNif(nif)) {
@@ -156,6 +151,29 @@ public class ClienteService {
             termo = "";
         }
         return repositorio.pesquisarClientes(termo);
+    }
+
+    /**
+     * Procura um cliente pelo NIF (US14). O formato do NIF é validado
+     * antes de ir à base de dados.
+     *
+     * @param nif o NIF a procurar
+     * @return o cliente com este NIF, ou {@code null} se não existir
+     * @throws ValidacaoException se o NIF estiver vazio ou não tiver 9 dígitos
+     */
+    public Cliente pesquisarPorNif(String nif) {
+        nif = limpar(nif);
+        validarNif(nif);
+        return repositorio.procurarPorNif(nif);
+    }
+
+    private void validarNif(String nif) {
+        if (nif == null) {
+            throw new ValidacaoException("O NIF é obrigatório");
+        }
+        if (!nif.matches("\\d{9}")) {
+            throw new ValidacaoException("O NIF tem de ter exatamente 9 dígitos");
+        }
     }
 
     private String limpar(String texto) {

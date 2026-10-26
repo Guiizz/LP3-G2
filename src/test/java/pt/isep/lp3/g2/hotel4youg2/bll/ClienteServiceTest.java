@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-/** Testa as validações da US13 sem ir à base de dados. */
+/** Testa as regras do registo (US13) e da pesquisa por NIF (US14) sem ir à base de dados. */
 class ClienteServiceTest {
 
     private static final LocalDate ADULTO = LocalDate.now().minusYears(30);
@@ -23,6 +23,8 @@ class ClienteServiceTest {
     private static class RepositorioFalso implements ClienteRepositorio {
         private final boolean nifExiste;
         private boolean gravou = false;
+        private Cliente clienteNaBD = null;
+        private int procuras = 0;
 
         RepositorioFalso(boolean nifExiste) {
             this.nifExiste = nifExiste;
@@ -48,6 +50,31 @@ class ClienteServiceTest {
         @Override
         public boolean atualizarCliente(Cliente c) {
             return true;
+        }
+
+        @Override
+        public Cliente procurarPorNif(String nif) {
+            procuras++;
+            if (clienteNaBD != null && clienteNaBD.getNif().equals(nif)) {
+                return clienteNaBD;
+            }
+            return null;
+        }
+    }
+
+    private RepositorioFalso repositorioComAna() {
+        RepositorioFalso repo = new RepositorioFalso(true);
+        repo.clienteNaBD = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
+        return repo;
+    }
+
+    private void esperaErroNaPesquisa(String nif) {
+        RepositorioFalso repo = repositorioComAna();
+        try {
+            new ClienteService(repo).pesquisarPorNif(nif);
+            fail("Devia ter sido recusado");
+        } catch (ValidacaoException e) {
+            assertEquals(0, repo.procuras, "Não devia ter ido à base de dados");
         }
     }
 
@@ -152,5 +179,48 @@ class ClienteServiceTest {
         } catch (ValidacaoException e) {
             assertEquals("Já existe uma pessoa registada com o NIF 123456789", e.getMessage());
         }
+    }
+
+    // ---------- US14: pesquisar cliente por NIF ----------
+
+    @Test
+    void pesquisaComNifExistenteDevolveOsDados() {
+        Cliente c = new ClienteService(repositorioComAna()).pesquisarPorNif("123456789");
+        assertEquals(7, c.getId());
+        assertEquals("Ana Silva", c.getNome());
+        assertEquals("912345678", c.getTelemovel());
+    }
+
+    @Test
+    void pesquisaComNifInexistenteDevolveNull() {
+        RepositorioFalso repo = repositorioComAna();
+        assertNull(new ClienteService(repo).pesquisarPorNif("987654321"));
+        assertEquals(1, repo.procuras);
+    }
+
+    @Test
+    void pesquisaIgnoraEspacosAntesEDepois() {
+        Cliente c = new ClienteService(repositorioComAna()).pesquisarPorNif("  123456789 ");
+        assertEquals("Ana Silva", c.getNome());
+    }
+
+    @Test
+    void pesquisaSemNifFalha() {
+        esperaErroNaPesquisa("   ");
+    }
+
+    @Test
+    void pesquisaComNifComLetrasFalhaAntesDePesquisar() {
+        esperaErroNaPesquisa("12AB56789");
+    }
+
+    @Test
+    void pesquisaComNifCurtoFalhaAntesDePesquisar() {
+        esperaErroNaPesquisa("12345678");
+    }
+
+    @Test
+    void pesquisaComNifLongoFalhaAntesDePesquisar() {
+        esperaErroNaPesquisa("1234567890");
     }
 }

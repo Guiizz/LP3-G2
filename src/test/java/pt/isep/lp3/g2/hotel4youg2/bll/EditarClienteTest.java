@@ -46,6 +46,11 @@ class EditarClienteTest {
             atualizado = c;
             return clienteExiste;
         }
+
+        @Override
+        public Cliente procurarPorNif(String nif) {
+            return null;
+        }
     }
 
     private Cliente ana() {
