@@ -37,5 +37,21 @@ class SessaoTest {
         Sessao.iniciar(gestor);
         Sessao.terminar();
         assertFalse(Sessao.estaIniciada());
+        assertNull(Sessao.getUtilizador());
+    }
+
+    @Test
+    void terminarSemSessaoIniciadaNaoDaErro() {
+        Sessao.terminar();
+        assertFalse(Sessao.estaIniciada());
+    }
+
+    @Test
+    void depoisDeTerminarOutroUtilizadorPodeEntrar() {
+        Utilizador rececao = new Utilizador(2, 2, "rececao", "hash", "salt", Perfil.RECECIONISTA, true);
+        Sessao.iniciar(gestor);
+        Sessao.terminar();
+        Sessao.iniciar(rececao);
+        assertEquals("rececao", Sessao.getUtilizador().getNomeUtilizador());
     }
 }
