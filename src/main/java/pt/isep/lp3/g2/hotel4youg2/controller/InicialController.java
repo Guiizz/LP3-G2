@@ -46,6 +46,16 @@ public class InicialController {
         stage.setScene(new Scene(loader.load(), 520, 460));
         stage.show();
     }
+
+    @FXML
+    private void aoAbrirContas() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/utilizadores-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Contas");
+        stage.setScene(new Scene(loader.load(), 460, 400));
+        stage.show();
+    }
   
     @FXML
     private void aoPesquisarDisponibilidade() throws IOException {

@@ -16,7 +16,10 @@ public class UtilizadorDAL implements IUtilizadorDAL {
     private static final String SELECT_POR_NOME =
             "SELECT id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo "
             + "FROM Utilizador WHERE nomeUtilizador = ?";
-
+    private static final String SELECT_TODOS =
+            "SELECT id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo "
+            + "FROM Utilizador ORDER BY nomeUtilizador";
+    private static final String UPDATE_ATIVO = "UPDATE Utilizador SET ativo = ? WHERE id = ?";
     /**
      * {@inheritDoc}
      */
@@ -24,6 +27,16 @@ public class UtilizadorDAL implements IUtilizadorDAL {
     public Optional<Utilizador> procurarPorNomeUtilizador(String nomeUtilizador) {
         List<Utilizador> resultados = ConexaoBD.select(SELECT_POR_NOME, this::mapear, nomeUtilizador);
         return resultados.stream().findFirst();
+    }
+
+    @Override
+    public List<Utilizador> listar() {
+        return ConexaoBD.select(SELECT_TODOS, this::mapear);
+    }
+
+    @Override
+    public boolean atualizarAtivo(int utilizadorId, boolean ativo) {
+        return ConexaoBD.executar(UPDATE_ATIVO, ativo, utilizadorId) > 0;
     }
 
     private Utilizador mapear(ResultSet rs) throws SQLException {

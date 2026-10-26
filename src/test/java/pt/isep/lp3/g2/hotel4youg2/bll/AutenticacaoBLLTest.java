@@ -8,6 +8,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,6 +28,16 @@ class AutenticacaoBLLTest {
         @Override
         public Optional<Utilizador> procurarPorNomeUtilizador(String nomeUtilizador) {
             return Optional.ofNullable(utilizadores.get(nomeUtilizador));
+        }
+
+        @Override
+        public List<Utilizador> listar() {
+        return List.of();
+        }
+
+        @Override
+        public boolean atualizarAtivo(int utilizadorId, boolean ativo) {
+            return false;
         }
     }
 
