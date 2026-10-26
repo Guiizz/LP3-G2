@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,4 +18,8 @@ public interface IUtilizadorDAL {
      * @throws DataAccessException se não for possível consultar a base de dados
      */
     Optional<Utilizador> procurarPorNomeUtilizador(String nomeUtilizador);
+
+    List<Utilizador> listar();
+
+    boolean atualizarAtivo(int utilizadorId, boolean ativo);
 }
