@@ -80,21 +80,43 @@ public class ClienteRepositorioBD implements ClienteRepositorio {
             ps.setString(2, termo);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Cliente cliente = new Cliente(
-                            rs.getInt("id"),
-                            rs.getString("nome"),
-                            rs.getString("cc"),
-                            rs.getString("nif"),
-                            rs.getString("morada"),
-                            rs.getString("telemovel"),
-                            rs.getObject("dataNascimento", LocalDate.class),
-                            rs.getString("email"));
-                    clientes.add(cliente);
+                    clientes.add(criarCliente(rs));
                 }
             }
         }catch (SQLException e) {
             throw new DataAccessException("Erro ao pesquisar Clientes!", e);
         }
         return clientes;
+    }
+
+    @Override
+    public Cliente procurarPorNif(String nif) {
+        try (Connection conn = ConexaoBD.abrir();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT p.id, p.nome, p.cc, p.nif, p.morada, p.telemovel, p.dataNascimento, p.email "
+                     + "FROM Cliente c JOIN Pessoa p ON p.id = c.pessoaId "
+                     + "WHERE p.nif = ?")) {
+            ps.setString(1, nif);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return criarCliente(rs);
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao procurar o cliente", e);
+        }
+    }
+
+    private Cliente criarCliente(ResultSet rs) throws SQLException {
+        return new Cliente(
+                rs.getInt("id"),
+                rs.getString("nome"),
+                rs.getString("cc"),
+                rs.getString("nif"),
+                rs.getString("morada"),
+                rs.getString("telemovel"),
+                rs.getObject("dataNascimento", LocalDate.class),
+                rs.getString("email"));
     }
 }

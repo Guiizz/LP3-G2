@@ -30,6 +30,12 @@ public interface ClienteRepositorio {
     List<Cliente> pesquisarClientes(String termo);
 
     /**
+     * @param nif o NIF do cliente
+     * @return o cliente com este NIF, ou {@code null} se não existir
+     */
+    Cliente procurarPorNif(String nif);
+
+    /**
      * Grava as alterações aos dados de um cliente que já existe.
      * O NIF não é alterado.
      *
