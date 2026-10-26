@@ -13,6 +13,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.util.List;
 
+/**
+ * Controlador do ecrã de clientes: registar (US13), pesquisar (US14) e editar (US19).
+ */
 public class RegistarClienteController {
 
     private final ClienteService clienteService = new ClienteService();

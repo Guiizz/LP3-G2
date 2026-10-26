@@ -8,17 +8,41 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 
+/**
+ * Regras de negócio dos clientes: registar (US13), pesquisar (US14) e editar (US19).
+ */
 public class ClienteService {
     private final ClienteRepositorio repositorio;
 
+    /**
+     * Cria o serviço ligado à base de dados.
+     */
     public ClienteService() {
         this(new ClienteRepositorioBD());
     }
 
+    /**
+     * Cria o serviço com outro repositório (usado nos testes).
+     *
+     * @param repositorio de onde vêm e para onde vão os clientes
+     */
     public ClienteService(ClienteRepositorio repositorio) {
         this.repositorio = repositorio;
     }
 
+    /**
+     * Regista um cliente novo (US13).
+     *
+     * @param nome           o nome (obrigatório)
+     * @param nif            o NIF, com 9 dígitos e ainda não registado
+     * @param dataNascimento a data de nascimento (obrigatória, pelo menos 18 anos)
+     * @param telemovel      o telemóvel (obrigatório se não houver email)
+     * @param email          o email (obrigatório se não houver telemóvel)
+     * @param cc             o número do CC (opcional)
+     * @param morada         a morada (opcional)
+     * @return o cliente gravado, já com o id
+     * @throws ValidacaoException se algum dado não for válido ou o NIF já existir
+     */
     public Cliente registar(String nome, String nif, LocalDate dataNascimento,
                             String telemovel, String email, String cc, String morada) {
         nome = limpar(nome);
@@ -120,6 +144,12 @@ public class ClienteService {
         validarTamanho(morada, 200, "A morada");
     }
 
+    /**
+     * Pesquisa clientes por parte do nome ou pelo NIF completo (US14).
+     *
+     * @param termo o texto a procurar; vazio mostra todos os clientes
+     * @return os clientes encontrados, ordenados por nome
+     */
     public List<Cliente> pesquisar(String termo) {
         termo = limpar(termo);
         if (termo == null) {

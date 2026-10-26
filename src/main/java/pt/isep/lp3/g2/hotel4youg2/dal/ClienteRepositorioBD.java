@@ -1,6 +1,5 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
-import javafx.fxml.FXML;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.sql.*;
@@ -8,6 +7,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementação do {@link ClienteRepositorio} sobre as tabelas Pessoa e Cliente do SQL Server.
+ */
 public class ClienteRepositorioBD implements ClienteRepositorio {
 
     @Override

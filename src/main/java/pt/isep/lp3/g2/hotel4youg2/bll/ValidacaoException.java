@@ -1,8 +1,15 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-public class ValidacaoException extends RuntimeException{
+/**
+ * Erro de validação dos dados de um cliente (por exemplo, NIF repetido ou menor de 18 anos).
+ * A mensagem é mostrada tal como está ao utilizador.
+ */
+public class ValidacaoException extends RuntimeException {
 
-    public ValidacaoException(String mensagem){
+    /**
+     * @param mensagem a explicação do erro, para mostrar no ecrã
+     */
+    public ValidacaoException(String mensagem) {
         super(mensagem);
     }
 }
