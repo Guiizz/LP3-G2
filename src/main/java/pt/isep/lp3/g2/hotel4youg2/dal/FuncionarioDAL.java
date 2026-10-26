@@ -8,6 +8,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Implementação do {@link IFuncionarioDAL} sobre as tabelas Pessoa, Funcionario e Utilizador do SQL Server.
+ * O número de funcionário é o seguinte ao maior que já existe.
+ */
 public class FuncionarioDAL implements IFuncionarioDAL {
 
     private static final String EXISTE_NIF = "SELECT 1 FROM Pessoa WHERE nif = ?";

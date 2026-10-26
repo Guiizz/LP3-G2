@@ -15,6 +15,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 import java.io.IOException;
 import java.util.ArrayList;
 
+/**
+ * Controlador do menu principal: abre os ecrãs conforme o perfil de quem entrou (US12)
+ * e termina a sessão.
+ */
 public class InicialController {
 
     private final LigacaoService ligacaoService = new  LigacaoService();

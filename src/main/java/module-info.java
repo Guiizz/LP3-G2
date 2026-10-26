@@ -1,3 +1,6 @@
+/**
+ * Hotel4You: aplicação JavaFX para a gestão de um hotel (LP3, grupo 2).
+ */
 module pt.isep.lp3.g2.hotel4youg2 {
     requires javafx.controls;
     requires javafx.fxml;

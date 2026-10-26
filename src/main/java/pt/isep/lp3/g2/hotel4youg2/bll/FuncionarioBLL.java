@@ -10,6 +10,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 import java.time.LocalDate;
 import java.util.regex.Pattern;
 
+/**
+ * Regras de negócio para criar contas de funcionário.
+ */
 public class FuncionarioBLL {
 
     private static final int TAMANHO_MINIMO_PASSWORD = 8;
@@ -19,15 +22,36 @@ public class FuncionarioBLL {
     private final IFuncionarioDAL funcionarioDAL;
     private final PasswordUtils passwordUtils;
 
+    /**
+     * Cria o BLL ligado à base de dados.
+     */
     public FuncionarioBLL() {
         this(new FuncionarioDAL(), new PasswordUtils());
     }
 
+    /**
+     * Cria o BLL com outro DAL.
+     *
+     * @param funcionarioDAL onde as contas são gravadas
+     * @param passwordUtils  para gerar o salt e o hash da password
+     */
     public FuncionarioBLL(IFuncionarioDAL funcionarioDAL, PasswordUtils passwordUtils) {
         this.funcionarioDAL = funcionarioDAL;
         this.passwordUtils = passwordUtils;
     }
 
+    /**
+     * Cria um funcionário com a sua conta de acesso. A password é guardada
+     * só como hash e salt, nunca em texto.
+     *
+     * @param quemAge        o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param dados          os dados pessoais do funcionário (nome e NIF obrigatórios)
+     * @param nomeUtilizador o nome para entrar (3 a 50 caracteres, sem repetir)
+     * @param password       a password (pelo menos 8 caracteres)
+     * @param perfil         o perfil da conta
+     * @throws IllegalStateException    se quem age não for gestor
+     * @throws IllegalArgumentException se algum dado não for válido, o NIF ou o nome de utilizador já existirem
+     */
     public void criarConta(Utilizador quemAge, Funcionario dados, String nomeUtilizador,
                            String password, Perfil perfil) {
         if (quemAge == null || quemAge.getPerfil() != Perfil.GESTOR) {

@@ -16,6 +16,10 @@ import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Controlador do ecrã "Pesquisar cliente": procura um cliente pelo NIF e,
+ * se não existir, deixa registá-lo logo.
+ */
 public class PesquisarClienteController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
