@@ -8,6 +8,8 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoService;
+import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
+import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
@@ -24,6 +26,18 @@ public class InicialController {
     private Button terminarSessaoButton;
 
     @FXML
+    private Label utilizadorLabel;
+
+    @FXML
+    private Button tarifasButton;
+
+    @FXML
+    private Button contasButton;
+
+    @FXML
+    private Button criarContaButton;
+
+    @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoService.testarLigacao());
     }
@@ -37,8 +51,12 @@ public class InicialController {
         stage.setScene(new Scene(loader.load(), 700, 500));
         stage.show();
     }
+
     @FXML
     private void aoAbrirTarifas() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/tarifas-view.fxml"));
         Stage stage = new Stage();
@@ -49,6 +67,9 @@ public class InicialController {
 
     @FXML
     private void aoAbrirContas() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/utilizadores-view.fxml"));
         Stage stage = new Stage();
@@ -59,6 +80,9 @@ public class InicialController {
 
     @FXML
     private void aoCriarConta() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/criar-conta-view.fxml"));
         Stage stage = new Stage();
@@ -116,5 +140,42 @@ public class InicialController {
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/login-view.fxml"));
         janelaPrincipal.setScene(new Scene(loader.load(), 360, 320));
         janelaPrincipal.setTitle("Hotel4You · Entrar");
+    }
+
+    /**
+     * Prepara o menu para quem entrou: mostra o nome e o perfil
+     * e esconde as opções do gestor ao rececionista (US12).
+     */
+    @FXML
+    private void initialize() {
+        Utilizador utilizador = Sessao.getUtilizador();
+        if (utilizador != null) {
+            utilizadorLabel.setText(utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
+        }
+
+        boolean gestor = Permissoes.eGestor(utilizador);
+        mostrar(tarifasButton, gestor);
+        mostrar(contasButton, gestor);
+        mostrar(criarContaButton, gestor);
+    }
+
+    /**
+     * Confirma que quem está na sessão é gestor antes de abrir um ecrã de gestor.
+     *
+     * @return {@code true} se pode abrir; senão mostra o motivo e devolve {@code false}
+     */
+    private boolean podeAbrirEcraDeGestor() {
+        try {
+            Permissoes.exigirGestor(Sessao.getUtilizador());
+            return true;
+        } catch (IllegalStateException e) {
+            estadoLabel.setText(e.getMessage());
+            return false;
+        }
+    }
+
+    private void mostrar(Button botao, boolean visivel) {
+        botao.setVisible(visivel);
+        botao.setManaged(visivel);
     }
 }
