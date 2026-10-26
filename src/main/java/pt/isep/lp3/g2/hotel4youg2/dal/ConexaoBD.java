@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.security.Security;
 
+/**
+ * Liga a aplicação ao SQL Server e executa as instruções SQL.
+ * Os dados da ligação (servidor, base de dados, utilizador e password)
+ * são lidos do ficheiro {@code .env}, que não vai para o repositório.
+ */
 public final class ConexaoBD {
 
     static {

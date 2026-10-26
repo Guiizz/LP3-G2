@@ -10,6 +10,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Pesquisar disponibilidade": procura quartos livres entre duas datas.
+ */
 public class DisponibilidadeController {
    private final QuartoService quartoService = new QuartoService();
 

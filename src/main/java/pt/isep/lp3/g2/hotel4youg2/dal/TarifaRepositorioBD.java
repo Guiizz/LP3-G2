@@ -7,6 +7,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Implementação do {@link TarifaRepositorio} sobre a tabela Tarifa do SQL Server.
+ */
 public class TarifaRepositorioBD implements TarifaRepositorio {
 
     private static final String LISTAR = "SELECT tipo, vista, valorNoite FROM Tarifa ORDER BY tipo, vista";

@@ -13,6 +13,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 
 import java.math.BigDecimal;
 
+/**
+ * Controlador do ecrã das tarifas: mostra os preços por noite e deixa o gestor alterá-los.
+ */
 public class TarifaController {
 
     private final TarifaService tarifaService = new TarifaService();

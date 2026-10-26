@@ -11,6 +11,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Consultar quartos": mostra os quartos e os preços, com filtros por tipo e piso.
+ */
 public class QuartosController {
     private final QuartoService quartoService = new QuartoService();
 

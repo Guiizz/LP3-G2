@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Reserva de um quarto por um cliente, entre duas datas.
+ */
 public class Reserva {
 
     private int id;
@@ -97,6 +100,20 @@ public class Reserva {
         this.checkoutEm = checkoutEm;
     }
 
+    /**
+     * Cria uma reserva.
+     *
+     * @param id           o identificador da reserva
+     * @param clienteId    o id do cliente que fez a reserva
+     * @param quartoNumero o número do quarto reservado
+     * @param dataEntrada  o dia de chegada
+     * @param dataSaida    o dia de partida
+     * @param numHospedes  o número de hóspedes
+     * @param estado       o estado da reserva
+     * @param precoTotal   o preço total da estadia
+     * @param checkinEm    quando foi feito o check-in, ou {@code null} se ainda não foi
+     * @param checkoutEm   quando foi feito o check-out, ou {@code null} se ainda não foi
+     */
     public Reserva(int id, int clienteId, int quartoNumero, LocalDate dataEntrada, LocalDate dataSaida, int numHospedes, EstadoReserva estado, BigDecimal precoTotal, LocalDateTime checkinEm, LocalDateTime checkoutEm) {
         this.id = id;
         this.clienteId = clienteId;
