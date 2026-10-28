@@ -13,6 +13,7 @@ public class Quarto {
     private Vista vista;
     private int capacidade;
     private Tarifa tarifa;
+    private boolean ativo = true;
 
     /**
      * Cria um quarto, ainda sem tarifa associada.
@@ -86,5 +87,13 @@ public class Quarto {
      */
     public BigDecimal getValorNoite() {
         return tarifa != null ? tarifa.getValorNoite() : null;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
     }
 }

@@ -1,11 +1,11 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class QuartoTest {
 
@@ -38,5 +38,20 @@ class QuartoTest {
         quarto.setTarifa(new Tarifa(TipoQuarto.DUPLO, Vista.NENHUMA, new BigDecimal("80.00")));
         quarto.setTarifa(new Tarifa(TipoQuarto.DUPLO, Vista.NENHUMA, new BigDecimal("85.00")));
         assertEquals(new BigDecimal("85.00"), quarto.getValorNoite());
+    }
+
+    @Test
+    void quartoNovoEstaAtivo() {
+        Quarto quarto = new Quarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1);
+        assertTrue(quarto.isAtivo());
+    }
+
+    @Test
+    void quartoPodeSerDesativadoEReativado() {
+        Quarto quarto = new Quarto(305, 3, TipoQuarto.DUPLO, Vista.MAR, 2);
+        quarto.setAtivo(false);
+        assertFalse(quarto.isAtivo());
+        quarto.setAtivo(true);
+        assertTrue(quarto.isAtivo());
     }
 }
