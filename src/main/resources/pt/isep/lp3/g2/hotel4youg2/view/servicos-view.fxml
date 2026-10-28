@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.ServicosController">
+
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Serviços extra" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Mostrar:"/>
+        <ComboBox fx:id="filtroCategoria" prefWidth="220.0"/>
+    </HBox>
+
+    <TableView fx:id="tabela" prefHeight="260.0">
+        <columns>
+            <TableColumn fx:id="colunaCategoria" text="Categoria" prefWidth="110.0"/>
+            <TableColumn fx:id="colunaDesignacao" text="Designação" prefWidth="170.0"/>
+            <TableColumn fx:id="colunaPreco" text="Preço" prefWidth="80.0"/>
+            <TableColumn fx:id="colunaCobranca" text="Cobrança" prefWidth="110.0"/>
+            <TableColumn fx:id="colunaEstado" text="Estado" prefWidth="90.0"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0">
+        <Button fx:id="desativarButton" text="Desativar" onAction="#aoDesativar"/>
+        <Button fx:id="reativarButton" text="Reativar" onAction="#aoReativar"/>
+    </HBox>
+
+    <Separator/>
+
+    <Label fx:id="tituloFormularioLabel" text="Novo serviço" style="-fx-font-weight: bold;"/>
+
+    <GridPane hgap="10.0" vgap="8.0">
+        <Label text="Designação *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoDesignacao" prefWidth="260.0" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Categoria *" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <HBox spacing="8.0" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <ComboBox fx:id="campoCategoria" prefWidth="170.0"/>
+            <Button text="Nova categoria…" onAction="#aoNovaCategoria"/>
+        </HBox>
+
+        <Label text="Preço (€) *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoPreco" promptText="ex.: 12,50" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Cobrança *" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="campoTipoCobranca" prefWidth="260.0" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <HBox spacing="10.0">
+        <Button fx:id="guardarButton" text="Criar serviço" defaultButton="true" onAction="#aoGuardar"/>
+        <Button text="Novo" onAction="#aoNovo"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>
