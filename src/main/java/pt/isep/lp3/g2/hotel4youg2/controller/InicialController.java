@@ -42,9 +42,6 @@ public class InicialController {
     private Button criarContaButton;
 
     @FXML
-    private Button servicosButton;
-
-    @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoService.testarLigacao());
     }
@@ -99,26 +96,13 @@ public class InicialController {
     }
 
     @FXML
-    private void aoAbrirServicos() throws IOException {
-        if (!podeAbrirEcraDeGestor()) {
-            return;
-        }
+    private void aoAbrirReservas() throws IOException {
         FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/servicos-view.fxml"));
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/reservas-view.fxml"));
         Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Serviços");
-        stage.setScene(new Scene(loader.load(), 560, 600));
+        stage.setTitle("Hotel4You - Reservas");
+        stage.setScene(new Scene(loader.load(), 320, 220));
         stage.show();
-    }
-
-    @FXML
-    private void aoPesquisarDisponibilidade() throws IOException {
-       FXMLLoader loader = new FXMLLoader(
-               InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/disponibilidade-view.fxml"));
-       Stage stage = new Stage();
-       stage.setTitle("Hotel4You - Disponibilidade");
-       stage.setScene(new Scene(loader.load(), 800, 500));
-       stage.show();
     }
 
     @FXML
@@ -177,7 +161,6 @@ public class InicialController {
         mostrar(tarifasButton, gestor);
         mostrar(contasButton, gestor);
         mostrar(criarContaButton, gestor);
-        mostrar(servicosButton, gestor);
     }
 
     /**
