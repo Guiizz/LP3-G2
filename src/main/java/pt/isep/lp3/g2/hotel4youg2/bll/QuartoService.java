@@ -5,6 +5,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.QuartoRepositorioBD;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -74,6 +75,34 @@ public class QuartoService {
             }
         }
         return resultado;
+    }
+
+    public List<Quarto> listarTodos(Perfil perfilAtual) {
+        exigirGestor(perfilAtual);
+        return repositorio.listarTodos();
+    }
+
+    public void desativar(Perfil perfilAtual, int numero) {
+        exigirGestor(perfilAtual);
+        if (repositorio.temReservasFuturas(numero)) {
+            throw new IllegalArgumentException("Não é possivel desativar o quarto " + numero +
+                    ": tem reservas futuras");
+        }
+        if (!repositorio.atualizarAtivo(numero, false)) {
+            throw new IllegalArgumentException("O quarto " + numero + "não existe");
+        }
+    }
+
+    public void reativar(Perfil perfilAtual, int numero) {
+        exigirGestor(perfilAtual);
+        if (!repositorio.atualizarAtivo(numero, true)) {
+            throw new IllegalArgumentException("O quarto " + numero + " não existe");
+        }
+    }
+
+    private void exigirGestor(Perfil perfilAtual) {
+        if (perfilAtual != Perfil.GESTOR) {
+            throw new IllegalStateException("Só o gestor pode gerir quartos");        }
     }
 
     private void validarPesquisa(LocalDate entrada, LocalDate saida, int hospedes) {

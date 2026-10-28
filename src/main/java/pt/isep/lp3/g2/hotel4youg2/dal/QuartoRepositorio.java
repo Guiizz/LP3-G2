@@ -23,4 +23,10 @@ public interface QuartoRepositorio {
      * @return os quartos livres, cada um com a sua tarifa
      */
     List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida);
+
+    List<Quarto> listarTodos();
+
+    boolean temReservasFuturas(int numero);
+
+    boolean atualizarAtivo(int numero, boolean ativo);
 }
