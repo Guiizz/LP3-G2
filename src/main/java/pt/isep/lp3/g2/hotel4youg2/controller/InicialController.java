@@ -42,6 +42,9 @@ public class InicialController {
     private Button criarContaButton;
 
     @FXML
+    private Button servicosButton;
+
+    @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoService.testarLigacao());
     }
@@ -92,6 +95,19 @@ public class InicialController {
         Stage stage = new Stage();
         stage.setTitle("Hotel4You - Criar conta");
         stage.setScene(new Scene(loader.load(), 480, 560));
+        stage.show();
+    }
+
+    @FXML
+    private void aoAbrirServicos() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/servicos-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Serviços");
+        stage.setScene(new Scene(loader.load(), 560, 600));
         stage.show();
     }
 
@@ -161,6 +177,7 @@ public class InicialController {
         mostrar(tarifasButton, gestor);
         mostrar(contasButton, gestor);
         mostrar(criarContaButton, gestor);
+        mostrar(servicosButton, gestor);
     }
 
     /**
