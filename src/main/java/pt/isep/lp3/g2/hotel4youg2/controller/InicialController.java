@@ -96,6 +96,9 @@ public class InicialController {
     }
 
     @FXML
+    private Button servicosButton;
+
+    @FXML
     private void aoAbrirReservas() throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/reservas-view.fxml"));
@@ -161,6 +164,7 @@ public class InicialController {
         mostrar(tarifasButton, gestor);
         mostrar(contasButton, gestor);
         mostrar(criarContaButton, gestor);
+        mostrar(servicosButton, gestor);
     }
 
     /**
