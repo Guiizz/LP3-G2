@@ -6,14 +6,19 @@ import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorio;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -27,6 +32,17 @@ public class ReservaServiceTest {
     private static class RepositorioEmMemoria implements ReservaRepositorio {
         private boolean quartoLivre = true;
         private Reserva gravada;
+        private boolean podeCancelarNaBD = true;
+        private Integer canceladaId;
+
+        @Override
+        public boolean cancelar(int id) {
+            if (!podeCancelarNaBD) {
+                return false;
+            }
+            canceladaId = id;
+            return true;
+        }
 
         @Override
         public boolean inserirSeLivre(Reserva reserva) {
@@ -37,6 +53,26 @@ public class ReservaServiceTest {
             gravada = reserva;
             return true;
         }
+
+        @Override
+        public Reserva procurarPorId(int id) {
+            return gravada;
+        }
+
+        @Override
+        public List<Reserva> listar() {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public boolean atualizarEstado(int id, EstadoReserva estado) {
+            return true;
+        }
+
+        @Override
+        public boolean apagar(int id) {
+            return true;
+        }
     }
 
     private RepositorioEmMemoria repositorio;
@@ -44,6 +80,14 @@ public class ReservaServiceTest {
     private Cliente cliente;
     private Quarto quarto;
     private LocalDate entrada;
+
+    private static final Utilizador GESTOR = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
+    private static final Utilizador RECECAO = new Utilizador(2, 2, "rececao", "h", "s", Perfil.RECECIONISTA, true);
+
+    private Reserva reservaConfirmada() {
+        return new Reserva(5, 7, 201, entrada, entrada.plusDays(2), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+    }
 
     @BeforeEach
     public void setUp() {
@@ -199,6 +243,77 @@ public class ReservaServiceTest {
         } catch (ValidacaoException expected) {
             String result = expected.getMessage();
             assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCancelar() {
+        System.out.println("cancelar");
+        Reserva reserva = reservaConfirmada();
+        instance.cancelar(GESTOR, reserva);
+        Integer expResult = 5;
+        Integer result = repositorio.canceladaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarRececionista() {
+        System.out.println("cancelar (rececionista)");
+        try {
+            instance.cancelar(RECECAO, reservaConfirmada());
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarSemReserva() {
+        System.out.println("cancelar (sem reserva)");
+        try {
+            instance.cancelar(GESTOR, null);
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarJaCancelada() {
+        System.out.println("cancelar (já cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.cancelar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva já cancelada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarComCheckin() {
+        System.out.println("cancelar (com check-in)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now());
+        try {
+            instance.cancelar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva com check-in");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarQueJaNaoEstaConfirmadaNaBD() {
+        System.out.println("cancelar (não existe ou check-in entretanto)");
+        repositorio.podeCancelarNaBD = false;
+        try {
+            instance.cancelar(GESTOR, reservaConfirmada());
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.canceladaId);
         }
     }
 }

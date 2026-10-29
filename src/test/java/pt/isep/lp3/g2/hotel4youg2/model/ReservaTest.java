@@ -6,8 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ReservaTest {
 
@@ -44,5 +43,39 @@ class ReservaTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         assertEquals(chegada, reserva.getCheckinEm());
         assertEquals(EstadoReserva.EM_CURSO, reserva.getEstado());
+    }
+
+    @Test
+    void reservaConfirmadaPodeSerCancelada() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        assertEquals(EstadoReserva.CANCELADA, reserva.getEstado());
+    }
+
+    @Test
+    void reservaComCheckinNaoPodeSerCancelada() {
+        Reserva reserva = novaReserva();
+        reserva.setCheckinEm(LocalDateTime.now());
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        assertFalse(reserva.podeSerCancelada());
+    }
+
+    @Test
+    void reservaJaCanceladaNaoPodeSerCanceladaOutraVez() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        assertFalse(reserva.podeSerCancelada());
+    }
+
+    @Test
+    void cancelarReservaEmCursoDaErroEMantemOEstado() {
+        Reserva reserva = novaReserva();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        try {
+            reserva.cancelar();
+            fail("Devia ter recusado cancelar");
+        } catch (IllegalStateException e) {
+            assertEquals(EstadoReserva.EM_CURSO, reserva.getEstado());
+        }
     }
 }
