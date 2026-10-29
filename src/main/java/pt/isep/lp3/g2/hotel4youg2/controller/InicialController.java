@@ -122,6 +122,16 @@ public class InicialController {
     }
 
     @FXML
+    private void aoAbrirEntregas() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/entregas-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Entregas");
+        stage.setScene(new Scene(loader.load(), 760, 560));
+        stage.show();
+    }
+
+    @FXML
     private void aoRegistarCliente() throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/registar-cliente-view.fxml"));

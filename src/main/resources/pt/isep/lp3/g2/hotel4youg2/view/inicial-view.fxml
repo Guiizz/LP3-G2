@@ -18,6 +18,7 @@
     <Button fx:id="criarContaButton" text="Criar conta" onAction="#aoCriarConta"/>
     <Button fx:id="servicosButton" text="Serviços" onAction="#aoAbrirServicos"/>
     <Button text="Reservas" onAction="#aoAbrirReservas"/>
+    <Button text="Entregas (XML)" onAction="#aoAbrirEntregas"/>
     <Button text="Registar cliente" onAction="#aoRegistarCliente"/>
     <Button text="Pesquisar cliente" onAction="#aoPesquisarCliente"/>
     <Button fx:id="terminarSessaoButton" text="Terminar sessão" onAction="#aoTerminarSessao"/>
