@@ -85,11 +85,11 @@ public class QuartoService {
     public void desativar(Perfil perfilAtual, int numero) {
         exigirGestor(perfilAtual);
         if (repositorio.temReservasFuturas(numero)) {
-            throw new IllegalArgumentException("Não é possivel desativar o quarto " + numero +
+            throw new IllegalArgumentException("Não é possível desativar o quarto " + numero +
                     ": tem reservas futuras");
         }
         if (!repositorio.atualizarAtivo(numero, false)) {
-            throw new IllegalArgumentException("O quarto " + numero + "não existe");
+            throw new IllegalArgumentException("O quarto " + numero + " não existe");
         }
     }
 

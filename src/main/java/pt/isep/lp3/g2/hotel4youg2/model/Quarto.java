@@ -96,4 +96,8 @@ public class Quarto {
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
     }
+
+    public String getEstado() {
+        return ativo ? "Ativo" : "Desativo";
+    }
 }

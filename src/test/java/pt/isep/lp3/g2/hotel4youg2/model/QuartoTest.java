@@ -54,4 +54,12 @@ class QuartoTest {
         quarto.setAtivo(true);
         assertTrue(quarto.isAtivo());
     }
+
+    @Test
+    void estadoMostraSeEstaAtivo() {
+        Quarto quarto = new Quarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1);
+        assertEquals("Ativo", quarto.getEstado());
+        quarto.setAtivo(false);
+        assertEquals("Desativado", quarto.getEstado());
+    }
 }
