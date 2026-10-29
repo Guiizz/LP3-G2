@@ -98,6 +98,6 @@ public class Quarto {
     }
 
     public String getEstado() {
-        return ativo ? "Ativo" : "Desativo";
+        return ativo ? "Ativo" : "Desativado";
     }
 }
