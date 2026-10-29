@@ -100,4 +100,13 @@ public class ReservaRepositorioBDTest {
         assertEquals(expResult, result);
         reserva.setId(0);
     }
+
+    @Test
+    public void testCancelarDepoisDoCheckin() {
+        System.out.println("cancelar (check-in feito entretanto)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
+        boolean expResult = false;
+        boolean result = instance.cancelar(reserva.getId());
+        assertEquals(expResult, result);
+    }
 }

@@ -2,7 +2,11 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorio;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorioBD;
-import pt.isep.lp3.g2.hotel4youg2.model.*;
+import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
+import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,16 +67,17 @@ public class ReservaService {
         return repositorio.listar();
     }
 
-    public void cancelar(Perfil perfilAtual, Reserva reserva) {
-        if (perfilAtual != Perfil.GESTOR) {
+    public void cancelar(Utilizador quemAge, Reserva reserva) {
+        if (!Permissoes.eGestor(quemAge)) {
             throw new IllegalStateException("Só o gestor pode cancelar reservas");
         }
         if (reserva == null) {
             throw new ValidacaoException("Escolha uma reserva");
         }
         reserva.cancelar();
-        if (!repositorio.atualizarEstado(reserva.getId(), reserva.getEstado())) {
-            throw new ValidacaoException("A reserva " + reserva.getId() + " não existe");
+        if (!repositorio.cancelar(reserva.getId())) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já não pode ser cancelada: não existe ou já teve check-in");
         }
     }
 

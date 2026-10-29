@@ -27,4 +27,6 @@ public interface ReservaRepositorio {
     boolean atualizarEstado(int id, EstadoReserva estado);
 
     boolean apagar(int id);
+
+    boolean cancelar(int id);
 }

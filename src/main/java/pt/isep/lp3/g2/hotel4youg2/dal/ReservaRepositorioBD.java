@@ -3,7 +3,11 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -30,6 +34,10 @@ public class ReservaRepositorioBD implements ReservaRepositorio {
     private static final String ATUALIZAR_ESTADO = "UPDATE Reserva SET estado = ? WHERE id = ?";
 
     private static final String APAGAR = "DELETE FROM Reserva WHERE id = ?";
+
+    private static final String CANCELAR =
+            "UPDATE Reserva SET estado = 'CANCELADA' "
+                    + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
 
     @Override
     public boolean inserirSeLivre(Reserva reserva) {
@@ -76,6 +84,11 @@ public class ReservaRepositorioBD implements ReservaRepositorio {
     @Override
     public boolean apagar(int id) {
         return ConexaoBD.executar(APAGAR, id) > 0;
+    }
+
+    @Override
+    public boolean cancelar(int id) {
+        return ConexaoBD.executar(CANCELAR, id) > 0;
     }
 
     private static class ReservaMapper implements RowMapper<Reserva> {
