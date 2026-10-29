@@ -43,11 +43,12 @@ public class ServicoDALTest {
         instance.inserir(servico);
     }
 
-    // Desfaz o que o setUp fez: apaga o serviço e as categorias de teste
     @AfterEach
     public void tearDown() {
-        if (servico != null && servico.getId() > 0) {
-            instance.apagar(servico.getId());
+        int idCategoria = categoria != null ? categoria.getId() : 0;
+        int idOutraCategoria = outraCategoria != null ? outraCategoria.getId() : 0;
+        if (idCategoria > 0 || idOutraCategoria > 0) {
+            ConexaoBD.executar("DELETE FROM Servico WHERE categoriaId IN (?, ?)", idCategoria, idOutraCategoria);
         }
         if (categoria != null && categoria.getId() > 0) {
             categoriaDAL.apagar(categoria.getId());
