@@ -5,6 +5,7 @@ module pt.isep.lp3.g2.hotel4youg2 {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires java.xml;
     requires io.github.cdimascio.dotenv.java;
 
 
