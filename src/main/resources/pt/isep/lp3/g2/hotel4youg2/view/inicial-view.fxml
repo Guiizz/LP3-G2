@@ -21,5 +21,6 @@
     <Button text="Entregas (XML)" onAction="#aoAbrirEntregas"/>
     <Button text="Registar cliente" onAction="#aoRegistarCliente"/>
     <Button text="Pesquisar cliente" onAction="#aoPesquisarCliente"/>
+    <Button text="Sugestões e queixas" onAction="#aoAbrirSugestoes"/>
     <Button fx:id="terminarSessaoButton" text="Terminar sessão" onAction="#aoTerminarSessao"/>
 </VBox>

@@ -132,6 +132,16 @@ public class InicialController {
     }
 
     @FXML
+    private void aoAbrirSugestoes() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/sugestoes-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Sugestões e queixas");
+        stage.setScene(new Scene(loader.load(), 500, 480));
+        stage.show();
+    }
+
+    @FXML
     private void aoRegistarCliente() throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/registar-cliente-view.fxml"));
