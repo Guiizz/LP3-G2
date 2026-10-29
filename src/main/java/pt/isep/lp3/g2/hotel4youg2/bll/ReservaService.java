@@ -2,14 +2,12 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorio;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorioBD;
-import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
-import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
-import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * Regras de negócio das reservas (US27).
@@ -59,6 +57,23 @@ public class ReservaService {
                     + " já está reservado nessas datas. Pesquise outra vez os quartos disponíveis.");
         }
         return reserva;
+    }
+
+    public List<Reserva> listar() {
+        return repositorio.listar();
+    }
+
+    public void cancelar(Perfil perfilAtual, Reserva reserva) {
+        if (perfilAtual != Perfil.GESTOR) {
+            throw new IllegalStateException("Só o gestor pode cancelar reservas");
+        }
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        reserva.cancelar();
+        if (!repositorio.atualizarEstado(reserva.getId(), reserva.getEstado())) {
+            throw new ValidacaoException("A reserva " + reserva.getId() + " não existe");
+        }
     }
 
     private void validarDatas(LocalDate entrada, LocalDate saida) {
