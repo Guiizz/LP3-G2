@@ -12,7 +12,7 @@
     <Label fx:id="estadoLabel" text="Hotel4You" wrapText="true" maxWidth="360"/>
     <Label fx:id="utilizadorLabel" style="-fx-font-weight: bold;"/>
     <Button text="Testar ligação" onAction="#aoTestarLigacao"/>
-    <Button text="Consultar quartos" onAction="#aoConsultarQuartos"/>
+    <Button text="Quartos" onAction="#aoAbrirQuartos"/>
     <Button fx:id="tarifasButton" text="Tarifas" onAction="#aoAbrirTarifas"/>
     <Button fx:id="contasButton" text="Contas" onAction="#aoAbrirContas"/>
     <Button fx:id="criarContaButton" text="Criar conta" onAction="#aoCriarConta"/>

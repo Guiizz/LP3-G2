@@ -50,12 +50,12 @@ public class InicialController {
     }
 
     @FXML
-    private void aoConsultarQuartos() throws IOException {
+    private void aoAbrirQuartos() throws IOException {
         FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/quartos-view.fxml"));
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/quartos-menu-view.fxml"));
         Stage stage = new Stage();
         stage.setTitle("Hotel4You - Quartos");
-        stage.setScene(new Scene(loader.load(), 700, 500));
+        stage.setScene(new Scene(loader.load(), 320, 300));
         stage.show();
     }
 
