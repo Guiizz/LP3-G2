@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.GerirReservasController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Reservas" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Nº" prefWidth="50.0">
+                <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Cliente" prefWidth="70.0">
+                <cellValueFactory><PropertyValueFactory property="clienteId"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quarto" prefWidth="70.0">
+                <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Entrada" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="dataEntrada"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Saída" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="dataSaida"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Preço" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="precoTotal"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Estado" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0">
+        <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>
