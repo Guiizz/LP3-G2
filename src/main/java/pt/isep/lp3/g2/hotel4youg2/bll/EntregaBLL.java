@@ -32,11 +32,25 @@ public class EntregaBLL {
         if (ficheiro == null) {
             throw new IllegalArgumentException("Escolha um ficheiro XML.");
         }
-        return leitor.ler(ficheiro);
+        return validarLinhas(leitor.ler(ficheiro));
     }
 
     public Entrega lerFicheiro(InputStream entrada) {
-        return leitor.ler(entrada);
+        return validarLinhas(leitor.ler(entrada));
+    }
+
+    // o XSD aceita quantidade 0 e preços negativos, mas a BD não: recusa logo ao ler, com uma mensagem clara
+    private static Entrega validarLinhas(Entrega entrega) {
+        for (LinhaEntrega linha : entrega.getLinhas()) {
+            String inicio = "Linha " + linha.getNumero() + " (" + linha.getDescricao() + "): ";
+            if (linha.getQuantidade() <= 0) {
+                throw new IllegalArgumentException(inicio + "a quantidade tem de ser maior que zero.");
+            }
+            if (linha.getPrecoUnitario().signum() < 0) {
+                throw new IllegalArgumentException(inicio + "o preço não pode ser negativo.");
+            }
+        }
+        return entrega;
     }
 
     // as contas erradas não impedem o registo: devolvem avisos para quem regista decidir

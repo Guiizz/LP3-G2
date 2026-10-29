@@ -117,6 +117,18 @@ public class EntregaBLLTest {
     }
 
     @Test
+    public void testLerFicheiroQuantidadeZero() {
+        System.out.println("lerFicheiro (quantidade zero)");
+        try {
+            instance.lerFicheiro(ficheiro("entrega-quantidade-zero.xml"));
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Linha 1 (Toalha de banho 400g cinza): a quantidade tem de ser maior que zero.",
+                    expected.getMessage());
+        }
+    }
+
+    @Test
     public void testRegistar() {
         System.out.println("registar");
         Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
