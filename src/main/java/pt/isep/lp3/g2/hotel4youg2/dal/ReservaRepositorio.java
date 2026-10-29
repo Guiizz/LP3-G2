@@ -1,6 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+
+import java.util.List;
 
 /**
  * Acesso aos dados das reservas.
@@ -16,4 +19,12 @@ public interface ReservaRepositorio {
      *         em datas que se sobrepõem
      */
     boolean inserirSeLivre(Reserva reserva);
+
+    Reserva procurarPorId(int id);
+
+    List<Reserva> listar();
+
+    boolean atualizarEstado(int id, EstadoReserva estado);
+
+    boolean apagar(int id);
 }

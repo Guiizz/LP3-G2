@@ -14,6 +14,8 @@ import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -35,6 +37,26 @@ public class ReservaServiceTest {
             }
             reserva.setId(1);
             gravada = reserva;
+            return true;
+        }
+
+        @Override
+        public Reserva procurarPorId(int id) {
+            return gravada;
+        }
+
+        @Override
+        public List<Reserva> listar() {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public boolean atualizarEstado(int id, EstadoReserva estado) {
+            return true;
+        }
+
+        @Override
+        public boolean apagar(int id) {
             return true;
         }
     }

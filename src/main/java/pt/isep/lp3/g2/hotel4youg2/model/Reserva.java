@@ -128,6 +128,17 @@ public class Reserva {
         this.checkoutEm = checkoutEm;
     }
 
+    public boolean podeSerCancelada(){
+       return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public void cancelar() {
+        if (!podeSerCancelada()) {
+            throw new IllegalStateException("Só é possível cancelar reservas confirmadas e sem check-in");
+        }
+        estado = EstadoReserva.CANCELADA;
+    }
+
     /**
      * Duas reservas são iguais se tiverem os mesmos dados.
      * O preço compara-se pelo valor (100.0 e 100.00 contam como iguais).
