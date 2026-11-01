@@ -83,4 +83,55 @@ public class SugestaoQueixaDALTest {
         assertEquals(expResult, result);
         sugestao.setId(0);
     }
+
+    @Test
+    public void testListar() {
+        System.out.println("listar");
+        boolean expResult = true;
+        boolean result = instance.listar(null).contains(sugestao);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorTipo() {
+        System.out.println("listar (só queixas)");
+        boolean expResult = true;
+        boolean result = instance.listar(TipoSugestao.QUEIXA).contains(sugestao);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarOutroTipo() {
+        System.out.println("listar (só sugestões)");
+        boolean expResult = false;
+        boolean result = instance.listar(TipoSugestao.SUGESTAO).contains(sugestao);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarMaisRecentePrimeiro() {
+        System.out.println("listar (mais recente primeiro)");
+        List<SugestaoQueixa> lista = instance.listar(null);
+        boolean expResult = true;
+        boolean result = true;
+        for (int i = 1; i < lista.size(); i++) {
+            if (lista.get(i).getRegistadaEm().isAfter(lista.get(i - 1).getRegistadaEm())) {
+                result = false;
+            }
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarTrazONomeDoCliente() {
+        System.out.println("listar (com o nome do cliente)");
+        String result = null;
+        for (SugestaoQueixa s : instance.listar(null)) {
+            if (s.getId() == sugestao.getId()) {
+                result = s.getNomeCliente();
+            }
+        }
+        boolean expResult = true;
+        assertEquals(expResult, result != null && !result.isEmpty());
+    }
 }
