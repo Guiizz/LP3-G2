@@ -81,6 +81,18 @@ public class ReservaService {
         }
     }
 
+    public void alterarDatas(Reserva reserva, LocalDate novaEntrada, LocalDate novaSaida) {
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        validarDatas(novaEntrada, novaSaida);
+        reserva.alterarDatas(novaEntrada, novaSaida);
+        if (!repositorio.alterarDatasSeLivre(reserva)) {
+            throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
+                    + " não está livre nessas datas, ou a reserva já não pode ser alterada");
+        }
+    }
+
     private void validarDatas(LocalDate entrada, LocalDate saida) {
         if (entrada == null || saida == null) {
             throw new ValidacaoException("Indique as datas de entrada e de saída");
