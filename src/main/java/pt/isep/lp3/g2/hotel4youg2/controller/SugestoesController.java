@@ -18,6 +18,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Controlador do ecrã para registar sugestões e queixas: procura o cliente pelo NIF
+ * e regista o que ele disse (US23).
+ */
 public class SugestoesController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");

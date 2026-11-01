@@ -19,6 +19,10 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Controlador do ecrã das entregas de fornecedores: escolhe o ficheiro XML, mostra os dados,
+ * avisa das contas erradas e regista a entrega (US26).
+ */
 public class EntregasController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");

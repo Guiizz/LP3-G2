@@ -28,10 +28,22 @@ import java.nio.file.Files;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 
+/**
+ * Lê o ficheiro XML de uma entrega de um fornecedor. Primeiro confirma que o XML está bem formado,
+ * depois valida-o com o XSD combinado com os fornecedores e só no fim o converte em objetos do modelo.
+ */
 public class LeitorXmlEntrega {
 
     private static final String XSD = "/pt/isep/lp3/g2/hotel4youg2/xml/Hotel4You.xsd";
 
+    /**
+     * Lê e valida o ficheiro XML de uma entrega.
+     *
+     * @param ficheiro o ficheiro XML da entrega
+     * @return a entrega lida
+     * @throws IllegalArgumentException se o ficheiro não abrir, não for um XML bem formado
+     *                                  ou não seguir o formato das entregas
+     */
     public Entrega ler(File ficheiro) {
         try {
             return ler(Files.readAllBytes(ficheiro.toPath()));
@@ -40,6 +52,14 @@ public class LeitorXmlEntrega {
         }
     }
 
+    /**
+     * Lê e valida o XML de uma entrega a partir de um fluxo de dados já aberto.
+     *
+     * @param entrada o fluxo com o conteúdo do XML
+     * @return a entrega lida
+     * @throws IllegalArgumentException se o fluxo não puder ser lido, não for um XML bem formado
+     *                                  ou não seguir o formato das entregas
+     */
     public Entrega ler(InputStream entrada) {
         try {
             return ler(entrada.readAllBytes());

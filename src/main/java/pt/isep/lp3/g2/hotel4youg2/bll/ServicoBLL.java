@@ -12,6 +12,10 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Regras de negócio dos serviços extra e das suas categorias.
+ * Só o gestor os cria, edita, desativa e reativa (US25).
+ */
 public class ServicoBLL {
 
     private static final int TAMANHO_MAXIMO_DESIGNACAO = 100;
@@ -21,23 +25,47 @@ public class ServicoBLL {
     private final IServicoDAL servicoDAL;
     private final ICategoriaDAL categoriaDAL;
 
+    /**
+     * Cria o BLL ligado à base de dados.
+     */
     public ServicoBLL() {
         this(new ServicoDAL(), new CategoriaDAL());
     }
 
+    /**
+     * Cria o BLL com outros DAL.
+     *
+     * @param servicoDAL   onde os serviços são gravados
+     * @param categoriaDAL onde as categorias são gravadas
+     */
     public ServicoBLL(IServicoDAL servicoDAL, ICategoriaDAL categoriaDAL) {
         this.servicoDAL = servicoDAL;
         this.categoriaDAL = categoriaDAL;
     }
 
+    /**
+     * @return todos os serviços, ativos e desativados
+     */
     public List<Servico> listar() {
         return servicoDAL.listar();
     }
 
+    /**
+     * @return todas as categorias, ordenadas pelo nome
+     */
     public List<Categoria> listarCategorias() {
         return categoriaDAL.listar();
     }
 
+    /**
+     * Cria uma categoria nova. Tira os espaços a mais ao nome.
+     *
+     * @param quemAge o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param nome    o nome da categoria (até 50 caracteres, sem repetir)
+     * @return a categoria criada
+     * @throws IllegalStateException    se quem age não for gestor
+     * @throws IllegalArgumentException se o nome estiver vazio, for longo demais ou já existir
+     */
     public Categoria criarCategoria(Utilizador quemAge, String nome) {
         exigirGestor(quemAge);
         String limpo = limpar(nome);
@@ -55,6 +83,19 @@ public class ServicoBLL {
         return categoria;
     }
 
+    /**
+     * Cria um serviço novo, ativo.
+     *
+     * @param quemAge      o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param designacao   o nome do serviço (até 100 caracteres)
+     * @param preco        o preço (maior que zero, com no máximo 2 casas decimais, até 999999,99 €)
+     * @param tipoCobranca como o serviço é cobrado
+     * @param categoria    a categoria do serviço
+     * @return o serviço criado
+     * @throws IllegalStateException    se quem age não for gestor
+     * @throws IllegalArgumentException se algum dado não for válido ou se já existir um serviço
+     *                                  com esta designação e esta forma de cobrança
+     */
     public Servico criar(Utilizador quemAge, String designacao, BigDecimal preco, TipoCobranca tipoCobranca, Categoria categoria) {
         exigirGestor(quemAge);
         String nome = validarDados(designacao, preco, tipoCobranca, categoria, 0);
@@ -63,6 +104,20 @@ public class ServicoBLL {
         return servico;
     }
 
+    /**
+     * Altera os dados de um serviço. O serviço continua ativo ou desativado, como estava.
+     *
+     * @param quemAge      o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param id           o id do serviço a alterar
+     * @param designacao   o novo nome do serviço
+     * @param preco        o novo preço
+     * @param tipoCobranca a nova forma de cobrança
+     * @param categoria    a nova categoria
+     * @return o serviço com os dados novos
+     * @throws IllegalStateException    se quem age não for gestor
+     * @throws IllegalArgumentException se o serviço não existir, algum dado não for válido
+     *                                  ou já existir outro serviço com esta designação e esta cobrança
+     */
     public Servico editar(Utilizador quemAge, int id, String designacao, BigDecimal preco, TipoCobranca tipoCobranca, Categoria categoria) {
         exigirGestor(quemAge);
         Servico atual = procurar(id);
@@ -74,14 +129,37 @@ public class ServicoBLL {
         return alterado;
     }
 
+    /**
+     * Desativa um serviço: deixa de poder ser adicionado às reservas, mas não é apagado.
+     *
+     * @param quemAge o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param id      o id do serviço
+     * @throws IllegalStateException    se quem age não for gestor
+     * @throws IllegalArgumentException se o serviço não existir
+     */
     public void desativar(Utilizador quemAge, int id) {
         alterarEstado(quemAge, id, false);
     }
 
+    /**
+     * Volta a ativar um serviço desativado.
+     *
+     * @param quemAge o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param id      o id do serviço
+     * @throws IllegalStateException    se quem age não for gestor
+     * @throws IllegalArgumentException se o serviço não existir
+     */
     public void reativar(Utilizador quemAge, int id) {
         alterarEstado(quemAge, id, true);
     }
 
+    /**
+     * Converte o texto escrito no ecrã num preço. Aceita vírgula ou ponto como separador decimal.
+     *
+     * @param texto o texto do preço (por exemplo, {@code "12,50"})
+     * @return o preço
+     * @throws IllegalArgumentException se o texto estiver vazio ou não for um número
+     */
     public static BigDecimal lerPreco(String texto) {
         if (texto == null || texto.isBlank()) {
             throw new IllegalArgumentException("Escreva o preço.");

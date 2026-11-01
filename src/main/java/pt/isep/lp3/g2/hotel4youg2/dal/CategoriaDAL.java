@@ -4,6 +4,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 
 import java.util.List;
 
+/**
+ * Implementação do {@link ICategoriaDAL} sobre a tabela Categoria do SQL Server.
+ */
 public class CategoriaDAL implements ICategoriaDAL {
 
     private static final String SELECT_TODAS = "SELECT id, nome FROM Categoria ORDER BY nome";

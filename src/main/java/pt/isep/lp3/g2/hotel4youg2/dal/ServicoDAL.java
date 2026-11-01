@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementação do {@link IServicoDAL} sobre as tabelas Servico e Categoria do SQL Server.
+ */
 public class ServicoDAL implements IServicoDAL {
 
     private static final String COLUNAS = "SELECT s.id, s.designacao, s.preco, s.tipoCobranca, s.ativo, c.id AS categoriaId, c.nome AS categoriaNome " + "FROM Servico s JOIN Categoria c ON c.id = s.categoriaId ";
