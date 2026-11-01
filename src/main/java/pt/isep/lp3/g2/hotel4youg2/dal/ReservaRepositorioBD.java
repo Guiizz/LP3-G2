@@ -4,6 +4,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,6 +39,13 @@ public class ReservaRepositorioBD implements ReservaRepositorio {
     private static final String CANCELAR =
             "UPDATE Reserva SET estado = 'CANCELADA' "
                     + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
+
+    private static final String ALTERAR_DATAS_SE_LIVRE =
+            "UPDATE Reserva SET dataEntrada = ?, dataSaida = ?, precoTotal = ? "
+            + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL "
+            + "AND NOT EXISTS (SELECT 1 FROM Reserva r WITH (UPDLOCK, HOLDLOCK) "
+            + "WHERE r.quartoNumero = ? AND r.id <> ? AND r.estado <> 'CANCELADA' "
+            + "AND r.dataEntrada < ? AND r.dataSaida > ?)";
 
     @Override
     public boolean inserirSeLivre(Reserva reserva) {
@@ -105,5 +113,15 @@ public class ReservaRepositorioBD implements ReservaRepositorio {
                     checkout != null ? checkout.toLocalDateTime() : null);
 
         }
+    }
+
+    @Override
+    public boolean alterarDatasSeLivre(Reserva reserva) {
+        return ConexaoBD.executar(ALTERAR_DATAS_SE_LIVRE,
+                Date.valueOf(reserva.getDataEntrada()),
+                Date.valueOf(reserva.getDataSaida()),
+                reserva.getPrecoTotal(), reserva.getId(),
+                reserva.getQuartoNumero(), reserva.getId(),
+                Date.valueOf(reserva.getDataSaida()), Date.valueOf(reserva.getDataEntrada())) > 0;
     }
 }

@@ -34,6 +34,8 @@ public class ReservaServiceTest {
         private Reserva gravada;
         private boolean podeCancelarNaBD = true;
         private Integer canceladaId;
+        private boolean quartoLivreNasNovasDatas = true;
+        private Reserva alterada;
 
         @Override
         public boolean cancelar(int id) {
@@ -71,6 +73,15 @@ public class ReservaServiceTest {
 
         @Override
         public boolean apagar(int id) {
+            return true;
+        }
+
+        @Override
+        public boolean alterarDatasSeLivre(Reserva reserva) {
+            if (!quartoLivreNasNovasDatas) {
+                return false;
+            }
+            alterada = reserva;
             return true;
         }
     }

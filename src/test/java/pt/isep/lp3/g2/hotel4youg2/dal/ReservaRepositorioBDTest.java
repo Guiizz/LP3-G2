@@ -109,4 +109,53 @@ public class ReservaRepositorioBDTest {
         boolean result = instance.cancelar(reserva.getId());
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testAlterarDatas() {
+        System.out.println("alterarDatasSeLivre");
+        LocalDate novaEntrada = reserva.getDataEntrada().plusDays(10);
+        reserva.alterarDatas(novaEntrada, novaEntrada.plusDays(3));
+        instance.alterarDatasSeLivre(reserva);
+        Reserva expResult = reserva;
+        Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarDatasSobreAPropriaReserva() {
+        System.out.println("alterarDatasSeLivre (a própria reserva não conta)");
+        LocalDate novaEntrada = reserva.getDataEntrada().plusDays(1);
+        reserva.alterarDatas(novaEntrada, novaEntrada.plusDays(2));
+        boolean expResult = true;
+        boolean result = instance.alterarDatasSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarDatasQuartoOcupado() {
+        System.out.println("alterarDatasSeLivre (quarto ocupado)");
+        LocalDate outraEntrada = reserva.getDataEntrada().plusDays(10);
+        Reserva outra = new Reserva(0, cliente.getId(), 201, outraEntrada, outraEntrada.plusDays(2), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
+        instance.inserirSeLivre(outra);
+        try {
+            reserva.alterarDatas(outraEntrada.plusDays(1), outraEntrada.plusDays(4));
+            boolean expResult = false;
+            boolean result = instance.alterarDatasSeLivre(reserva);
+            assertEquals(expResult, result);
+        } finally {
+            instance.apagar(outra.getId());
+        }
+    }
+
+    @Test
+    public void testAlterarDatasDepoisDoCheckin() {
+        System.out.println("alterarDatasSeLivre (check-in feito entretanto)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
+        LocalDate novaEntrada = reserva.getDataEntrada().plusDays(10);
+        reserva.alterarDatas(novaEntrada, novaEntrada.plusDays(2));
+        boolean expResult = false;
+        boolean result = instance.alterarDatasSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
 }
