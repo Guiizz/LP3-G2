@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
@@ -27,6 +28,12 @@ public class GerirReservasController {
     private Label mensagemLabel;
 
     @FXML
+    private DatePicker novaEntradaPicker;
+
+    @FXML
+    private DatePicker novaSaidaPicker;
+
+    @FXML
     private void initialize() {
         boolean gestor = Permissoes.eGestor(Sessao.getUtilizador());
         cancelarButton.setVisible(gestor);
@@ -47,6 +54,32 @@ public class GerirReservasController {
         try {
             reservaService.cancelar(Sessao.getUtilizador(), escolhida);
             mensagemLabel.setText("Reserva " + escolhida.getId() + " cancelada.");
+        } catch (RuntimeException e) {
+            mensagemLabel.setText(e.getMessage());
+        }
+        carregar();
+    }
+
+    @FXML
+    private void aoEscolherReserva() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida != null) {
+            novaEntradaPicker.setValue(escolhida.getDataEntrada());
+            novaSaidaPicker.setValue(escolhida.getDataSaida());
+        }
+    }
+
+    @FXML
+    private void aoAlterarDatas() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mensagemLabel.setText("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            reservaService.alterarDatas(escolhida, novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
+            mensagemLabel.setText("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
+                    + escolhida.getPrecoTotal() + " €");
         } catch (RuntimeException e) {
             mensagemLabel.setText(e.getMessage());
         }
