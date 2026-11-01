@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class SugestaoQueixa {
@@ -11,6 +12,7 @@ public class SugestaoQueixa {
     private String descricao;
     private int registadaPor;
     private LocalDateTime registadaEm;
+    private String nomeCliente;
 
     public SugestaoQueixa(int id, int clienteId, TipoSugestao tipo, String descricao, int registadaPor,
                           LocalDateTime registadaEm) {
@@ -52,6 +54,18 @@ public class SugestaoQueixa {
 
     public void setRegistadaEm(LocalDateTime registadaEm) {
         this.registadaEm = registadaEm;
+    }
+
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
+    }
+
+    public String getRegistadaEmTexto() {
+        return registadaEm == null ? "" : registadaEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 
     @Override

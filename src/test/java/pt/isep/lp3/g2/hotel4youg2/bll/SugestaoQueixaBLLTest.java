@@ -41,6 +41,17 @@ public class SugestaoQueixaBLLTest {
         public boolean apagar(int id) {
             return registadas.removeIf(s -> s.getId() == id);
         }
+
+        @Override
+        public List<SugestaoQueixa> listar(TipoSugestao tipo) {
+            List<SugestaoQueixa> resultado = new ArrayList<>();
+            for (SugestaoQueixa s : registadas) {
+                if (tipo == null || s.getTipo() == tipo) {
+                    resultado.add(s);
+                }
+            }
+            return resultado;
+        }
     }
 
     private static final Utilizador RECECAO = new Utilizador(2, 7, "rececao", "h", "s", Perfil.RECECIONISTA, true);
