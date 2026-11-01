@@ -45,6 +45,9 @@ public class InicialController {
     private Button servicosButton;
 
     @FXML
+    private Button consultarSugestoesButton;
+
+    @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoService.testarLigacao());
     }
@@ -142,6 +145,19 @@ public class InicialController {
     }
 
     @FXML
+    private void aoConsultarSugestoes() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/consultar-sugestoes-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Consultar sugestões e queixas");
+        stage.setScene(new Scene(loader.load(), 720, 480));
+        stage.show();
+    }
+
+    @FXML
     private void aoRegistarCliente() throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/registar-cliente-view.fxml"));
@@ -198,6 +214,7 @@ public class InicialController {
         mostrar(contasButton, gestor);
         mostrar(criarContaButton, gestor);
         mostrar(servicosButton, gestor);
+        mostrar(consultarSugestoesButton, gestor);
     }
 
     /**

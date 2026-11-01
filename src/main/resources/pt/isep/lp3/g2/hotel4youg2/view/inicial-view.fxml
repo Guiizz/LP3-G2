@@ -22,5 +22,6 @@
     <Button text="Registar cliente" onAction="#aoRegistarCliente"/>
     <Button text="Pesquisar cliente" onAction="#aoPesquisarCliente"/>
     <Button text="Sugestões e queixas" onAction="#aoAbrirSugestoes"/>
+    <Button fx:id="consultarSugestoesButton" text="Consultar sugestões e queixas" onAction="#aoConsultarSugestoes"/>
     <Button fx:id="terminarSessaoButton" text="Terminar sessão" onAction="#aoTerminarSessao"/>
 </VBox>

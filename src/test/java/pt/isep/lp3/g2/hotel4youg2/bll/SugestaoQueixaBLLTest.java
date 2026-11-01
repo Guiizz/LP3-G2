@@ -55,6 +55,7 @@ public class SugestaoQueixaBLLTest {
     }
 
     private static final Utilizador RECECAO = new Utilizador(2, 7, "rececao", "h", "s", Perfil.RECECIONISTA, true);
+    private static final Utilizador GESTOR = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
     private static final Cliente CLIENTE = new Cliente(15, "Ana Silva", "12345678", "123456789", "Rua A",
             "912345678", null, "ana@exemplo.pt");
 
@@ -163,6 +164,48 @@ public class SugestaoQueixaBLLTest {
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
             assertEquals("A descrição não pode ter mais de 1000 caracteres.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testListar() {
+        System.out.println("listar");
+        instance.registar(RECECAO, CLIENTE, TipoSugestao.QUEIXA, "Barulho no corredor.");
+        instance.registar(RECECAO, CLIENTE, TipoSugestao.SUGESTAO, "Mais toalhas.");
+        int expResult = 2;
+        int result = instance.listar(GESTOR, null).size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorTipo() {
+        System.out.println("listar (só queixas)");
+        instance.registar(RECECAO, CLIENTE, TipoSugestao.QUEIXA, "Barulho no corredor.");
+        instance.registar(RECECAO, CLIENTE, TipoSugestao.SUGESTAO, "Mais toalhas.");
+        int expResult = 1;
+        int result = instance.listar(GESTOR, TipoSugestao.QUEIXA).size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarRececionista() {
+        System.out.println("listar (rececionista)");
+        try {
+            instance.listar(RECECAO, null);
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals("Só o gestor pode consultar as sugestões e queixas.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testListarSemSessao() {
+        System.out.println("listar (sem sessão)");
+        try {
+            instance.listar(null, null);
+            fail("Devia ter recusado sem sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals("Só o gestor pode consultar as sugestões e queixas.", expected.getMessage());
         }
     }
 }
