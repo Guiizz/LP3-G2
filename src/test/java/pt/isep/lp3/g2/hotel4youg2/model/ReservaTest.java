@@ -78,4 +78,39 @@ class ReservaTest {
             assertEquals(EstadoReserva.EM_CURSO, reserva.getEstado());
         }
     }
+    @Test
+    void alterarDatasMudaAsDatasERecalculaOPreco() {
+        Reserva reserva = novaReserva();
+        reserva.alterarDatas(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 15));
+        assertEquals(LocalDate.of(2026, 11, 10), reserva.getDataEntrada());
+        assertEquals(LocalDate.of(2026, 11, 15), reserva.getDataSaida());
+        assertEquals(0, new BigDecimal("500.00").compareTo(reserva.getPrecoTotal()));
+    }
+
+    @Test
+    void reservaComCheckinNaoPodeSerAlterada() {
+        Reserva reserva = novaReserva();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now());
+        assertFalse(reserva.podeSerAlterada());
+    }
+
+    @Test
+    void reservaCanceladaNaoPodeSerAlterada() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        assertFalse(reserva.podeSerAlterada());
+    }
+
+    @Test
+    void alterarReservaCanceladaDaErroEMantemAsDatas() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        try {
+            reserva.alterarDatas(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 15));
+            fail("Devia ter recusado alterar");
+        } catch (IllegalStateException e) {
+            assertEquals(LocalDate.of(2026, 11, 2), reserva.getDataEntrada());
+        }
+    }
 }
