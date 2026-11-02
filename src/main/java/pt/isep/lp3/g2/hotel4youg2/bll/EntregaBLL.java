@@ -14,20 +14,42 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Regras de negócio das entregas de fornecedores: ler e validar o ficheiro XML,
+ * conferir as contas e registar a entrega (US26).
+ */
 public class EntregaBLL {
 
     private final LeitorXmlEntrega leitor;
     private final IEntregaDAL entregaDAL;
 
+    /**
+     * Cria o BLL ligado à base de dados.
+     */
     public EntregaBLL() {
         this(new LeitorXmlEntrega(), new EntregaDAL());
     }
 
+    /**
+     * Cria o BLL com outro leitor de XML e outro DAL.
+     *
+     * @param leitor     quem lê e valida o ficheiro XML
+     * @param entregaDAL onde as entregas são gravadas
+     */
     public EntregaBLL(LeitorXmlEntrega leitor, IEntregaDAL entregaDAL) {
         this.leitor = leitor;
         this.entregaDAL = entregaDAL;
     }
 
+    /**
+     * Lê o ficheiro XML da entrega. Recusa linhas com quantidade zero ou preço negativo,
+     * que o XSD aceita mas a base de dados não.
+     *
+     * @param ficheiro o ficheiro XML da entrega
+     * @return a entrega lida
+     * @throws IllegalArgumentException se não houver ficheiro, o XML não for válido
+     *                                  ou alguma linha tiver quantidade ou preço inválidos
+     */
     public Entrega lerFicheiro(File ficheiro) {
         if (ficheiro == null) {
             throw new IllegalArgumentException("Escolha um ficheiro XML.");
@@ -35,6 +57,14 @@ public class EntregaBLL {
         return validarLinhas(leitor.ler(ficheiro));
     }
 
+    /**
+     * Como {@link #lerFicheiro(File)}, mas lê de um fluxo de dados já aberto.
+     *
+     * @param entrada o fluxo com o conteúdo do XML
+     * @return a entrega lida
+     * @throws IllegalArgumentException se o XML não for válido
+     *                                  ou alguma linha tiver quantidade ou preço inválidos
+     */
     public Entrega lerFicheiro(InputStream entrada) {
         return validarLinhas(leitor.ler(entrada));
     }
@@ -53,7 +83,13 @@ public class EntregaBLL {
         return entrega;
     }
 
-    // as contas erradas não impedem o registo: devolvem avisos para quem regista decidir
+    /**
+     * Confere as contas de cada linha (quantidade × preço, IVA e total).
+     * As contas erradas não impedem o registo: ficam como avisos para quem regista decidir.
+     *
+     * @param entrega a entrega lida do ficheiro
+     * @return um aviso por cada linha com contas erradas; lista vazia se estiver tudo certo
+     */
     public List<String> verificarContas(Entrega entrega) {
         List<String> avisos = new ArrayList<>();
         for (LinhaEntrega linha : entrega.getLinhas()) {
@@ -75,6 +111,16 @@ public class EntregaBLL {
         return avisos;
     }
 
+    /**
+     * Regista a entrega na base de dados, no nome de quem a está a registar.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param entrega a entrega lida e confirmada
+     * @return o id da entrega gravada
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se não houver entrega ou se esta já tiver sido registada
+     *                                  para o mesmo fornecedor
+     */
     public int registar(Utilizador quemAge, Entrega entrega) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para registar entregas.");

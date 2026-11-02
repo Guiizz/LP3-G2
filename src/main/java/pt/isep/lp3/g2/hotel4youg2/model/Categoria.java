@@ -2,11 +2,20 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.util.Objects;
 
+/**
+ * Categoria a que pertence um serviço extra do hotel (por exemplo, Spa ou Refeição).
+ */
 public class Categoria {
 
     private int id;
     private String nome;
 
+    /**
+     * Cria uma categoria.
+     *
+     * @param id   o id da categoria (0 se ainda não foi gravada)
+     * @param nome o nome da categoria
+     */
     public Categoria(int id, String nome) {
         this.id = id;
         this.nome = nome;

@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Entrega de material enviada por um fornecedor, com as linhas que dão entrada em stock.
+ * Vem de um ficheiro XML (US26).
+ */
 public class Entrega {
 
     private int id;
@@ -14,6 +18,14 @@ public class Entrega {
     private Fornecedor fornecedor;
     private final List<LinhaEntrega> linhas = new ArrayList<>();
 
+    /**
+     * Cria uma entrega, ainda sem linhas.
+     *
+     * @param id              o id da entrega (0 se ainda não foi gravada)
+     * @param numeroEncomenda o número da encomenda, dado pelo fornecedor
+     * @param dataEncomenda   a data da encomenda
+     * @param fornecedor      o fornecedor que a enviou
+     */
     public Entrega(int id, String numeroEncomenda, LocalDate dataEncomenda, Fornecedor fornecedor) {
         this.id = id;
         this.numeroEncomenda = numeroEncomenda;
@@ -45,10 +57,20 @@ public class Entrega {
         return linhas;
     }
 
+    /**
+     * Acrescenta uma linha à entrega.
+     *
+     * @param linha a linha a acrescentar
+     */
     public void adicionarLinha(LinhaEntrega linha) {
         linhas.add(linha);
     }
 
+    /**
+     * Soma o total (com IVA) de todas as linhas.
+     *
+     * @return o total da entrega; zero se não tiver linhas
+     */
     public BigDecimal getTotal() {
         BigDecimal soma = BigDecimal.ZERO;
         for (LinhaEntrega linha : linhas) {

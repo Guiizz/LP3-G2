@@ -13,6 +13,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementação do {@link IEntregaDAL} sobre as tabelas das entregas do SQL Server.
+ */
 public class EntregaDAL implements IEntregaDAL {
 
     private static final String EXISTE_ENTREGA =

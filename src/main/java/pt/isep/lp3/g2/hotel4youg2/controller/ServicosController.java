@@ -23,6 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controlador do ecrã dos serviços extra: lista os serviços por categoria
+ * e deixa o gestor criar, editar, desativar e reativar (US25).
+ */
 public class ServicosController {
 
     private static final Categoria TODAS = new Categoria(0, "Todas as categorias");

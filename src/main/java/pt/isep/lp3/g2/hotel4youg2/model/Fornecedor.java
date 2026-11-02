@@ -2,6 +2,9 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.util.Objects;
 
+/**
+ * Fornecedor do hotel, identificado pelo código que vem no ficheiro XML das entregas.
+ */
 public class Fornecedor {
 
     private int id;
@@ -14,6 +17,19 @@ public class Fornecedor {
     private String pais;
     private String codigoPais;
 
+    /**
+     * Cria um fornecedor.
+     *
+     * @param id           o id do fornecedor (0 se ainda não foi gravado)
+     * @param codigo       o código do fornecedor no ficheiro XML
+     * @param nome         o nome do fornecedor
+     * @param morada1      a primeira linha da morada
+     * @param morada2      a segunda linha da morada
+     * @param cidade       a cidade
+     * @param codigoPostal o código postal
+     * @param pais         o nome do país
+     * @param codigoPais   o código ISO do país
+     */
     public Fornecedor(int id, String codigo, String nome, String morada1, String morada2, String cidade,
                       String codigoPostal, String pais, String codigoPais) {
         this.id = id;
@@ -67,6 +83,11 @@ public class Fornecedor {
         return codigoPais;
     }
 
+    /**
+     * Junta a morada num só texto, para mostrar no ecrã.
+     *
+     * @return a morada completa (ruas, código postal, cidade e país)
+     */
     public String getMoradaCompleta() {
         return morada1 + " " + morada2 + ", " + codigoPostal + " " + cidade + " (" + pais + ")";
     }
