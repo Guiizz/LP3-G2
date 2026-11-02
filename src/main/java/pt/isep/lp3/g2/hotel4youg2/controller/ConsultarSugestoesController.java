@@ -5,6 +5,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.SugestaoQueixaBLL;
+import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
@@ -38,7 +39,6 @@ public class ConsultarSugestoesController {
     @FXML
     private void aoLimpar() {
         tipoCombo.setValue(null);
-        carregar();
     }
 
     private void carregar() {
@@ -46,6 +46,9 @@ public class ConsultarSugestoesController {
             List<SugestaoQueixa> lista = sugestaoBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
             tabela.getItems().setAll(lista);
             mensagemLabel.setText(lista.size() + " registo(s)");
+        } catch (DataAccessException e) {
+            tabela.getItems().clear();
+            mensagemLabel.setText("Não foi possível comunicar com a base de dados. Tente novamente.");
         } catch (RuntimeException e) {
             tabela.getItems().clear();
             mensagemLabel.setText(e.getMessage());
