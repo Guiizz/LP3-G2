@@ -7,6 +7,8 @@ import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
+import java.util.List;
+
 public class SugestaoQueixaBLL {
 
     public static final int MAXIMO_DESCRICAO = 1000;
@@ -42,5 +44,12 @@ public class SugestaoQueixaBLL {
         SugestaoQueixa sugestao = new SugestaoQueixa(0, cliente.getId(), tipo, texto, quemAge.getFuncionarioId(), null);
         sugestaoDAL.inserir(sugestao);
         return sugestao;
+    }
+
+    public List<SugestaoQueixa> listar(Utilizador quemAge, TipoSugestao tipo) {
+        if (!Permissoes.eGestor(quemAge)) {
+            throw new IllegalStateException("Só o gestor pode consultar as sugestões e queixas.");
+        }
+        return sugestaoDAL.listar(tipo);
     }
 }
