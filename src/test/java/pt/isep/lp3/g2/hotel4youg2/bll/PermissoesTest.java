@@ -55,4 +55,19 @@ class PermissoesTest {
             assertEquals("Só o gestor pode abrir este ecrã", e.getMessage());
         }
     }
+
+    @Test
+    void rececionistaPodeGerirReservas() {
+        assertTrue(Permissoes.podeGerirReservas(comPerfil(Perfil.RECECIONISTA)));
+    }
+
+    @Test
+    void gestorPodeGerirReservas() {
+        assertTrue(Permissoes.podeGerirReservas(comPerfil(Perfil.GESTOR)));
+    }
+
+    @Test
+    void semSessaoNaoPodeGerirReservas() {
+        assertFalse(Permissoes.podeGerirReservas(null));
+    }
 }

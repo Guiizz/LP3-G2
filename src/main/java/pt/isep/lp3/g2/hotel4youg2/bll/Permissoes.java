@@ -30,4 +30,9 @@ public final class Permissoes {
             throw new IllegalStateException("Só o gestor pode abrir este ecrã");
         }
     }
+
+    public static boolean podeGerirReservas(Utilizador utilizador) {
+        return utilizador != null
+                && (utilizador.getPerfil() == Perfil.RECECIONISTA || utilizador.getPerfil() == Perfil.GESTOR);
+    }
 }

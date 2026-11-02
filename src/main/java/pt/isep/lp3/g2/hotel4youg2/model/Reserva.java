@@ -1,8 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 /**
@@ -137,6 +139,24 @@ public class Reserva {
             throw new IllegalStateException("Só é possível cancelar reservas confirmadas e sem check-in");
         }
         estado = EstadoReserva.CANCELADA;
+    }
+
+    public boolean podeSerAlterada() {
+        return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public long getNoites() {
+        return ChronoUnit.DAYS.between(dataEntrada, dataSaida);
+    }
+
+    public void alterarDatas(LocalDate novaEntrada, LocalDate novaSaida) {
+        if (!podeSerAlterada()) {
+            throw new IllegalStateException("Só é possível alterar reservas confirmadas e sem check-in");
+        }
+        BigDecimal valorNoite = precoTotal.divide(BigDecimal.valueOf(getNoites()), 2, RoundingMode.HALF_UP);
+        dataEntrada = novaEntrada;
+        dataSaida = novaSaida;
+        precoTotal = valorNoite.multiply(BigDecimal.valueOf(getNoites()));
     }
 
     /**

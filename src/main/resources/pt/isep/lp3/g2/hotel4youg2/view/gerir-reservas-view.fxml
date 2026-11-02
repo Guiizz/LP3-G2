@@ -8,6 +8,7 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.DatePicker?>
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.GerirReservasController">
@@ -43,7 +44,12 @@
         </columns>
     </TableView>
 
-    <HBox spacing="10.0">
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Nova entrada:"/>
+        <DatePicker fx:id="novaEntradaPicker" prefWidth="130.0"/>
+        <Label text="Nova saída:"/>
+        <DatePicker fx:id="novaSaidaPicker" prefWidth="130.0"/>
+        <Button text="Alterar datas" onAction="#aoAlterarDatas"/>
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
     </HBox>
 

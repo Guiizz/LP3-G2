@@ -29,4 +29,6 @@ public interface ReservaRepositorio {
     boolean apagar(int id);
 
     boolean cancelar(int id);
+
+    boolean alterarDatasSeLivre(Reserva reserva);
 }
