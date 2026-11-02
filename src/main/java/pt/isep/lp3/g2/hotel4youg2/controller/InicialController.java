@@ -42,17 +42,23 @@ public class InicialController {
     private Button criarContaButton;
 
     @FXML
+    private Button servicosButton;
+
+    @FXML
+    private Button consultarSugestoesButton;
+
+    @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoService.testarLigacao());
     }
 
     @FXML
-    private void aoConsultarQuartos() throws IOException {
+    private void aoAbrirQuartos() throws IOException {
         FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/quartos-view.fxml"));
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/quartos-menu-view.fxml"));
         Stage stage = new Stage();
         stage.setTitle("Hotel4You - Quartos");
-        stage.setScene(new Scene(loader.load(), 700, 500));
+        stage.setScene(new Scene(loader.load(), 320, 300));
         stage.show();
     }
 
@@ -94,15 +100,61 @@ public class InicialController {
         stage.setScene(new Scene(loader.load(), 480, 560));
         stage.show();
     }
-  
+
     @FXML
-    private void aoPesquisarDisponibilidade() throws IOException {
-       FXMLLoader loader = new FXMLLoader(
-               InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/disponibilidade-view.fxml"));
-       Stage stage = new Stage();
-       stage.setTitle("Hotel4You - Disponibilidade");
-       stage.setScene(new Scene(loader.load(), 800, 500));
-       stage.show();
+    private void aoAbrirServicos() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/servicos-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Serviços");
+        stage.setScene(new Scene(loader.load(), 560, 600));
+        stage.show();
+    }
+
+    @FXML
+    private void aoAbrirReservas() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/reservas-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Reservas");
+        stage.setScene(new Scene(loader.load(), 320, 290));
+        stage.show();
+    }
+
+    @FXML
+    private void aoAbrirEntregas() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/entregas-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Entregas");
+        stage.setScene(new Scene(loader.load(), 760, 560));
+        stage.show();
+    }
+
+    @FXML
+    private void aoAbrirSugestoes() throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/sugestoes-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Sugestões e queixas");
+        stage.setScene(new Scene(loader.load(), 500, 480));
+        stage.show();
+    }
+
+    @FXML
+    private void aoConsultarSugestoes() throws IOException {
+        if (!podeAbrirEcraDeGestor()) {
+            return;
+        }
+        FXMLLoader loader = new FXMLLoader(
+                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/consultar-sugestoes-view.fxml"));
+        Stage stage = new Stage();
+        stage.setTitle("Hotel4You - Consultar sugestões e queixas");
+        stage.setScene(new Scene(loader.load(), 720, 480));
+        stage.show();
     }
 
     @FXML
@@ -161,6 +213,8 @@ public class InicialController {
         mostrar(tarifasButton, gestor);
         mostrar(contasButton, gestor);
         mostrar(criarContaButton, gestor);
+        mostrar(servicosButton, gestor);
+        mostrar(consultarSugestoesButton, gestor);
     }
 
     /**

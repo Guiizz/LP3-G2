@@ -36,6 +36,21 @@ class QuartoServiceTest {
                     quartoDisponivel(305, TipoQuarto.DUPLO, Vista.MAR, 2),
                     quartoDisponivel(309, TipoQuarto.FAMILIA, Vista.MAR, 4));
         }
+
+        @Override
+        public List<Quarto> listarTodos() {
+            return listarComTarifa();
+        }
+
+        @Override
+        public boolean temReservasFuturas(int numero) {
+            return false;
+        }
+
+        @Override
+        public boolean atualizarAtivo(int numero, boolean ativo) {
+            return true;
+        }
     }
 
     private static final LocalDate HOJE = LocalDate.now();

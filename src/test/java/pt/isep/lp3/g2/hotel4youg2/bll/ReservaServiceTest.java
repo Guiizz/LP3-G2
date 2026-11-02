@@ -1,0 +1,474 @@
+package pt.isep.lp3.g2.hotel4youg2.bll;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorio;
+import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
+import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
+import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+/**
+ * Testes unitários da classe ReservaService (US27).
+ */
+public class ReservaServiceTest {
+
+    /** Repositório de teste: guarda a reserva em memória em vez de ir à base de dados. */
+    private static class RepositorioEmMemoria implements ReservaRepositorio {
+        private boolean quartoLivre = true;
+        private Reserva gravada;
+        private boolean podeCancelarNaBD = true;
+        private Integer canceladaId;
+        private boolean quartoLivreNasNovasDatas = true;
+        private Reserva alterada;
+        private List<Reserva> reservasDoCliente = new ArrayList<>();
+        private Integer clientePedido;
+
+        @Override
+        public boolean cancelar(int id) {
+            if (!podeCancelarNaBD) {
+                return false;
+            }
+            canceladaId = id;
+            return true;
+        }
+
+        @Override
+        public boolean inserirSeLivre(Reserva reserva) {
+            if (!quartoLivre) {
+                return false;
+            }
+            reserva.setId(1);
+            gravada = reserva;
+            return true;
+        }
+
+        @Override
+        public Reserva procurarPorId(int id) {
+            return gravada;
+        }
+
+        @Override
+        public List<Reserva> listar() {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public List<Reserva> listarPorCliente(int clienteId) {
+            clientePedido = clienteId;
+            return new ArrayList<>(reservasDoCliente);
+        }
+
+        @Override
+        public boolean atualizarEstado(int id, EstadoReserva estado) {
+            return true;
+        }
+
+        @Override
+        public boolean apagar(int id) {
+            return true;
+        }
+
+        @Override
+        public boolean alterarDatasSeLivre(Reserva reserva) {
+            if (!quartoLivreNasNovasDatas) {
+                return false;
+            }
+            alterada = reserva;
+            return true;
+        }
+    }
+
+    private RepositorioEmMemoria repositorio;
+    private ReservaService instance;
+    private Cliente cliente;
+    private Quarto quarto;
+    private LocalDate entrada;
+
+    private static final Utilizador GESTOR = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
+    private static final Utilizador RECECAO = new Utilizador(2, 2, "rececao", "h", "s", Perfil.RECECIONISTA, true);
+
+    private Reserva reservaConfirmada() {
+        return new Reserva(5, 7, 201, entrada, entrada.plusDays(2), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+    }
+
+    @BeforeEach
+    public void setUp() {
+        repositorio = new RepositorioEmMemoria();
+        instance = new ReservaService(repositorio);
+        cliente = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678",
+                LocalDate.of(1990, 5, 20), null);
+        quarto = new Quarto(201, 2, TipoQuarto.DUPLO, Vista.MAR, 2);
+        quarto.setTarifa(new Tarifa(TipoQuarto.DUPLO, Vista.MAR, new BigDecimal("100.00")));
+        entrada = LocalDate.now().plusDays(1);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        repositorio = null;
+        instance = null;
+    }
+
+    @Test
+    public void testCalcularPreco() {
+        System.out.println("calcularPreco");
+        LocalDate saida = entrada.plusDays(3);
+        BigDecimal expResult = new BigDecimal("300.00");
+        BigDecimal result = instance.calcularPreco(quarto, entrada, saida);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCalcularPrecoUmaNoite() {
+        System.out.println("calcularPreco (1 noite)");
+        LocalDate saida = entrada.plusDays(1);
+        BigDecimal expResult = new BigDecimal("100.00");
+        BigDecimal result = instance.calcularPreco(quarto, entrada, saida);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriar() {
+        System.out.println("criar");
+        LocalDate saida = entrada.plusDays(2);
+        Reserva expResult = new Reserva(1, 7, 201, entrada, saida, 2,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        Reserva result = instance.criar(cliente, quarto, entrada, saida, 2);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarGuardaAReservaNoRepositorio() {
+        System.out.println("criar (guarda no repositório)");
+        LocalDate saida = entrada.plusDays(2);
+        Reserva expResult = new Reserva(1, 7, 201, entrada, saida, 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        instance.criar(cliente, quarto, entrada, saida, 1);
+        Reserva result = repositorio.gravada;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarParaHoje() {
+        System.out.println("criar (entrada hoje)");
+        LocalDate hoje = LocalDate.now();
+        Reserva expResult = new Reserva(1, 7, 201, hoje, hoje.plusDays(1), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
+        Reserva result = instance.criar(cliente, quarto, hoje, hoje.plusDays(1), 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarSemCliente() {
+        System.out.println("criar (sem cliente)");
+        try {
+            instance.criar(null, quarto, entrada, entrada.plusDays(1), 1);
+            fail("Devia ter recusado uma reserva sem cliente");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarSemQuarto() {
+        System.out.println("criar (sem quarto)");
+        try {
+            instance.criar(cliente, null, entrada, entrada.plusDays(1), 1);
+            fail("Devia ter recusado uma reserva sem quarto");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarComEntradaNoPassado() {
+        System.out.println("criar (entrada no passado)");
+        try {
+            instance.criar(cliente, quarto, LocalDate.now().minusDays(1), entrada, 1);
+            fail("Devia ter recusado uma entrada no passado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarComSaidaIgualAEntrada() {
+        System.out.println("criar (saída igual à entrada)");
+        try {
+            instance.criar(cliente, quarto, entrada, entrada, 1);
+            fail("Devia ter recusado zero noites");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarComSaidaAntesDaEntrada() {
+        System.out.println("criar (saída antes da entrada)");
+        try {
+            instance.criar(cliente, quarto, entrada.plusDays(2), entrada, 1);
+            fail("Devia ter recusado a saída antes da entrada");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarSemHospedes() {
+        System.out.println("criar (0 hóspedes)");
+        try {
+            instance.criar(cliente, quarto, entrada, entrada.plusDays(1), 0);
+            fail("Devia ter recusado 0 hóspedes");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarComMaisHospedesQueACapacidade() {
+        System.out.println("criar (mais hóspedes que a capacidade)");
+        try {
+            instance.criar(cliente, quarto, entrada, entrada.plusDays(1), 3);
+            fail("Devia ter recusado 3 hóspedes num quarto duplo");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testCriarComQuartoJaReservado() {
+        System.out.println("criar (quarto já reservado nessas datas)");
+        repositorio.quartoLivre = false;
+        String expResult = "O quarto 201 já está reservado nessas datas. Pesquise outra vez os quartos disponíveis.";
+        try {
+            instance.criar(cliente, quarto, entrada, entrada.plusDays(2), 2);
+            fail("Devia ter recusado um quarto já reservado");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCancelar() {
+        System.out.println("cancelar");
+        Reserva reserva = reservaConfirmada();
+        instance.cancelar(GESTOR, reserva);
+        Integer expResult = 5;
+        Integer result = repositorio.canceladaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarRececionista() {
+        System.out.println("cancelar (rececionista)");
+        try {
+            instance.cancelar(RECECAO, reservaConfirmada());
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarSemReserva() {
+        System.out.println("cancelar (sem reserva)");
+        try {
+            instance.cancelar(GESTOR, null);
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarJaCancelada() {
+        System.out.println("cancelar (já cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.cancelar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva já cancelada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarComCheckin() {
+        System.out.println("cancelar (com check-in)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now());
+        try {
+            instance.cancelar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva com check-in");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testCancelarQueJaNaoEstaConfirmadaNaBD() {
+        System.out.println("cancelar (não existe ou check-in entretanto)");
+        repositorio.podeCancelarNaBD = false;
+        try {
+            instance.cancelar(GESTOR, reservaConfirmada());
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.canceladaId);
+        }
+    }
+
+    @Test
+    public void testAlterarDatas() {
+        System.out.println("alterarDatas");
+        Reserva reserva = reservaConfirmada();
+        instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(8));
+        Reserva expResult = new Reserva(5, 7, 201, entrada.plusDays(5), entrada.plusDays(8), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("300.00"), null, null);
+        Reserva result = repositorio.alterada;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarDatasSemReserva() {
+        System.out.println("alterarDatas (sem reserva)");
+        try {
+            instance.alterarDatas(RECECAO, null, entrada, entrada.plusDays(2));
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasEntradaNoPassado() {
+        System.out.println("alterarDatas (entrada no passado)");
+        try {
+            instance.alterarDatas(RECECAO, reservaConfirmada(), LocalDate.now().minusDays(1), entrada.plusDays(2));
+            fail("Devia ter recusado a entrada no passado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasSaidaAntesDaEntrada() {
+        System.out.println("alterarDatas (saída antes da entrada)");
+        try {
+            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(3));
+            fail("Devia ter recusado a saída antes da entrada");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasReservaCancelada() {
+        System.out.println("alterarDatas (reserva cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(8));
+            fail("Devia ter recusado uma reserva cancelada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasQuartoOcupado() {
+        System.out.println("alterarDatas (quarto ocupado)");
+        repositorio.quartoLivreNasNovasDatas = false;
+        try {
+            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(8));
+            fail("Devia ter recusado o quarto ocupado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    private Reserva reservaDaAna(int id, LocalDate entradaReserva, EstadoReserva estado) {
+        return new Reserva(id, 7, 201, entradaReserva, entradaReserva.plusDays(2), 1,
+                estado, new BigDecimal("200.00"), null, null);
+    }
+
+    @Test
+    public void testConsultarDoCliente() {
+        System.out.println("consultarDoCliente");
+        Reserva antiga = reservaDaAna(1, LocalDate.of(2026, 1, 10), EstadoReserva.CONCLUIDA);
+        Reserva recente = reservaDaAna(2, LocalDate.of(2026, 12, 20), EstadoReserva.CONFIRMADA);
+        Reserva meio = reservaDaAna(3, LocalDate.of(2026, 6, 5), EstadoReserva.CANCELADA);
+        repositorio.reservasDoCliente.add(antiga);
+        repositorio.reservasDoCliente.add(recente);
+        repositorio.reservasDoCliente.add(meio);
+
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(recente);
+        expResult.add(meio);
+        expResult.add(antiga);
+        List<Reserva> result = instance.consultarDoCliente(cliente);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarDoClienteMesmaEntrada() {
+        System.out.println("consultarDoCliente (mesma data de entrada)");
+        LocalDate dia = LocalDate.of(2026, 8, 1);
+        Reserva primeira = reservaDaAna(4, dia, EstadoReserva.CANCELADA);
+        Reserva segunda = reservaDaAna(9, dia, EstadoReserva.CONFIRMADA);
+        repositorio.reservasDoCliente.add(primeira);
+        repositorio.reservasDoCliente.add(segunda);
+
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(segunda);
+        expResult.add(primeira);
+        List<Reserva> result = instance.consultarDoCliente(cliente);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarDoClienteSemReservas() {
+        System.out.println("consultarDoCliente (sem reservas)");
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = instance.consultarDoCliente(cliente);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarDoClientePedeAsReservasDesseCliente() {
+        System.out.println("consultarDoCliente (pede pelo id do cliente)");
+        instance.consultarDoCliente(cliente);
+        Integer expResult = 7;
+        Integer result = repositorio.clientePedido;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarSemCliente() {
+        System.out.println("consultarDoCliente (sem cliente)");
+        try {
+            instance.consultarDoCliente(null);
+            fail("Devia ter recusado sem cliente");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.clientePedido);
+        }
+    }
+}

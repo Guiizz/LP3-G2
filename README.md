@@ -57,6 +57,7 @@ Os ecrãs (FXML) estão em `src/main/resources/pt/isep/lp3/g2/hotel4youg2/view`.
 | `dotenv-java` | Ler as credenciais do ficheiro `.env` | Evita passwords no código e no repositório |
 | JavaFX (`javafx-controls`, `javafx-fxml`) | Interface gráfica | Recomendada no enunciado, com os ecrãs separados da lógica |
 | JUnit 5 | Testes unitários | Exigidos no enunciado |
+| `java.xml` (já vem com o Java) | Ler o XML das entregas e validá-lo com o XSD | É a usada nas aulas (DOM e `Validator`) e não obriga a juntar mais nenhuma biblioteca ao projeto |
 
 ## Regras de Git
 - Uma branch por story: `feat-0XX-descricao` ou `fix-0XX-descricao`, em minúsculas.

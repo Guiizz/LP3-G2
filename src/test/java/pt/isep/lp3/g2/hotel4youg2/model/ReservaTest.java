@@ -6,8 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ReservaTest {
 
@@ -44,5 +43,74 @@ class ReservaTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         assertEquals(chegada, reserva.getCheckinEm());
         assertEquals(EstadoReserva.EM_CURSO, reserva.getEstado());
+    }
+
+    @Test
+    void reservaConfirmadaPodeSerCancelada() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        assertEquals(EstadoReserva.CANCELADA, reserva.getEstado());
+    }
+
+    @Test
+    void reservaComCheckinNaoPodeSerCancelada() {
+        Reserva reserva = novaReserva();
+        reserva.setCheckinEm(LocalDateTime.now());
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        assertFalse(reserva.podeSerCancelada());
+    }
+
+    @Test
+    void reservaJaCanceladaNaoPodeSerCanceladaOutraVez() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        assertFalse(reserva.podeSerCancelada());
+    }
+
+    @Test
+    void cancelarReservaEmCursoDaErroEMantemOEstado() {
+        Reserva reserva = novaReserva();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        try {
+            reserva.cancelar();
+            fail("Devia ter recusado cancelar");
+        } catch (IllegalStateException e) {
+            assertEquals(EstadoReserva.EM_CURSO, reserva.getEstado());
+        }
+    }
+    @Test
+    void alterarDatasMudaAsDatasERecalculaOPreco() {
+        Reserva reserva = novaReserva();
+        reserva.alterarDatas(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 15));
+        assertEquals(LocalDate.of(2026, 11, 10), reserva.getDataEntrada());
+        assertEquals(LocalDate.of(2026, 11, 15), reserva.getDataSaida());
+        assertEquals(0, new BigDecimal("500.00").compareTo(reserva.getPrecoTotal()));
+    }
+
+    @Test
+    void reservaComCheckinNaoPodeSerAlterada() {
+        Reserva reserva = novaReserva();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now());
+        assertFalse(reserva.podeSerAlterada());
+    }
+
+    @Test
+    void reservaCanceladaNaoPodeSerAlterada() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        assertFalse(reserva.podeSerAlterada());
+    }
+
+    @Test
+    void alterarReservaCanceladaDaErroEMantemAsDatas() {
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        try {
+            reserva.alterarDatas(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 15));
+            fail("Devia ter recusado alterar");
+        } catch (IllegalStateException e) {
+            assertEquals(LocalDate.of(2026, 11, 2), reserva.getDataEntrada());
+        }
     }
 }

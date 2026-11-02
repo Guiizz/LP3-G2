@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.EntregasController">
+
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Entregas de fornecedores (XML)" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="Escolher ficheiro XML…" onAction="#aoEscolherFicheiro"/>
+        <Label fx:id="ficheiroLabel" text="Nenhum ficheiro escolhido"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+
+    <Separator/>
+
+    <GridPane fx:id="dadosGrid" hgap="10.0" vgap="6.0" visible="false" managed="false">
+        <Label text="Encomenda:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label fx:id="encomendaLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="Data:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label fx:id="dataLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Fornecedor:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label fx:id="fornecedorLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Morada:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Label fx:id="moradaLabel" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <TableView fx:id="tabela" prefHeight="230.0">
+        <columns>
+            <TableColumn fx:id="colunaLinha" text="Linha" prefWidth="50.0"/>
+            <TableColumn fx:id="colunaCodigo" text="Código" prefWidth="80.0"/>
+            <TableColumn fx:id="colunaDescricao" text="Material" prefWidth="230.0"/>
+            <TableColumn fx:id="colunaQuantidade" text="Quantidade" prefWidth="90.0"/>
+            <TableColumn fx:id="colunaPreco" text="Preço" prefWidth="80.0"/>
+            <TableColumn fx:id="colunaIva" text="IVA" prefWidth="80.0"/>
+            <TableColumn fx:id="colunaTotal" text="Total" prefWidth="90.0"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Total da entrega:" style="-fx-font-weight: bold;"/>
+        <Label fx:id="totalLabel" style="-fx-font-weight: bold;"/>
+    </HBox>
+
+    <Button fx:id="registarButton" text="Registar entrega" onAction="#aoRegistar" disable="true"/>
+</VBox>

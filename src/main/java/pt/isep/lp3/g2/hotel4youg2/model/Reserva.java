@@ -1,8 +1,11 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 /**
  * Reserva de um quarto por um cliente, entre duas datas.
@@ -125,5 +128,79 @@ public class Reserva {
         this.precoTotal = precoTotal;
         this.checkinEm = checkinEm;
         this.checkoutEm = checkoutEm;
+    }
+
+    public boolean podeSerCancelada(){
+       return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public void cancelar() {
+        if (!podeSerCancelada()) {
+            throw new IllegalStateException("Só é possível cancelar reservas confirmadas e sem check-in");
+        }
+        estado = EstadoReserva.CANCELADA;
+    }
+
+    public boolean podeSerAlterada() {
+        return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public long getNoites() {
+        return ChronoUnit.DAYS.between(dataEntrada, dataSaida);
+    }
+
+    public void alterarDatas(LocalDate novaEntrada, LocalDate novaSaida) {
+        if (!podeSerAlterada()) {
+            throw new IllegalStateException("Só é possível alterar reservas confirmadas e sem check-in");
+        }
+        BigDecimal valorNoite = precoTotal.divide(BigDecimal.valueOf(getNoites()), 2, RoundingMode.HALF_UP);
+        dataEntrada = novaEntrada;
+        dataSaida = novaSaida;
+        precoTotal = valorNoite.multiply(BigDecimal.valueOf(getNoites()));
+    }
+
+    /**
+     * Duas reservas são iguais se tiverem os mesmos dados.
+     * O preço compara-se pelo valor (100.0 e 100.00 contam como iguais).
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Reserva)) {
+            return false;
+        }
+        Reserva outra = (Reserva) o;
+        return id == outra.id
+                && clienteId == outra.clienteId
+                && quartoNumero == outra.quartoNumero
+                && numHospedes == outra.numHospedes
+                && Objects.equals(dataEntrada, outra.dataEntrada)
+                && Objects.equals(dataSaida, outra.dataSaida)
+                && estado == outra.estado
+                && mesmoValor(precoTotal, outra.precoTotal)
+                && Objects.equals(checkinEm, outra.checkinEm)
+                && Objects.equals(checkoutEm, outra.checkoutEm);
+    }
+
+    private static boolean mesmoValor(BigDecimal a, BigDecimal b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        return a.compareTo(b) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, clienteId, quartoNumero, numHospedes, dataEntrada, dataSaida, estado,
+                checkinEm, checkoutEm);
+    }
+
+    @Override
+    public String toString() {
+        return "Reserva{id=" + id + ", cliente=" + clienteId + ", quarto=" + quartoNumero
+                + ", " + dataEntrada + " a " + dataSaida + ", hospedes=" + numHospedes
+                + ", " + estado + ", preco=" + precoTotal + "}";
     }
 }
