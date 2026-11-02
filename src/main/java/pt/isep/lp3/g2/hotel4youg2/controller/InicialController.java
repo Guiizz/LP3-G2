@@ -120,7 +120,7 @@ public class InicialController {
                 InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/reservas-view.fxml"));
         Stage stage = new Stage();
         stage.setTitle("Hotel4You - Reservas");
-        stage.setScene(new Scene(loader.load(), 320, 220));
+        stage.setScene(new Scene(loader.load(), 320, 290));
         stage.show();
     }
 

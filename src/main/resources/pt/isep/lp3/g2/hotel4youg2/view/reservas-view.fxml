@@ -17,4 +17,5 @@
     <Button text="Criar reserva" onAction="#aoCriarReserva" prefWidth="220"/>
     <Button text="Pesquisar disponibilidade" onAction="#aoPesquisarDisponibilidade" prefWidth="220"/>
     <Button text="Gerir reservas" onAction="#aoGerirReservas" prefWidth="220"/>
+    <Button text="Reservas de um cliente" onAction="#aoConsultarReservasCliente" prefWidth="220"/>
 </VBox>
