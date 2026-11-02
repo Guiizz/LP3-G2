@@ -24,6 +24,8 @@ public interface ReservaRepositorio {
 
     List<Reserva> listar();
 
+    List<Reserva> listarPorCliente(int clienteId);
+
     boolean atualizarEstado(int id, EstadoReserva estado);
 
     boolean apagar(int id);
