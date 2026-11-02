@@ -11,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -65,6 +66,26 @@ public class ReservaService {
 
     public List<Reserva> listar() {
         return repositorio.listar();
+    }
+
+    public List<Reserva> consultarDoCliente(Cliente cliente) {
+        if (cliente == null) {
+            throw new ValidacaoException("Escolha o cliente pelo NIF");
+        }
+        List<Reserva> reservas = repositorio.listarPorCliente(cliente.getId());
+        reservas.sort(new MaisRecentePrimeiro());
+        return reservas;
+    }
+
+    private static class MaisRecentePrimeiro implements Comparator<Reserva> {
+        @Override
+        public int compare(Reserva a, Reserva b) {
+            int porData = b.getDataEntrada().compareTo(a.getDataEntrada());
+            if (porData != 0) {
+                return porData;
+            }
+            return Integer.compare(b.getId(), a.getId());
+        }
     }
 
     public void cancelar(Utilizador quemAge, Reserva reserva) {

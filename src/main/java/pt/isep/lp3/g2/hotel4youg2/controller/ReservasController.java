@@ -27,6 +27,11 @@ public class ReservasController {
         abrir("gerir-reservas-view.fxml", "Hotel4You - Gerir reservas", 640, 460);
     }
 
+    @FXML
+    private void aoConsultarReservasCliente() throws IOException {
+        abrir("consultar-reservas-view.fxml", "Hotel4You - Reservas de um cliente", 640, 460);
+    }
+
     private void abrir(String ficheiro, String titulo, double largura, double altura) throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 ReservasController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/" + ficheiro));

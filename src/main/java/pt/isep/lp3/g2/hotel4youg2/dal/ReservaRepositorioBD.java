@@ -32,6 +32,9 @@ public class ReservaRepositorioBD implements ReservaRepositorio {
 
     private static final String LISTAR = SELECT_RESERVA + "ORDER BY dataEntrada DESC";
 
+    private static final String LISTAR_POR_CLIENTE =
+            SELECT_RESERVA + "WHERE clienteId = ? ORDER BY dataEntrada DESC, id DESC";
+
     private static final String ATUALIZAR_ESTADO = "UPDATE Reserva SET estado = ? WHERE id = ?";
 
     private static final String APAGAR = "DELETE FROM Reserva WHERE id = ?";
@@ -82,6 +85,11 @@ public class ReservaRepositorioBD implements ReservaRepositorio {
     @Override
     public List<Reserva> listar() {
         return ConexaoBD.select(LISTAR, new ReservaMapper());
+    }
+
+    @Override
+    public List<Reserva> listarPorCliente(int clienteId) {
+        return ConexaoBD.select(LISTAR_POR_CLIENTE, new ReservaMapper(), clienteId);
     }
 
     @Override
