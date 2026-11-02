@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -9,12 +11,19 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaService;
+import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.Optional;
 
+/**
+ * Controlador do ecrã "Gerir reservas": lista as reservas, deixa alterar as datas (US30)
+ * e deixa o gestor cancelá-las (US29).
+ */
 public class GerirReservasController {
+
+    private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
 
     private final ReservaService reservaService = new ReservaService();
 
@@ -38,6 +47,7 @@ public class GerirReservasController {
         boolean gestor = Permissoes.eGestor(Sessao.getUtilizador());
         cancelarButton.setVisible(gestor);
         cancelarButton.setManaged(gestor);
+        tabela.getSelectionModel().selectedItemProperty().addListener(new AoEscolherReserva());
         carregar();
     }
 
@@ -54,19 +64,12 @@ public class GerirReservasController {
         try {
             reservaService.cancelar(Sessao.getUtilizador(), escolhida);
             mensagemLabel.setText("Reserva " + escolhida.getId() + " cancelada.");
+        } catch (DataAccessException e) {
+            mensagemLabel.setText(ERRO_BD);
         } catch (RuntimeException e) {
             mensagemLabel.setText(e.getMessage());
         }
         carregar();
-    }
-
-    @FXML
-    private void aoEscolherReserva() {
-        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
-        if (escolhida != null) {
-            novaEntradaPicker.setValue(escolhida.getDataEntrada());
-            novaSaidaPicker.setValue(escolhida.getDataSaida());
-        }
     }
 
     @FXML
@@ -77,9 +80,12 @@ public class GerirReservasController {
             return;
         }
         try {
-            reservaService.alterarDatas(escolhida, novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
+            reservaService.alterarDatas(Sessao.getUtilizador(), escolhida,
+                    novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
             mensagemLabel.setText("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
                     + escolhida.getPrecoTotal() + " €");
+        } catch (DataAccessException e) {
+            mensagemLabel.setText(ERRO_BD);
         } catch (RuntimeException e) {
             mensagemLabel.setText(e.getMessage());
         }
@@ -99,13 +105,23 @@ public class GerirReservasController {
         return resposta.isPresent() && resposta.get() == ButtonType.YES;
     }
 
-
     private void carregar() {
         try {
             tabela.getItems().setAll(reservaService.listar());
-        } catch (RuntimeException e) {
+        } catch (DataAccessException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText("Não foi possível carregar as reservas: " + e.getMessage());
+            mensagemLabel.setText(ERRO_BD);
+        }
+    }
+
+    /** Preenche as datas com as da reserva escolhida, seja com o rato ou com as setas do teclado. */
+    private class AoEscolherReserva implements ChangeListener<Reserva> {
+        @Override
+        public void changed(ObservableValue<? extends Reserva> observavel, Reserva antiga, Reserva nova) {
+            if (nova != null) {
+                novaEntradaPicker.setValue(nova.getDataEntrada());
+                novaSaidaPicker.setValue(nova.getDataSaida());
+            }
         }
     }
 }

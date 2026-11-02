@@ -18,7 +18,7 @@
 
     <Label text="Reservas" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
 
-    <TableView fx:id="tabela" VBox.vgrow="ALWAYS" onMouseClicked="#aoEscolherReserva">
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn text="Nº" prefWidth="50.0">
                 <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>

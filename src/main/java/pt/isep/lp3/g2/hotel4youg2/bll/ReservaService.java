@@ -81,7 +81,10 @@ public class ReservaService {
         }
     }
 
-    public void alterarDatas(Reserva reserva, LocalDate novaEntrada, LocalDate novaSaida) {
+    public void alterarDatas(Utilizador quemAge, Reserva reserva, LocalDate novaEntrada, LocalDate novaSaida) {
+        if (!Permissoes.podeGerirReservas(quemAge)) {
+            throw new IllegalStateException("Entre na aplicação como rececionista ou gestor para alterar reservas");
+        }
         if (reserva == null) {
             throw new ValidacaoException("Escolha uma reserva");
         }

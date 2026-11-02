@@ -332,7 +332,7 @@ public class ReservaServiceTest {
     public void testAlterarDatas() {
         System.out.println("alterarDatas");
         Reserva reserva = reservaConfirmada();
-        instance.alterarDatas(reserva, entrada.plusDays(5), entrada.plusDays(8));
+        instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(8));
         Reserva expResult = new Reserva(5, 7, 201, entrada.plusDays(5), entrada.plusDays(8), 1,
                 EstadoReserva.CONFIRMADA, new BigDecimal("300.00"), null, null);
         Reserva result = repositorio.alterada;
@@ -343,7 +343,7 @@ public class ReservaServiceTest {
     public void testAlterarDatasSemReserva() {
         System.out.println("alterarDatas (sem reserva)");
         try {
-            instance.alterarDatas(null, entrada, entrada.plusDays(2));
+            instance.alterarDatas(RECECAO, null, entrada, entrada.plusDays(2));
             fail("Devia ter recusado sem reserva");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.alterada);
@@ -354,7 +354,7 @@ public class ReservaServiceTest {
     public void testAlterarDatasEntradaNoPassado() {
         System.out.println("alterarDatas (entrada no passado)");
         try {
-            instance.alterarDatas(reservaConfirmada(), LocalDate.now().minusDays(1), entrada.plusDays(2));
+            instance.alterarDatas(RECECAO, reservaConfirmada(), LocalDate.now().minusDays(1), entrada.plusDays(2));
             fail("Devia ter recusado a entrada no passado");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.alterada);
@@ -365,7 +365,7 @@ public class ReservaServiceTest {
     public void testAlterarDatasSaidaAntesDaEntrada() {
         System.out.println("alterarDatas (saída antes da entrada)");
         try {
-            instance.alterarDatas(reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(3));
+            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(3));
             fail("Devia ter recusado a saída antes da entrada");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.alterada);
@@ -378,7 +378,7 @@ public class ReservaServiceTest {
         Reserva reserva = reservaConfirmada();
         reserva.setEstado(EstadoReserva.CANCELADA);
         try {
-            instance.alterarDatas(reserva, entrada.plusDays(5), entrada.plusDays(8));
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(8));
             fail("Devia ter recusado uma reserva cancelada");
         } catch (IllegalStateException expected) {
             assertEquals(null, repositorio.alterada);
@@ -390,7 +390,7 @@ public class ReservaServiceTest {
         System.out.println("alterarDatas (quarto ocupado)");
         repositorio.quartoLivreNasNovasDatas = false;
         try {
-            instance.alterarDatas(reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(8));
+            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(8));
             fail("Devia ter recusado o quarto ocupado");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.alterada);
