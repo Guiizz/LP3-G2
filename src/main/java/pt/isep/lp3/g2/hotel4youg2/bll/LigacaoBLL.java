@@ -6,7 +6,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 /**
  * Verifica se a aplicação consegue ligar-se à base de dados.
  */
-public class LigacaoService {
+public class LigacaoBLL {
 
     /**
      * Faz uma consulta simples para testar a ligação.

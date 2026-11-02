@@ -7,9 +7,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import pt.isep.lp3.g2.hotel4youg2.bll.ClienteService;
-import pt.isep.lp3.g2.hotel4youg2.bll.QuartoService;
-import pt.isep.lp3.g2.hotel4youg2.bll.ReservaService;
+import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
@@ -26,9 +26,9 @@ import java.util.List;
  */
 public class CriarReservaController {
 
-    private final ClienteService clienteService = new ClienteService();
-    private final QuartoService quartoService = new QuartoService();
-    private final ReservaService reservaService = new ReservaService();
+    private final ClienteBLL clienteService = new ClienteBLL();
+    private final QuartoBLL quartoService = new QuartoBLL();
+    private final ReservaBLL reservaService = new ReservaBLL();
 
     @FXML
     private TextField nifField;

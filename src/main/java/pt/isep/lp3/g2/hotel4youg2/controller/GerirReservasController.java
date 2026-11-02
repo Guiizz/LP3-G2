@@ -10,7 +10,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
-import pt.isep.lp3.g2.hotel4youg2.bll.ReservaService;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
@@ -25,7 +25,7 @@ public class GerirReservasController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
 
-    private final ReservaService reservaService = new ReservaService();
+    private final ReservaBLL reservaService = new ReservaBLL();
 
     @FXML
     private TableView<Reserva> tabela;

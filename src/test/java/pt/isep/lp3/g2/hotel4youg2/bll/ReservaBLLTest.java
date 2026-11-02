@@ -3,7 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorio;
+import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Testes unitários da classe ReservaService (US27).
+ * Testes unitários da classe ReservaBLL (US27).
  */
-public class ReservaServiceTest {
+public class ReservaBLLTest {
 
     /** Repositório de teste: guarda a reserva em memória em vez de ir à base de dados. */
-    private static class RepositorioEmMemoria implements ReservaRepositorio {
+    private static class ReservaDALFalsa implements IReservaDAL {
         private boolean quartoLivre = true;
         private Reserva gravada;
         private boolean podeCancelarNaBD = true;
@@ -94,8 +94,8 @@ public class ReservaServiceTest {
         }
     }
 
-    private RepositorioEmMemoria repositorio;
-    private ReservaService instance;
+    private ReservaDALFalsa repositorio;
+    private ReservaBLL instance;
     private Cliente cliente;
     private Quarto quarto;
     private LocalDate entrada;
@@ -110,8 +110,8 @@ public class ReservaServiceTest {
 
     @BeforeEach
     public void setUp() {
-        repositorio = new RepositorioEmMemoria();
-        instance = new ReservaService(repositorio);
+        repositorio = new ReservaDALFalsa();
+        instance = new ReservaBLL(repositorio);
         cliente = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678",
                 LocalDate.of(1990, 5, 20), null);
         quarto = new Quarto(201, 2, TipoQuarto.DUPLO, Vista.MAR, 2);

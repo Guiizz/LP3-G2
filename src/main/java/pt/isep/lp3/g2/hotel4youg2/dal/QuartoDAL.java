@@ -12,9 +12,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Implementação do {@link QuartoRepositorio} sobre as tabelas Quarto, Tarifa e Reserva do SQL Server.
+ * Implementação do {@link IQuartoDAL} sobre as tabelas Quarto, Tarifa e Reserva do SQL Server.
  */
-public class QuartoRepositorioBD implements QuartoRepositorio {
+public class QuartoDAL implements IQuartoDAL {
 
     private static final String SELECT_QUARTO_COM_TARIFA =
             "SELECT q.numero, q.piso, q.tipo, q.vista, q.capacidade, q.ativo, t.valorNoite "

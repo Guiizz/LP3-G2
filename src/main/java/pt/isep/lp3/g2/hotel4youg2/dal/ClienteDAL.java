@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Implementação do {@link ClienteRepositorio} sobre as tabelas Pessoa e Cliente do SQL Server.
+ * Implementação do {@link IClienteDAL} sobre as tabelas Pessoa e Cliente do SQL Server.
  */
-public class ClienteRepositorioBD implements ClienteRepositorio {
+public class ClienteDAL implements IClienteDAL {
 
     @Override
     public int inserirCliente(Cliente c) {

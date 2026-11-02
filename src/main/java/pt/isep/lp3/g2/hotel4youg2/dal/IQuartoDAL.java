@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Acesso aos dados dos quartos.
  */
-public interface QuartoRepositorio {
+public interface IQuartoDAL {
 
     /**
      * @return os quartos ativos, ordenados pelo número, cada um com a sua tarifa

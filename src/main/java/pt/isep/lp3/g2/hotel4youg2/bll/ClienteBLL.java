@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.ClienteRepositorio;
-import pt.isep.lp3.g2.hotel4youg2.dal.ClienteRepositorioBD;
+import pt.isep.lp3.g2.hotel4youg2.dal.IClienteDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.ClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;
@@ -11,14 +11,14 @@ import java.util.List;
 /**
  * Regras de negócio dos clientes: registar (US13), pesquisar (US14) e editar (US19).
  */
-public class ClienteService {
-    private final ClienteRepositorio repositorio;
+public class ClienteBLL {
+    private final IClienteDAL repositorio;
 
     /**
      * Cria o serviço ligado à base de dados.
      */
-    public ClienteService() {
-        this(new ClienteRepositorioBD());
+    public ClienteBLL() {
+        this(new ClienteDAL());
     }
 
     /**
@@ -26,7 +26,7 @@ public class ClienteService {
      *
      * @param repositorio de onde vêm e para onde vão os clientes
      */
-    public ClienteService(ClienteRepositorio repositorio) {
+    public ClienteBLL(IClienteDAL repositorio) {
         this.repositorio = repositorio;
     }
 
