@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Acesso aos dados dos clientes.
  */
-public interface ClienteRepositorio {
+public interface IClienteDAL {
 
     /**
      * Grava um cliente novo (na Pessoa e no Cliente) e atualiza o id do objeto.

@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.ClienteRepositorio;
+import pt.isep.lp3.g2.hotel4youg2.dal.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;
@@ -18,11 +18,11 @@ class EditarClienteTest {
     private static final LocalDate ADULTO = LocalDate.now().minusYears(30);
 
     /** Repositório falso: guarda o último cliente que lhe pediram para atualizar. */
-    private static class RepositorioFalso implements ClienteRepositorio {
+    private static class ClienteDALFalsa implements IClienteDAL {
         private final boolean clienteExiste;
         private Cliente atualizado;
 
-        RepositorioFalso(boolean clienteExiste) {
+        ClienteDALFalsa(boolean clienteExiste) {
             this.clienteExiste = clienteExiste;
         }
 
@@ -59,9 +59,9 @@ class EditarClienteTest {
 
     @Test
     void dadosValidosFicamGuardados() {
-        RepositorioFalso repo = new RepositorioFalso(true);
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
         Cliente cliente = ana();
-        new ClienteService(repo).editar(cliente, " Ana Costa ", ADULTO, "934567890", "ana@costa.pt",
+        new ClienteBLL(repo).editar(cliente, " Ana Costa ", ADULTO, "934567890", "ana@costa.pt",
                 "12345678", "Rua B");
 
         assertEquals(7, repo.atualizado.getId());
@@ -73,9 +73,9 @@ class EditarClienteTest {
 
     @Test
     void oNifNuncaMuda() {
-        RepositorioFalso repo = new RepositorioFalso(true);
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
         Cliente cliente = ana();
-        new ClienteService(repo).editar(cliente, "Ana Costa", ADULTO, "912345678", null, null, null);
+        new ClienteBLL(repo).editar(cliente, "Ana Costa", ADULTO, "912345678", null, null, null);
 
         assertEquals("123456789", repo.atualizado.getNif());
         assertEquals("123456789", cliente.getNif());
@@ -83,9 +83,9 @@ class EditarClienteTest {
 
     @Test
     void camposOpcionaisPodemFicarVazios() {
-        RepositorioFalso repo = new RepositorioFalso(true);
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
         Cliente cliente = ana();
-        new ClienteService(repo).editar(cliente, "Ana Silva", ADULTO, "912345678", "  ", "", " ");
+        new ClienteBLL(repo).editar(cliente, "Ana Silva", ADULTO, "912345678", "  ", "", " ");
 
         assertNull(cliente.getEmail());
         assertNull(cliente.getCc());
@@ -94,17 +94,17 @@ class EditarClienteTest {
 
     @Test
     void semClienteEscolhidoFalha() {
-        RepositorioFalso repo = new RepositorioFalso(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteService(repo)
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
+        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
                 .editar(null, "Ana", ADULTO, "912345678", null, null, null));
         assertNull(repo.atualizado);
     }
 
     @Test
     void nomeVazioFalhaENaoMudaNada() {
-        RepositorioFalso repo = new RepositorioFalso(true);
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
         Cliente cliente = ana();
-        assertThrows(ValidacaoException.class, () -> new ClienteService(repo)
+        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
                 .editar(cliente, "  ", ADULTO, "912345678", null, null, null));
         assertNull(repo.atualizado);
         assertEquals("Ana Silva", cliente.getNome());
@@ -112,33 +112,33 @@ class EditarClienteTest {
 
     @Test
     void menorDe18Falha() {
-        RepositorioFalso repo = new RepositorioFalso(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteService(repo)
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
+        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
                 .editar(ana(), "Ana", LocalDate.now().minusYears(17), "912345678", null, null, null));
         assertNull(repo.atualizado);
     }
 
     @Test
     void semTelemovelNemEmailFalha() {
-        RepositorioFalso repo = new RepositorioFalso(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteService(repo)
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
+        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
                 .editar(ana(), "Ana", ADULTO, " ", null, null, null));
         assertNull(repo.atualizado);
     }
 
     @Test
     void emailInvalidoFalha() {
-        RepositorioFalso repo = new RepositorioFalso(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteService(repo)
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
+        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
                 .editar(ana(), "Ana", ADULTO, null, "ana.mail.pt", null, null));
         assertNull(repo.atualizado);
     }
 
     @Test
     void clienteQueJaNaoExisteFalhaENaoMudaOObjeto() {
-        RepositorioFalso repo = new RepositorioFalso(false);
+        ClienteDALFalsa repo = new ClienteDALFalsa(false);
         Cliente cliente = ana();
-        ValidacaoException e = assertThrows(ValidacaoException.class, () -> new ClienteService(repo)
+        ValidacaoException e = assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
                 .editar(cliente, "Ana Costa", ADULTO, "912345678", null, null, null));
         assertEquals("O cliente já não existe", e.getMessage());
         assertEquals("Ana Silva", cliente.getNome());

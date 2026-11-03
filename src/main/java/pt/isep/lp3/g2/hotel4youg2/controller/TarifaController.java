@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import pt.isep.lp3.g2.hotel4youg2.bll.TarifaService;
+import pt.isep.lp3.g2.hotel4youg2.bll.TarifaBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
@@ -20,7 +20,7 @@ import java.math.BigDecimal;
  */
 public class TarifaController {
 
-    private final TarifaService tarifaService = new TarifaService();
+    private final TarifaBLL tarifaService = new TarifaBLL();
 
     @FXML
     private TableView<Tarifa> tabela;

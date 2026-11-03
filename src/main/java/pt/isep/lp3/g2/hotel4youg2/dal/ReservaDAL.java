@@ -12,9 +12,9 @@ import java.sql.Timestamp;
 import java.util.List;
 
 /**
- * Implementação do {@link ReservaRepositorio} sobre a tabela Reserva do SQL Server.
+ * Implementação do {@link IReservaDAL} sobre a tabela Reserva do SQL Server.
  */
-public class ReservaRepositorioBD implements ReservaRepositorio {
+public class ReservaDAL implements IReservaDAL {
 
     private static final String INSERIR_SE_LIVRE =
             "INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, precoTotal) "

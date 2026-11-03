@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorio;
-import pt.isep.lp3.g2.hotel4youg2.dal.ReservaRepositorioBD;
+import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
@@ -17,15 +17,15 @@ import java.util.List;
 /**
  * Regras de negócio das reservas (US27).
  */
-public class ReservaService {
+public class ReservaBLL {
 
-    private final ReservaRepositorio repositorio;
+    private final IReservaDAL repositorio;
 
-    public ReservaService() {
-        this(new ReservaRepositorioBD());
+    public ReservaBLL() {
+        this(new ReservaDAL());
     }
 
-    public ReservaService(ReservaRepositorio repositorio) {
+    public ReservaBLL(IReservaDAL repositorio) {
         this.repositorio = repositorio;
     }
 

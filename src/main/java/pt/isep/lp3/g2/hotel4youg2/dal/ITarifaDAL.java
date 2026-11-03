@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Acesso aos dados das tarifas.
  */
-public interface TarifaRepositorio {
+public interface ITarifaDAL {
 
     /**
      * @return todas as tarifas, ordenadas por tipo e vista

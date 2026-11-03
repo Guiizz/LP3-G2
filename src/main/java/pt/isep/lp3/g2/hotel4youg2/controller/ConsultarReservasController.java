@@ -4,8 +4,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import pt.isep.lp3.g2.hotel4youg2.bll.ClienteService;
-import pt.isep.lp3.g2.hotel4youg2.bll.ReservaService;
+import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
@@ -15,8 +15,8 @@ import java.util.List;
 
 public class ConsultarReservasController {
 
-    private final ClienteService clienteService = new ClienteService();
-    private final ReservaService reservaService = new ReservaService();
+    private final ClienteBLL clienteService = new ClienteBLL();
+    private final ReservaBLL reservaService = new ReservaBLL();
 
     @FXML
     private TextField nifField;

@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-import pt.isep.lp3.g2.hotel4youg2.bll.ClienteService;
+import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
@@ -24,7 +24,7 @@ public class PesquisarClienteController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    private final ClienteService clienteService = new ClienteService();
+    private final ClienteBLL clienteService = new ClienteBLL();
 
     @FXML
     private TextField nifField;
