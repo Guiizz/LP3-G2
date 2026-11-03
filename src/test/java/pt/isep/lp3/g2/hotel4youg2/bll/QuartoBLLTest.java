@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.QuartoRepositorio;
+import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class QuartoServiceTest {
+class QuartoBLLTest {
 
-    private static class RepositorioFalso implements QuartoRepositorio {
+    private static class QuartoDALFalsa implements IQuartoDAL {
 
         @Override
         public List<Quarto> listarComTarifa() {
@@ -67,7 +67,7 @@ class QuartoServiceTest {
         return q;
     }
 
-    private final QuartoService service = new QuartoService(new RepositorioFalso());
+    private final QuartoBLL service = new QuartoBLL(new QuartoDALFalsa());
 
     private String erroDaPesquisa(LocalDate entrada, LocalDate saida, int hospedes) {
         try {

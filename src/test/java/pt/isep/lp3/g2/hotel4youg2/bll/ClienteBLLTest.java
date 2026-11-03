@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.ClienteRepositorio;
+import pt.isep.lp3.g2.hotel4youg2.dal.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;
@@ -15,18 +15,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /** Testa as regras do registo (US13) e da pesquisa por NIF (US14) sem ir à base de dados. */
-class ClienteServiceTest {
+class ClienteBLLTest {
 
     private static final LocalDate ADULTO = LocalDate.now().minusYears(30);
 
     /** Repositório falso: não usa a BD e regista se alguém tentou gravar. */
-    private static class RepositorioFalso implements ClienteRepositorio {
+    private static class ClienteDALFalsa implements IClienteDAL {
         private final boolean nifExiste;
         private boolean gravou = false;
         private Cliente clienteNaBD = null;
         private int procuras = 0;
 
-        RepositorioFalso(boolean nifExiste) {
+        ClienteDALFalsa(boolean nifExiste) {
             this.nifExiste = nifExiste;
         }
 
@@ -62,25 +62,25 @@ class ClienteServiceTest {
         }
     }
 
-    private RepositorioFalso repositorioComAna() {
-        RepositorioFalso repo = new RepositorioFalso(true);
+    private ClienteDALFalsa repositorioComAna() {
+        ClienteDALFalsa repo = new ClienteDALFalsa(true);
         repo.clienteNaBD = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
         return repo;
     }
 
     private void esperaErroNaPesquisa(String nif) {
-        RepositorioFalso repo = repositorioComAna();
+        ClienteDALFalsa repo = repositorioComAna();
         try {
-            new ClienteService(repo).pesquisarPorNif(nif);
+            new ClienteBLL(repo).pesquisarPorNif(nif);
             fail("Devia ter sido recusado");
         } catch (ValidacaoException e) {
             assertEquals(0, repo.procuras, "Não devia ter ido à base de dados");
         }
     }
 
-    private void esperaErro(RepositorioFalso repo, String nome, String nif, LocalDate data,
+    private void esperaErro(ClienteDALFalsa repo, String nome, String nif, LocalDate data,
                             String telemovel, String email) {
-        ClienteService servico = new ClienteService(repo);
+        ClienteBLL servico = new ClienteBLL(repo);
         try {
             servico.registar(nome, nif, data, telemovel, email, null, null);
             fail("Devia ter sido recusado");
@@ -90,13 +90,13 @@ class ClienteServiceTest {
     }
 
     private void esperaErro(String nome, String nif, LocalDate data, String telemovel, String email) {
-        esperaErro(new RepositorioFalso(false), nome, nif, data, telemovel, email);
+        esperaErro(new ClienteDALFalsa(false), nome, nif, data, telemovel, email);
     }
 
     @Test
     void clienteValidoFicaGravado() {
-        RepositorioFalso repo = new RepositorioFalso(false);
-        Cliente c = new ClienteService(repo).registar(
+        ClienteDALFalsa repo = new ClienteDALFalsa(false);
+        Cliente c = new ClienteBLL(repo).registar(
                 "  Ana Silva ", "123456789", ADULTO, "912345678", null, "", "   ");
         assertTrue(repo.gravou);
         assertEquals(1, c.getId());
@@ -122,7 +122,7 @@ class ClienteServiceTest {
 
     @Test
     void nifRepetidoFalha() {
-        esperaErro(new RepositorioFalso(true), "Ana", "123456789", ADULTO, "912345678", null);
+        esperaErro(new ClienteDALFalsa(true), "Ana", "123456789", ADULTO, "912345678", null);
     }
 
     @Test
@@ -142,8 +142,8 @@ class ClienteServiceTest {
 
     @Test
     void quemFaz18HojePodeRegistar() {
-        RepositorioFalso repo = new RepositorioFalso(false);
-        new ClienteService(repo).registar("Ana", "123456789", LocalDate.now().minusYears(18),
+        ClienteDALFalsa repo = new ClienteDALFalsa(false);
+        new ClienteBLL(repo).registar("Ana", "123456789", LocalDate.now().minusYears(18),
                 "912345678", null, null, null);
         assertTrue(repo.gravou);
     }
@@ -155,8 +155,8 @@ class ClienteServiceTest {
 
     @Test
     void soComEmailFunciona() {
-        RepositorioFalso repo = new RepositorioFalso(false);
-        new ClienteService(repo).registar("Ana", "123456789", ADULTO, null, "ana@mail.pt", null, null);
+        ClienteDALFalsa repo = new ClienteDALFalsa(false);
+        new ClienteBLL(repo).registar("Ana", "123456789", ADULTO, null, "ana@mail.pt", null, null);
         assertTrue(repo.gravou);
     }
 
@@ -172,7 +172,7 @@ class ClienteServiceTest {
 
     @Test
     void mensagemDoNifRepetidoIndicaOMotivo() {
-        ClienteService servico = new ClienteService(new RepositorioFalso(true));
+        ClienteBLL servico = new ClienteBLL(new ClienteDALFalsa(true));
         try {
             servico.registar("Ana", "123456789", ADULTO, "912345678", null, null, null);
             fail("Devia ter sido recusado");
@@ -185,7 +185,7 @@ class ClienteServiceTest {
 
     @Test
     void pesquisaComNifExistenteDevolveOsDados() {
-        Cliente c = new ClienteService(repositorioComAna()).pesquisarPorNif("123456789");
+        Cliente c = new ClienteBLL(repositorioComAna()).pesquisarPorNif("123456789");
         assertEquals(7, c.getId());
         assertEquals("Ana Silva", c.getNome());
         assertEquals("912345678", c.getTelemovel());
@@ -193,14 +193,14 @@ class ClienteServiceTest {
 
     @Test
     void pesquisaComNifInexistenteDevolveNull() {
-        RepositorioFalso repo = repositorioComAna();
-        assertNull(new ClienteService(repo).pesquisarPorNif("987654321"));
+        ClienteDALFalsa repo = repositorioComAna();
+        assertNull(new ClienteBLL(repo).pesquisarPorNif("987654321"));
         assertEquals(1, repo.procuras);
     }
 
     @Test
     void pesquisaIgnoraEspacosAntesEDepois() {
-        Cliente c = new ClienteService(repositorioComAna()).pesquisarPorNif("  123456789 ");
+        Cliente c = new ClienteBLL(repositorioComAna()).pesquisarPorNif("  123456789 ");
         assertEquals("Ana Silva", c.getNome());
     }
 

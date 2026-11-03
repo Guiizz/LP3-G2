@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Acesso aos dados das reservas.
  */
-public interface ReservaRepositorio {
+public interface IReservaDAL {
 
     /**
      * Grava a reserva, mas só se o quarto estiver livre nessas datas.

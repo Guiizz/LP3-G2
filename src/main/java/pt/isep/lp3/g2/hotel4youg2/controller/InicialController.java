@@ -7,7 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoService;
+import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
  */
 public class InicialController {
 
-    private final LigacaoService ligacaoService = new  LigacaoService();
+    private final LigacaoBLL ligacaoService = new  LigacaoBLL();
 
     @FXML
     private Label estadoLabel;

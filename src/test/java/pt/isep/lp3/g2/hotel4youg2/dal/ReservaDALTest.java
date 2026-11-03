@@ -13,20 +13,20 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ReservaRepositorioBDTest {
+public class ReservaDALTest {
 
-    private ReservaRepositorioBD instance;
+    private ReservaDAL instance;
     private Cliente cliente;
     private Reserva reserva;
 
     @BeforeEach
     public void setUp() {
-        instance = new ReservaRepositorioBD();
+        instance = new ReservaDAL();
         long marca = System.nanoTime();
         String nif = String.valueOf(900000000L + marca % 100000000L);
         cliente = new Cliente(0, "Teste " + marca, null, nif, null, null, null, null);
         try {
-            new ClienteRepositorioBD().inserirCliente(cliente);
+            new ClienteDAL().inserirCliente(cliente);
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
         }

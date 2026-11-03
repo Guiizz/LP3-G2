@@ -3,13 +3,13 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import pt.isep.lp3.g2.hotel4youg2.bll.QuartoService;
+import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 public class GestaoQuartosController {
-    private final QuartoService quartoService = new QuartoService();
+    private final QuartoBLL quartoService = new QuartoBLL();
 
     @FXML
     private TableView<Quarto> tabela;

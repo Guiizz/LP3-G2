@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.TarifaRepositorio;
-import pt.isep.lp3.g2.hotel4youg2.dal.TarifaRepositorioBD;
+import pt.isep.lp3.g2.hotel4youg2.dal.ITarifaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.TarifaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
@@ -13,15 +13,15 @@ import java.util.List;
 /**
  * Regras de negócio das tarifas: consultar e alterar o preço por noite.
  */
-public class TarifaService {
+public class TarifaBLL {
 
-    private final TarifaRepositorio repositorio;
+    private final ITarifaDAL repositorio;
 
     /**
      * Cria o serviço ligado à base de dados.
      */
-    public TarifaService() {
-        this(new TarifaRepositorioBD());
+    public TarifaBLL() {
+        this(new TarifaDAL());
     }
 
     /**
@@ -29,7 +29,7 @@ public class TarifaService {
      *
      * @param repositorio de onde vêm as tarifas
      */
-    public TarifaService(TarifaRepositorio repositorio) {
+    public TarifaBLL(ITarifaDAL repositorio) {
         this.repositorio = repositorio;
     }
 

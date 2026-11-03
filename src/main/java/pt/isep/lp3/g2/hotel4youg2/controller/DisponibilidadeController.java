@@ -2,7 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import pt.isep.lp3.g2.hotel4youg2.bll.QuartoService;
+import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
@@ -14,7 +14,7 @@ import java.util.List;
  * Controlador do ecrã "Pesquisar disponibilidade": procura quartos livres entre duas datas.
  */
 public class DisponibilidadeController {
-   private final QuartoService quartoService = new QuartoService();
+   private final QuartoBLL quartoService = new QuartoBLL();
 
    @FXML
     private DatePicker entradaPicker;

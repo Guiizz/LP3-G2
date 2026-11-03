@@ -7,7 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import pt.isep.lp3.g2.hotel4youg2.bll.ClienteService;
+import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.SugestaoQueixaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
@@ -26,7 +26,7 @@ public class SugestoesController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
 
-    private final ClienteService clienteService = new ClienteService();
+    private final ClienteBLL clienteService = new ClienteBLL();
     private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
     private Cliente cliente;
 

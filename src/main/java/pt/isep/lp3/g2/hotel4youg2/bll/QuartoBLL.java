@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.QuartoRepositorio;
-import pt.isep.lp3.g2.hotel4youg2.dal.QuartoRepositorioBD;
+import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.QuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Vista;
@@ -14,14 +14,14 @@ import java.util.List;
 /**
  * Regras de negócio dos quartos: consultar a lista e pesquisar os que estão disponíveis.
  */
-public class QuartoService {
-    private final QuartoRepositorio repositorio;
+public class QuartoBLL {
+    private final IQuartoDAL repositorio;
 
     /**
      * Cria o serviço ligado à base de dados.
      */
-    public QuartoService() {
-        this(new QuartoRepositorioBD());
+    public QuartoBLL() {
+        this(new QuartoDAL());
     }
 
     /**
@@ -29,7 +29,7 @@ public class QuartoService {
      *
      * @param repositorio de onde vêm os quartos
      */
-    public QuartoService(QuartoRepositorio repositorio) {
+    public QuartoBLL(IQuartoDAL repositorio) {
         this.repositorio = repositorio;
     }
 

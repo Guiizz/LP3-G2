@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import pt.isep.lp3.g2.hotel4youg2.bll.QuartoService;
+import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
@@ -15,7 +15,7 @@ import java.util.List;
  * Controlador do ecrã "Consultar quartos": mostra os quartos e os preços, com filtros por tipo e piso.
  */
 public class QuartosController {
-    private final QuartoService quartoService = new QuartoService();
+    private final QuartoBLL quartoService = new QuartoBLL();
 
     @FXML
     private ComboBox<TipoQuarto> tipoCombo;

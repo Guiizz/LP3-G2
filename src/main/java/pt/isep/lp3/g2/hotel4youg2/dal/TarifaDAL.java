@@ -8,9 +8,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Implementação do {@link TarifaRepositorio} sobre a tabela Tarifa do SQL Server.
+ * Implementação do {@link ITarifaDAL} sobre a tabela Tarifa do SQL Server.
  */
-public class TarifaRepositorioBD implements TarifaRepositorio {
+public class TarifaDAL implements ITarifaDAL {
 
     private static final String LISTAR = "SELECT tipo, vista, valorNoite FROM Tarifa ORDER BY tipo, vista";
     private static final String ATUALIZAR = "UPDATE Tarifa SET valorNoite = ? WHERE tipo = ? AND vista = ?";
