@@ -38,6 +38,8 @@ public class ReservaBLLTest {
         private Reserva alterada;
         private List<Reserva> reservasDoCliente = new ArrayList<>();
         private Integer clientePedido;
+        private boolean podeFazerCheckinNaBD = true;
+        private Reserva comCheckin;
 
         @Override
         public boolean cancelar(int id) {
@@ -90,6 +92,15 @@ public class ReservaBLLTest {
                 return false;
             }
             alterada = reserva;
+            return true;
+        }
+
+        @Override
+        public boolean registarCheckin(Reserva reserva) {
+            if (!podeFazerCheckinNaBD) {
+                return false;
+            }
+            comCheckin = reserva;
             return true;
         }
     }
@@ -469,6 +480,131 @@ public class ReservaBLLTest {
             fail("Devia ter recusado sem cliente");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.clientePedido);
+        }
+    }
+
+    @Test
+    public void testFazerCheckin() {
+        System.out.println("fazerCheckin");
+        Reserva reserva = reservaConfirmada();
+        LocalDateTime agora = reserva.getDataEntrada().atTime(15, 30);
+        String expResult = "C" + reserva.getQuartoNumero();
+        String result = instance.fazerCheckin(RECECAO, reserva, agora);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinReservaFicaEmCurso() {
+        System.out.println("fazerCheckin (reserva passa a EM_CURSO)");
+        Reserva reserva = reservaConfirmada();
+        LocalDateTime agora = reserva.getDataEntrada().atTime(16, 0);
+        Reserva expResult = new Reserva(reserva.getId(), reserva.getClienteId(), reserva.getQuartoNumero(),
+                reserva.getDataEntrada(), reserva.getDataSaida(), reserva.getNumHospedes(),
+                EstadoReserva.EM_CURSO, reserva.getPrecoTotal(), agora, null);
+        expResult.setCartao("C" + reserva.getQuartoNumero());
+        instance.fazerCheckin(RECECAO, reserva, agora);
+        Reserva result = repositorio.comCheckin;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinAs15h() {
+        System.out.println("fazerCheckin (às 15h em ponto)");
+        Reserva reserva = reservaConfirmada();
+        LocalDateTime agora = reserva.getDataEntrada().atTime(15, 0);
+        String expResult = "C" + reserva.getQuartoNumero();
+        String result = instance.fazerCheckin(GESTOR, reserva, agora);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinAntesDas15h() {
+        System.out.println("fazerCheckin (antes das 15h)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(14, 59));
+            fail("Devia ter recusado o check-in antes das 15h");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinForaDoDiaDeEntrada() {
+        System.out.println("fazerCheckin (fora do dia de entrada)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().minusDays(1).atTime(16, 0));
+            fail("Devia ter recusado o check-in fora do dia de entrada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinReservaCancelada() {
+        System.out.println("fazerCheckin (reserva cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        String expResult = "A reserva " + reserva.getId() + " foi cancelada e não pode fazer check-in";
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado uma reserva cancelada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinJaFeito() {
+        System.out.println("fazerCheckin (check-in já feito)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 10));
+        String expResult = "A reserva " + reserva.getId() + " já tem o check-in feito";
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado um segundo check-in");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemReserva() {
+        System.out.println("fazerCheckin (sem reserva)");
+        try {
+            instance.fazerCheckin(RECECAO, null, LocalDateTime.now());
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemSessao() {
+        System.out.println("fazerCheckin (sem sessão)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(null, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinJaNaoPodeNaBD() {
+        System.out.println("fazerCheckin (já não está confirmada na BD)");
+        repositorio.podeFazerCheckinNaBD = false;
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.comCheckin);
         }
     }
 }
