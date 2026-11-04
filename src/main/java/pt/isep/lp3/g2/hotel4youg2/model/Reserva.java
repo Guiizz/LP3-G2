@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
@@ -22,6 +24,7 @@ public class Reserva {
     private BigDecimal precoTotal;
     private LocalDateTime checkinEm;
     private LocalDateTime checkoutEm;
+    private String cartao;
 
     public int getId() {
         return id;
@@ -145,6 +148,33 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    public String getCartao() {
+        return cartao;
+    }
+
+    public void setCartao(String cartao) {
+        this.cartao = cartao;
+    }
+
+    public void fazerCheckin(LocalDateTime agora, LocalTime horaMinima) {
+        if (estado == EstadoReserva.CANCELADA) {
+            throw new IllegalStateException("A reserva " + id + " foi cancelada e não pode fazer check-in");
+        }
+        if (checkinEm != null || estado != EstadoReserva.CONFIRMADA) {
+            throw new IllegalStateException("A reserva " + id + " já tem o check-in feito");
+        }
+        if (!agora.toLocalDate().equals(dataEntrada)) {
+            throw new IllegalStateException("O check-in só pode ser feito no dia de entrada ("
+                    + dataEntrada.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ")");
+        }
+        if (agora.toLocalTime().isBefore(horaMinima)) {
+            throw new IllegalStateException("O check-in só é possível a partir das " + horaMinima);
+        }
+        estado = EstadoReserva.EM_CURSO;
+        checkinEm = agora;
+        cartao = "C" + quartoNumero;
+    }
+
     public long getNoites() {
         return ChronoUnit.DAYS.between(dataEntrada, dataSaida);
     }
@@ -181,7 +211,8 @@ public class Reserva {
                 && estado == outra.estado
                 && mesmoValor(precoTotal, outra.precoTotal)
                 && Objects.equals(checkinEm, outra.checkinEm)
-                && Objects.equals(checkoutEm, outra.checkoutEm);
+                && Objects.equals(checkoutEm, outra.checkoutEm)
+                && Objects.equals(cartao, outra.cartao);
     }
 
     private static boolean mesmoValor(BigDecimal a, BigDecimal b) {
@@ -194,7 +225,7 @@ public class Reserva {
     @Override
     public int hashCode() {
         return Objects.hash(id, clienteId, quartoNumero, numHospedes, dataEntrada, dataSaida, estado,
-                checkinEm, checkoutEm);
+                checkinEm, checkoutEm, cartao);
     }
 
     @Override
