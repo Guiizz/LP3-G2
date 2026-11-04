@@ -73,6 +73,31 @@ public class GerirReservasController {
     }
 
     @FXML
+    private void aoFazerCheckin() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            String cartao = reservaService.fazerCheckin(Sessao.getUtilizador(), escolhida);
+            mensagemLabel.setStyle("-fx-text-fill: green;");
+            mensagemLabel.setText("Check-in da reserva " + escolhida.getId() + " feito. Entregue o cartão "
+                    + cartao + " (quarto " + escolhida.getQuartoNumero() + ").");
+        } catch (DataAccessException e) {
+            mostrarErro(ERRO_BD);
+        } catch (RuntimeException e) {
+            mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
+    private void mostrarErro(String texto) {
+        mensagemLabel.setStyle("-fx-text-fill: red;");
+        mensagemLabel.setText(texto);
+    }
+
+    @FXML
     private void aoAlterarDatas() {
         Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
         if (escolhida == null) {
