@@ -15,7 +15,6 @@ import pt.isep.lp3.g2.hotel4youg2.bll.ServicoBLL;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoCobranca;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.math.BigDecimal;
@@ -24,8 +23,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controlador do ecrã dos serviços extra: lista os serviços por categoria
- * e deixa o gestor criar, editar, desativar e reativar (US25).
+ * Controlador do ecrã dos serviços extra: mostra a tabela de preços por categoria
+ * e deixa o gestor criar, editar (incluindo o preço), desativar e reativar (US25, US46).
  */
 public class ServicosController {
 
@@ -45,8 +44,6 @@ public class ServicosController {
     @FXML
     private TableColumn<Servico, String> colunaPreco;
     @FXML
-    private TableColumn<Servico, String> colunaCobranca;
-    @FXML
     private TableColumn<Servico, String> colunaEstado;
     @FXML
     private Button desativarButton;
@@ -61,8 +58,6 @@ public class ServicosController {
     @FXML
     private TextField campoPreco;
     @FXML
-    private ComboBox<TipoCobranca> campoTipoCobranca;
-    @FXML
     private Button guardarButton;
     @FXML
     private Label mensagemLabel;
@@ -72,9 +67,7 @@ public class ServicosController {
         colunaCategoria.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCategoria().getNome()));
         colunaDesignacao.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDesignacao()));
         colunaPreco.setCellValueFactory(c -> new SimpleStringProperty(formatarPreco(c.getValue().getPreco())));
-        colunaCobranca.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTipoCobranca().getDescricao()));
         colunaEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isAtivo() ? "Ativo" : "Desativado"));
-        campoTipoCobranca.getItems().setAll(TipoCobranca.values());
 
         tabela.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> mostrarEscolhido(escolhido));
         filtroCategoria.setOnAction(e -> aplicarFiltro());
@@ -90,12 +83,12 @@ public class ServicosController {
         try {
             BigDecimal preco = ServicoBLL.lerPreco(campoPreco.getText());
             if (escolhido == null) {
-                Servico novo = servicoBLL.criar(Sessao.getUtilizador(), campoDesignacao.getText(), preco, campoTipoCobranca.getValue(), campoCategoria.getValue());
+                Servico novo = servicoBLL.criar(Sessao.getUtilizador(), campoDesignacao.getText(), preco, campoCategoria.getValue());
                 carregar();
                 limparFormulario();
                 mostrarMensagem("Serviço \"" + novo.getDesignacao() + "\" criado.", "green");
             } else {
-                Servico alterado = servicoBLL.editar(Sessao.getUtilizador(), escolhido.getId(), campoDesignacao.getText(), preco, campoTipoCobranca.getValue(), campoCategoria.getValue());
+                Servico alterado = servicoBLL.editar(Sessao.getUtilizador(), escolhido.getId(), campoDesignacao.getText(), preco, campoCategoria.getValue());
                 carregar();
                 selecionar(alterado.getId());
                 mostrarMensagem("Serviço \"" + alterado.getDesignacao() + "\" guardado.", "green");
@@ -191,7 +184,6 @@ public class ServicosController {
         campoDesignacao.setText(servico.getDesignacao());
         campoCategoria.setValue(procurarCategoria(servico.getCategoria().getId()));
         campoPreco.setText(servico.getPreco().toPlainString().replace('.', ','));
-        campoTipoCobranca.setValue(servico.getTipoCobranca());
         desativarButton.setDisable(!servico.isAtivo());
         reativarButton.setDisable(servico.isAtivo());
     }
@@ -202,7 +194,6 @@ public class ServicosController {
         campoDesignacao.clear();
         campoCategoria.setValue(null);
         campoPreco.clear();
-        campoTipoCobranca.setValue(null);
         desativarButton.setDisable(true);
         reativarButton.setDisable(true);
     }
