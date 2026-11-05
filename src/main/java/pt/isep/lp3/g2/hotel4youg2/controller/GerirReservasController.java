@@ -103,13 +103,13 @@ public class GerirReservasController {
             return;
         }
         try {
-            BigDecimal total = reservaService.totalAPagar(escolhida);
+            BigDecimal total = reservaService.totalAPagar(Sessao.getUtilizador(), escolhida);
             if (!confirmarCheckout(escolhida, total)) {
                 return;
             }
             reservaService.fazerCheckout(Sessao.getUtilizador(), escolhida);
             mostrarSucesso("Check-out da reserva " + escolhida.getId() + " feito. Total pago: " + total
-                    + " €. Recolha o cartão C" + escolhida.getQuartoNumero() + ".");
+                    + " €. Recolha o cartão " + escolhida.getCartao() + ".");
         } catch (DataAccessException e) {
             mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
