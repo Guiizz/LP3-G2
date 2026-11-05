@@ -50,7 +50,7 @@ public class EntregaDAL implements IEntregaDAL {
 
     @Override
     public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
-        return !ConexaoBD.select(EXISTE_ENTREGA, rs -> rs.getInt(1), codigoFornecedor, numeroEncomenda).isEmpty();
+        return !ConexaoBD.select(EXISTE_ENTREGA, new InteiroMapper(), codigoFornecedor, numeroEncomenda).isEmpty();
     }
 
     // grava o fornecedor, os materiais, a entrega e as linhas: ou fica tudo gravado, ou nada
@@ -83,18 +83,14 @@ public class EntregaDAL implements IEntregaDAL {
 
     @Override
     public Optional<Entrega> procurarPorId(int id) {
-        List<Entrega> entregas = ConexaoBD.select(SELECT_ENTREGA, rs -> new Entrega(
-                rs.getInt("id"),
-                rs.getString("numeroEncomenda"),
-                rs.getDate("dataEncomenda").toLocalDate(),
-                new Fornecedor(rs.getInt("fornecedorId"), rs.getString("codigo"), rs.getString("nome"),
-                        rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
-                        rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais"))), id);
+        List<Entrega> entregas = ConexaoBD.select(SELECT_ENTREGA, new EntregaMapper(), id);
         if (entregas.isEmpty()) {
             return Optional.empty();
         }
         Entrega entrega = entregas.get(0);
-        ConexaoBD.select(SELECT_LINHAS, this::mapearLinha, id).forEach(entrega::adicionarLinha);
+        for (LinhaEntrega linha : ConexaoBD.select(SELECT_LINHAS, new LinhaMapper(), id)) {
+            entrega.adicionarLinha(linha);
+        }
         return Optional.of(entrega);
     }
 
@@ -123,11 +119,27 @@ public class EntregaDAL implements IEntregaDAL {
         return id;
     }
 
-    private LinhaEntrega mapearLinha(ResultSet rs) throws SQLException {
-        return new LinhaEntrega(rs.getInt("numeroLinha"), rs.getString("codigo"), rs.getString("descricao"),
-                rs.getInt("quantidade"), Unidade.valueOf(rs.getString("unidade")), rs.getBigDecimal("precoUnitario"),
-                rs.getBigDecimal("valorSemIva"), rs.getInt("taxaIva"), rs.getBigDecimal("valorIva"),
-                rs.getBigDecimal("total"));
+    private static class EntregaMapper implements RowMapper<Entrega> {
+        @Override
+        public Entrega map(ResultSet rs) throws SQLException {
+            return new Entrega(
+                    rs.getInt("id"),
+                    rs.getString("numeroEncomenda"),
+                    rs.getDate("dataEncomenda").toLocalDate(),
+                    new Fornecedor(rs.getInt("fornecedorId"), rs.getString("codigo"), rs.getString("nome"),
+                            rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
+                            rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais")));
+        }
+    }
+
+    private static class LinhaMapper implements RowMapper<LinhaEntrega> {
+        @Override
+        public LinhaEntrega map(ResultSet rs) throws SQLException {
+            return new LinhaEntrega(rs.getInt("numeroLinha"), rs.getString("codigo"), rs.getString("descricao"),
+                    rs.getInt("quantidade"), Unidade.valueOf(rs.getString("unidade")), rs.getBigDecimal("precoUnitario"),
+                    rs.getBigDecimal("valorSemIva"), rs.getInt("taxaIva"), rs.getBigDecimal("valorIva"),
+                    rs.getBigDecimal("total"));
+        }
     }
 
     private static Integer procurarId(Connection conn, String sql, Object... params) throws SQLException {

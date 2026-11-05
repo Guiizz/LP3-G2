@@ -26,25 +26,25 @@ public class ServicoTest {
     @Test
     public void testEquals() {
         System.out.println("equals");
-        Servico instance = new Servico(1, "Ginásio", new BigDecimal("5.00"), TipoCobranca.POR_UTILIZACAO, lazer, true);
-        Servico outro = new Servico(1, "Ginásio", new BigDecimal("5.0"), TipoCobranca.POR_UTILIZACAO, lazer, true);
+        Servico instance = new Servico(1, "Ginásio", new BigDecimal("5.00"), lazer, true);
+        Servico outro = new Servico(1, "Ginásio", new BigDecimal("5.0"), lazer, true);
         boolean expResult = true;
         boolean result = instance.equals(outro);
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testEqualsCobrancaDiferente() {
-        System.out.println("equals (cobrança diferente)");
-        Servico instance = new Servico(1, "Ginásio", new BigDecimal("5.00"), TipoCobranca.POR_UTILIZACAO, lazer, true);
-        Servico outro = new Servico(1, "Ginásio", new BigDecimal("5.00"), TipoCobranca.POR_ESTADIA, lazer, true);
+    public void testEqualsPrecoDiferente() {
+        System.out.println("equals (preço diferente)");
+        Servico instance = new Servico(1, "Ginásio", new BigDecimal("5.00"), lazer, true);
+        Servico outro = new Servico(1, "Ginásio", new BigDecimal("7.50"), lazer, true);
         assertNotEquals(instance, outro);
     }
 
     @Test
     public void testSetPreco() {
         System.out.println("setPreco");
-        Servico instance = new Servico(1, "Sauna", new BigDecimal("15.00"), TipoCobranca.POR_UTILIZACAO, lazer, true);
+        Servico instance = new Servico(1, "Sauna", new BigDecimal("15.00"), lazer, true);
         BigDecimal expResult = new BigDecimal("18.00");
         instance.setPreco(new BigDecimal("18.00"));
         BigDecimal result = instance.getPreco();
@@ -54,7 +54,7 @@ public class ServicoTest {
     @Test
     public void testSetAtivo() {
         System.out.println("setAtivo");
-        Servico instance = new Servico(1, "Sauna", new BigDecimal("15.00"), TipoCobranca.POR_UTILIZACAO, lazer, true);
+        Servico instance = new Servico(1, "Sauna", new BigDecimal("15.00"), lazer, true);
         boolean expResult = false;
         instance.setAtivo(false);
         boolean result = instance.isAtivo();
@@ -62,11 +62,11 @@ public class ServicoTest {
     }
 
     @Test
-    public void testGetDescricaoTipoCobranca() {
-        System.out.println("getDescricao");
-        TipoCobranca instance = TipoCobranca.POR_ESTADIA;
-        String expResult = "Por estadia";
-        String result = instance.getDescricao();
+    public void testToString() {
+        System.out.println("toString");
+        Servico instance = new Servico(1, "Sauna", new BigDecimal("15.00"), lazer, true);
+        String expResult = "Sauna (15.00 €)";
+        String result = instance.toString();
         assertEquals(expResult, result);
     }
 }

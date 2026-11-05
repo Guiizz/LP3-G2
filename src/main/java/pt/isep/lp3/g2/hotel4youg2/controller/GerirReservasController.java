@@ -15,11 +15,12 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+import java.io.IOException;
 import java.util.Optional;
 
 /**
- * Controlador do ecrã "Gerir reservas": lista as reservas, deixa alterar as datas (US30)
- * e deixa o gestor cancelá-las (US29).
+ * Controlador do ecrã "Gerir reservas": lista as reservas, deixa alterar as datas (US30),
+ * deixa o gestor cancelá-las (US29) e abre os serviços de cada reserva (US37).
  */
 public class GerirReservasController {
 
@@ -120,6 +121,21 @@ public class GerirReservasController {
             mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
             mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
+    @FXML
+    private void aoServicos() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            ServicosReservaController.abrir(escolhida);
+        } catch (IOException e) {
+            mostrarErro("Não foi possível abrir os serviços da reserva.");
         }
         carregar();
     }

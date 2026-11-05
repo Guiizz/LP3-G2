@@ -12,6 +12,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,12 +35,24 @@ public class SugestaoQueixaBLLTest {
 
         @Override
         public Optional<SugestaoQueixa> procurarPorId(int id) {
-            return registadas.stream().filter(s -> s.getId() == id).findFirst();
+            for (SugestaoQueixa s : registadas) {
+                if (s.getId() == id) {
+                    return Optional.of(s);
+                }
+            }
+            return Optional.empty();
         }
 
         @Override
         public boolean apagar(int id) {
-            return registadas.removeIf(s -> s.getId() == id);
+            Iterator<SugestaoQueixa> iterador = registadas.iterator();
+            while (iterador.hasNext()) {
+                if (iterador.next().getId() == id) {
+                    iterador.remove();
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override

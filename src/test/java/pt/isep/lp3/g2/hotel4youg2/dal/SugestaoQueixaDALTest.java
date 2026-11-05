@@ -26,10 +26,10 @@ public class SugestaoQueixaDALTest {
         int funcionarioId = 0;
         try {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('SugestaoQueixa') IS NOT NULL "
-                    + "THEN 1 ELSE 0 END", rs -> rs.getInt(1));
+                    + "THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 06_sugestoes.sql");
-            List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Cliente", rs -> rs.getInt(1));
-            List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", rs -> rs.getInt(1));
+            List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Cliente", new InteiroMapper());
+            List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", new InteiroMapper());
             Assumptions.assumeTrue(!clientes.isEmpty() && !funcionarios.isEmpty(), "Faltam clientes ou funcionários na BD");
             clienteId = clientes.get(0);
             funcionarioId = funcionarios.get(0);
