@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
@@ -27,11 +29,26 @@ public class EntregaBLLTest {
         @Override
         public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
             return registadas.stream().anyMatch(e -> e.getFornecedor().getCodigo().equals(codigoFornecedor)
-                    && e.getNumeroEncomenda().equals(numeroEncomenda));
+                    && e.getNumeroEncomenda().equals(numeroEncomenda) && e.getEstado() != EstadoEntrega.RECUSADA);
+        }
+
+        @Override
+        public int contarPendentes(String codigoFornecedor) {
+            return (int) registadas.stream().filter(e -> e.getFornecedor().getCodigo().equals(codigoFornecedor)
+                    && e.getEstado() == EstadoEntrega.PENDENTE).count();
+        }
+
+        @Override
+        public int carregar(Entrega entrega) {
+            entrega.setEstado(EstadoEntrega.PENDENTE);
+            registadas.add(entrega);
+            entrega.setId(registadas.size());
+            return entrega.getId();
         }
 
         @Override
         public int registar(Entrega entrega, int funcionarioId) {
+            entrega.setEstado(EstadoEntrega.ACEITE);
             registadas.add(entrega);
             ultimoFuncionario = funcionarioId;
             entrega.setId(registadas.size());
@@ -168,6 +185,117 @@ public class EntregaBLLTest {
         System.out.println("registar (sem entrega)");
         try {
             instance.registar(RECECAO, null);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Carregue primeiro um ficheiro XML válido.", expected.getMessage());
+        }
+    }
+
+    private Fornecedor fornecedorDoFicheiro() {
+        return instance.lerFicheiro(ficheiro("entrega-valida.xml")).getFornecedor();
+    }
+
+    // cria uma entrega pendente do mesmo fornecedor do ficheiro, com outro número de encomenda
+    private Entrega entregaPendente(String numero) {
+        Entrega entrega = new Entrega(0, numero, java.time.LocalDate.of(2026, 11, 4), fornecedorDoFicheiro());
+        entregaDAL.carregar(entrega);
+        return entrega;
+    }
+
+    @Test
+    public void testCarregar() {
+        System.out.println("carregar");
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        int expResult = 1;
+        int result = instance.carregar(fornecedorDoFicheiro(), entrega);
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
+    }
+
+    @Test
+    public void testCarregarDeOutroFornecedor() {
+        System.out.println("carregar (ficheiro de outro fornecedor)");
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
+        try {
+            instance.carregar(outro, entrega);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("O ficheiro é do fornecedor " + entrega.getFornecedor().getCodigo()
+                    + ". Só pode carregar entregas do seu fornecedor.", expected.getMessage());
+            assertEquals(0, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testCarregarRepetida() {
+        System.out.println("carregar (repetida)");
+        Fornecedor fornecedor = fornecedorDoFicheiro();
+        instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        try {
+            instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("A entrega OC56974 já foi carregada.", expected.getMessage());
+            assertEquals(1, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testCarregarDepoisDeRecusada() {
+        System.out.println("carregar (depois de recusada)");
+        Fornecedor fornecedor = fornecedorDoFicheiro();
+        instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        entregaDAL.registadas.get(0).setEstado(EstadoEntrega.RECUSADA);
+        int expResult = 2;
+        int result = instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCarregarComCincoPendentes() {
+        System.out.println("carregar (já tem 5 pendentes)");
+        for (int i = 1; i <= EntregaBLL.MAX_PENDENTES; i++) {
+            entregaPendente("PENDENTE-" + i);
+        }
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        try {
+            instance.carregar(fornecedorDoFicheiro(), entrega);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Tem 5 entregas por aprovar. Aguarde a decisão do hotel.", expected.getMessage());
+            assertEquals(EntregaBLL.MAX_PENDENTES, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testCarregarComQuatroPendentes() {
+        System.out.println("carregar (4 pendentes, ainda pode)");
+        for (int i = 1; i < EntregaBLL.MAX_PENDENTES; i++) {
+            entregaPendente("PENDENTE-" + i);
+        }
+        int expResult = EntregaBLL.MAX_PENDENTES;
+        int result = instance.carregar(fornecedorDoFicheiro(), instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCarregarSemSessao() {
+        System.out.println("carregar (sem sessão)");
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        try {
+            instance.carregar(null, entrega);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            assertEquals(0, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testCarregarSemEntrega() {
+        System.out.println("carregar (sem entrega)");
+        try {
+            instance.carregar(fornecedorDoFicheiro(), null);
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
             assertEquals("Carregue primeiro um ficheiro XML válido.", expected.getMessage());

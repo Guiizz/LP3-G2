@@ -4,6 +4,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.EntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
@@ -19,6 +20,9 @@ import java.util.List;
  * conferir as contas e registar a entrega (US26).
  */
 public class EntregaBLL {
+
+    /** Quantas entregas pendentes cada fornecedor pode ter ao mesmo tempo (US38). */
+    public static final int MAX_PENDENTES = 5;
 
     private final LeitorXmlEntrega leitor;
     private final IEntregaDAL entregaDAL;
@@ -133,6 +137,40 @@ public class EntregaBLL {
                     + entrega.getFornecedor().getNome() + " já foi registada.");
         }
         return entregaDAL.registar(entrega, quemAge.getFuncionarioId());
+    }
+
+    /**
+     * Grava a entrega carregada pelo fornecedor como pendente, à espera da decisão do hotel.
+     * Não altera o stock. O ficheiro tem de ser do fornecedor que tem a sessão iniciada.
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @param entrega    a entrega lida do ficheiro XML
+     * @return o id da entrega gravada
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se não houver entrega, se o ficheiro for de outro fornecedor,
+     *                                  se a entrega já foi carregada ou se o fornecedor já tem
+     *                                  {@value #MAX_PENDENTES} entregas pendentes
+     */
+    public int carregar(Fornecedor fornecedor, Entrega entrega) {
+        if (fornecedor == null) {
+            throw new IllegalStateException("Entre na aplicação para carregar entregas.");
+        }
+        if (entrega == null) {
+            throw new IllegalArgumentException("Carregue primeiro um ficheiro XML válido.");
+        }
+        String codigo = entrega.getFornecedor().getCodigo();
+        if (!codigo.equals(fornecedor.getCodigo())) {
+            throw new IllegalArgumentException("O ficheiro é do fornecedor " + codigo
+                    + ". Só pode carregar entregas do seu fornecedor.");
+        }
+        if (entregaDAL.existeEntrega(codigo, entrega.getNumeroEncomenda())) {
+            throw new IllegalArgumentException("A entrega " + entrega.getNumeroEncomenda() + " já foi carregada.");
+        }
+        if (entregaDAL.contarPendentes(codigo) >= MAX_PENDENTES) {
+            throw new IllegalArgumentException("Tem " + MAX_PENDENTES
+                    + " entregas por aprovar. Aguarde a decisão do hotel.");
+        }
+        return entregaDAL.carregar(entrega);
     }
 
     private static String euros(BigDecimal valor) {
