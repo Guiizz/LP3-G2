@@ -15,6 +15,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
@@ -94,6 +95,29 @@ public class GerirReservasController {
         carregar();
     }
 
+    @FXML
+    private void aoFazerCheckout() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            BigDecimal total = reservaService.totalAPagar(escolhida);
+            if (!confirmarCheckout(escolhida, total)) {
+                return;
+            }
+            reservaService.fazerCheckout(Sessao.getUtilizador(), escolhida);
+            mostrarSucesso("Check-out da reserva " + escolhida.getId() + " feito. Total pago: " + total
+                    + " €. Recolha o cartão C" + escolhida.getQuartoNumero() + ".");
+        } catch (DataAccessException e) {
+            mostrarErro(ERRO_BD);
+        } catch (RuntimeException e) {
+            mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
     private void mostrarErro(String texto) {
         mensagemLabel.setStyle("-fx-text-fill: red;");
         mensagemLabel.setText(texto);
@@ -145,6 +169,20 @@ public class GerirReservasController {
                         + "O cliente recebe o cartão C" + reserva.getQuartoNumero() + ".",
                 ButtonType.YES, ButtonType.NO);
         alerta.setTitle("Fazer check-in");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    }
+
+    private boolean confirmarCheckout(Reserva reserva, BigDecimal total) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Check-out da reserva " + reserva.getId() + " (quarto " + reserva.getQuartoNumero() + ", "
+                        + reserva.getDataEntrada() + " a " + reserva.getDataSaida() + ", "
+                        + reserva.getNoites() + " noite(s)).\n"
+                        + "Total a pagar: " + total + " €\n"
+                        + "Confirma o pagamento e o check-out?",
+                ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Fazer check-out");
         alerta.setHeaderText(null);
         Optional<ButtonType> resposta = alerta.showAndWait();
         return resposta.isPresent() && resposta.get() == ButtonType.YES;

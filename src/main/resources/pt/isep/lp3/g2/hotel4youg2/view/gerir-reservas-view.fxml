@@ -52,6 +52,7 @@
         <Button text="Alterar datas" onAction="#aoAlterarDatas"/>
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
         <Button text="Fazer check-in" onAction="#aoFazerCheckin"/>
+        <Button text="Fazer check-out" onAction="#aoFazerCheckout"/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>
