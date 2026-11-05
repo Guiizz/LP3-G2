@@ -5,6 +5,8 @@ import pt.isep.lp3.g2.hotel4youg2.dal.UtilizadorDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
+import java.util.Optional;
+
 /**
  * Regras de autenticação dos funcionários na aplicação.
  */
@@ -49,9 +51,11 @@ public class AutenticacaoBLL {
         }
 
         String nome = nomeUtilizador.trim();
-        Utilizador utilizador = utilizadorDAL.procurarPorNomeUtilizador(nome)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Não existe nenhuma conta com o nome de utilizador \"" + nome + "\"."));
+        Optional<Utilizador> encontrado = utilizadorDAL.procurarPorNomeUtilizador(nome);
+        if (encontrado.isEmpty()) {
+            throw new IllegalArgumentException("Não existe nenhuma conta com o nome de utilizador \"" + nome + "\".");
+        }
+        Utilizador utilizador = encontrado.get();
 
         if (!passwordUtils.verificarPassword(password, utilizador.getPasswordSalt(), utilizador.getPasswordHash())) {
             throw new IllegalArgumentException("A password está errada.");

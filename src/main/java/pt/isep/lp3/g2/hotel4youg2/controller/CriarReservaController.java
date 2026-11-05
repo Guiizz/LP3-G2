@@ -16,13 +16,14 @@ import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 /**
  * Controlador do ecrã para criar uma reserva (US27): escolher o cliente pelo NIF,
- * pesquisar quartos livres, ver o preço e confirmar.
+ * pesquisar quartos livres, ver o preço e confirmar. Depois de criada, pode juntar-lhe serviços (US37).
  */
 public class CriarReservaController {
 
@@ -47,9 +48,12 @@ public class CriarReservaController {
     @FXML
     private Button confirmarButton;
     @FXML
+    private Button servicosButton;
+    @FXML
     private Label mensagemLabel;
 
     private Cliente cliente;
+    private Reserva reservaCriada;
     private Quarto quartoEscolhido;
     private LocalDate entradaPesquisada;
     private LocalDate saidaPesquisada;
@@ -127,12 +131,28 @@ public class CriarReservaController {
                     saidaPesquisada, hospedesPesquisados);
             mostrarMensagem("Reserva n.º " + reserva.getId() + " criada para " + cliente.getNome()
                     + " (quarto " + reserva.getQuartoNumero() + ", " + reserva.getPrecoTotal() + " €)", "green");
+            reservaCriada = reserva;
+            servicosButton.setDisable(false);
             limparQuartoEscolhido();
             quartosTabela.getItems().clear();
         } catch (ValidacaoException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível gravar a reserva. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
+    private void aoJuntarServicos() {
+        if (reservaCriada == null) {
+            return;
+        }
+        try {
+            ServicosReservaController.abrir(reservaCriada);
+            mostrarMensagem("Reserva n.º " + reservaCriada.getId() + ": quarto " + reservaCriada.getPrecoTotal()
+                    + " € + serviços " + reservaCriada.getTotalServicos() + " € = " + reservaCriada.getTotal() + " €", "green");
+        } catch (IOException e) {
+            mostrarMensagem("Não foi possível abrir os serviços da reserva.", "red");
         }
     }
 

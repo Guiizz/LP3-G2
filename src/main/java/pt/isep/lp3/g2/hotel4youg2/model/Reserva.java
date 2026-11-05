@@ -25,6 +25,7 @@ public class Reserva {
     private LocalDateTime checkinEm;
     private LocalDateTime checkoutEm;
     private String cartao;
+    private BigDecimal totalServicos = BigDecimal.ZERO;
 
     public int getId() {
         return id;
@@ -146,6 +147,22 @@ public class Reserva {
 
     public boolean podeSerAlterada() {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public boolean aceitaServicos() {
+        return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
+    }
+
+    public BigDecimal getTotalServicos() {
+        return totalServicos;
+    }
+
+    public void setTotalServicos(BigDecimal totalServicos) {
+        this.totalServicos = totalServicos == null ? BigDecimal.ZERO : totalServicos;
+    }
+
+    public BigDecimal getTotal() {
+        return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos);
     }
 
     public String getCartao() {

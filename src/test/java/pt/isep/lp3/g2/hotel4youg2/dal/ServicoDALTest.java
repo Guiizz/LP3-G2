@@ -1,12 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoCobranca;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,12 +23,25 @@ public class ServicoDALTest {
     private Categoria outraCategoria;
     private Servico servico;
 
+    @BeforeAll
+    @AfterAll
+    public static void limparRestosDeTestes() {
+        try {
+            ConexaoBD.executar("IF OBJECT_ID('ReservaServico') IS NOT NULL DELETE FROM ReservaServico "
+                    + "WHERE servicoId IN (SELECT id FROM Servico WHERE designacao LIKE 'Teste %')");
+            ConexaoBD.executar("DELETE FROM Servico WHERE designacao LIKE 'Teste %' "
+                    + "OR categoriaId IN (SELECT id FROM Categoria WHERE nome LIKE 'Teste %')");
+            ConexaoBD.executar("DELETE FROM Categoria WHERE nome LIKE 'Teste %'");
+        } catch (DataAccessException e) {
+        }
+    }
+
     // Prepara o contexto: duas categorias e um serviço de teste gravados na BD
     @BeforeEach
     public void setUp() {
         try {
             List<Integer> tabelas = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('Categoria') IS NOT NULL "
-                    + "AND COL_LENGTH('Servico', 'categoriaId') IS NOT NULL THEN 1 ELSE 0 END", rs -> rs.getInt(1));
+                    + "AND COL_LENGTH('Servico', 'categoriaId') IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabelas.get(0) == 1, "Falta correr o 04_servicos.sql");
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
@@ -39,7 +53,7 @@ public class ServicoDALTest {
         outraCategoria = new Categoria(0, "Teste B " + marca);
         categoriaDAL.inserir(categoria);
         categoriaDAL.inserir(outraCategoria);
-        servico = new Servico(0, "Teste " + marca, new BigDecimal("99.90"), TipoCobranca.POR_UTILIZACAO, categoria, true);
+        servico = new Servico(0, "Teste " + marca, new BigDecimal("99.90"), categoria, true);
         instance.inserir(servico);
     }
 
@@ -86,15 +100,15 @@ public class ServicoDALTest {
     public void testExisteDesignacao() {
         System.out.println("existeDesignacao");
         boolean expResult = true;
-        boolean result = instance.existeDesignacao(servico.getDesignacao().toUpperCase(), TipoCobranca.POR_UTILIZACAO, 0);
+        boolean result = instance.existeDesignacao(servico.getDesignacao().toUpperCase(), 0);
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testExisteDesignacaoOutraCobranca() {
-        System.out.println("existeDesignacao (outra cobrança)");
+    public void testExisteDesignacaoIgnoraOProprio() {
+        System.out.println("existeDesignacao (o próprio serviço, ao editar)");
         boolean expResult = false;
-        boolean result = instance.existeDesignacao(servico.getDesignacao(), TipoCobranca.POR_ESTADIA, 0);
+        boolean result = instance.existeDesignacao(servico.getDesignacao(), servico.getId());
         assertEquals(expResult, result);
     }
 
@@ -102,7 +116,6 @@ public class ServicoDALTest {
     public void testAtualizar() {
         System.out.println("atualizar");
         servico.setPreco(new BigDecimal("120.00"));
-        servico.setTipoCobranca(TipoCobranca.POR_ESTADIA);
         servico.setCategoria(outraCategoria);
         instance.atualizar(servico);
         Servico expResult = servico;
@@ -133,8 +146,7 @@ public class ServicoDALTest {
     @Test
     public void testCrudCompleto() {
         System.out.println("CRUD completo");
-        Servico novo = new Servico(0, "Teste CRUD " + System.nanoTime(), new BigDecimal("999.00"),
-                TipoCobranca.POR_NOITE, categoria, true);
+        Servico novo = new Servico(0, "Teste CRUD " + System.nanoTime(), new BigDecimal("999.00"), categoria, true);
 
         instance.inserir(novo);
         assertEquals(true, instance.listar().contains(novo));

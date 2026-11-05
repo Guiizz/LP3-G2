@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Testa a edição dos dados de um cliente (US19) sem ir à base de dados. */
 class EditarClienteTest {
@@ -62,6 +62,17 @@ class EditarClienteTest {
         }
     }
 
+    private String esperaErro(ClienteDALFalsa repo, Cliente cliente, String nome, LocalDate data,
+                              String telemovel, String email) {
+        try {
+            new ClienteBLL(repo).editar(cliente, nome, data, telemovel, email, null, null);
+            fail("Devia ter sido recusado");
+            return null;
+        } catch (ValidacaoException e) {
+            return e.getMessage();
+        }
+    }
+
     private Cliente ana() {
         return new Cliente(7, "Ana Silva", null, "123456789", "Rua A", "912345678", ADULTO, "ana@mail.pt");
     }
@@ -104,8 +115,7 @@ class EditarClienteTest {
     @Test
     void semClienteEscolhidoFalha() {
         ClienteDALFalsa repo = new ClienteDALFalsa(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
-                .editar(null, "Ana", ADULTO, "912345678", null, null, null));
+        esperaErro(repo, null, "Ana", ADULTO, "912345678", null);
         assertNull(repo.atualizado);
     }
 
@@ -113,8 +123,7 @@ class EditarClienteTest {
     void nomeVazioFalhaENaoMudaNada() {
         ClienteDALFalsa repo = new ClienteDALFalsa(true);
         Cliente cliente = ana();
-        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
-                .editar(cliente, "  ", ADULTO, "912345678", null, null, null));
+        esperaErro(repo, cliente, "  ", ADULTO, "912345678", null);
         assertNull(repo.atualizado);
         assertEquals("Ana Silva", cliente.getNome());
     }
@@ -122,24 +131,21 @@ class EditarClienteTest {
     @Test
     void menorDe18Falha() {
         ClienteDALFalsa repo = new ClienteDALFalsa(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
-                .editar(ana(), "Ana", LocalDate.now().minusYears(17), "912345678", null, null, null));
+        esperaErro(repo, ana(), "Ana", LocalDate.now().minusYears(17), "912345678", null);
         assertNull(repo.atualizado);
     }
 
     @Test
     void semTelemovelNemEmailFalha() {
         ClienteDALFalsa repo = new ClienteDALFalsa(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
-                .editar(ana(), "Ana", ADULTO, " ", null, null, null));
+        esperaErro(repo, ana(), "Ana", ADULTO, " ", null);
         assertNull(repo.atualizado);
     }
 
     @Test
     void emailInvalidoFalha() {
         ClienteDALFalsa repo = new ClienteDALFalsa(true);
-        assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
-                .editar(ana(), "Ana", ADULTO, null, "ana.mail.pt", null, null));
+        esperaErro(repo, ana(), "Ana", ADULTO, null, "ana.mail.pt");
         assertNull(repo.atualizado);
     }
 
@@ -147,9 +153,8 @@ class EditarClienteTest {
     void clienteQueJaNaoExisteFalhaENaoMudaOObjeto() {
         ClienteDALFalsa repo = new ClienteDALFalsa(false);
         Cliente cliente = ana();
-        ValidacaoException e = assertThrows(ValidacaoException.class, () -> new ClienteBLL(repo)
-                .editar(cliente, "Ana Costa", ADULTO, "912345678", null, null, null));
-        assertEquals("O cliente já não existe", e.getMessage());
+        String mensagem = esperaErro(repo, cliente, "Ana Costa", ADULTO, "912345678", null);
+        assertEquals("O cliente já não existe", mensagem);
         assertEquals("Ana Silva", cliente.getNome());
     }
 }

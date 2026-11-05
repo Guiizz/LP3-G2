@@ -11,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +27,13 @@ public class EntregaBLLTest {
 
         @Override
         public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
-            return registadas.stream().anyMatch(e -> e.getFornecedor().getCodigo().equals(codigoFornecedor)
-                    && e.getNumeroEncomenda().equals(numeroEncomenda));
+            for (Entrega e : registadas) {
+                if (e.getFornecedor().getCodigo().equals(codigoFornecedor)
+                        && e.getNumeroEncomenda().equals(numeroEncomenda)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -40,12 +46,24 @@ public class EntregaBLLTest {
 
         @Override
         public Optional<Entrega> procurarPorId(int id) {
-            return registadas.stream().filter(e -> e.getId() == id).findFirst();
+            for (Entrega e : registadas) {
+                if (e.getId() == id) {
+                    return Optional.of(e);
+                }
+            }
+            return Optional.empty();
         }
 
         @Override
         public boolean apagar(int id) {
-            return registadas.removeIf(e -> e.getId() == id);
+            Iterator<Entrega> iterador = registadas.iterator();
+            while (iterador.hasNext()) {
+                if (iterador.next().getId() == id) {
+                    iterador.remove();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
