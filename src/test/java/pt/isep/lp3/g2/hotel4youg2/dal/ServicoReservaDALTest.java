@@ -52,7 +52,7 @@ public class ServicoReservaDALTest {
         try {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('ReservaServico') IS NOT NULL "
                     + "THEN 1 ELSE 0 END", rs -> rs.getInt(1));
-            Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 08_servicos_reserva.sql");
+            Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 09_servicos_reserva.sql");
             List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Cliente", rs -> rs.getInt(1));
             List<Integer> quartos = ConexaoBD.select("SELECT TOP 1 numero FROM Quarto WHERE ativo = 1", rs -> rs.getInt(1));
             Assumptions.assumeTrue(!clientes.isEmpty() && !quartos.isEmpty(), "Faltam clientes ou quartos na BD");
