@@ -9,7 +9,8 @@ import java.time.Period;
 import java.util.List;
 
 /**
- * Regras de negócio dos clientes: registar (US13), pesquisar (US14) e editar (US19).
+ * Regras de negócio dos clientes: registar (US13), pesquisar (US14), editar (US19)
+ * e registar como cliente um funcionário do hotel (US43).
  */
 public class ClienteBLL {
     private final IClienteDAL repositorio;
@@ -31,10 +32,11 @@ public class ClienteBLL {
     }
 
     /**
-     * Regista um cliente novo (US13).
+     * Regista um cliente novo (US13). Se o NIF for de um funcionário que ainda não é cliente,
+     * a pessoa fica também cliente, com estes dados, e a conta dela não muda (US43).
      *
      * @param nome           o nome (obrigatório)
-     * @param nif            o NIF, com 9 dígitos e ainda não registado
+     * @param nif            o NIF, com 9 dígitos, ainda não registado ou de um funcionário
      * @param dataNascimento a data de nascimento (obrigatória, pelo menos 18 anos)
      * @param telemovel      o telemóvel (obrigatório se não houver email)
      * @param email          o email (obrigatório se não houver telemóvel)
@@ -55,6 +57,12 @@ public class ClienteBLL {
         validarNif(nif);
         validarDados(nome, dataNascimento, telemovel, email, cc, morada);
 
+        Cliente funcionario = repositorio.procurarFuncionarioNaoCliente(nif);
+        if (funcionario != null) {
+            Cliente cliente = new Cliente(funcionario.getId(), nome, cc, nif, morada, telemovel, dataNascimento, email);
+            repositorio.tornarCliente(cliente);
+            return cliente;
+        }
         if (repositorio.existeNif(nif)) {
             throw new ValidacaoException("Já existe uma pessoa registada com o NIF " + nif);
         }
@@ -62,6 +70,16 @@ public class ClienteBLL {
         Cliente cliente = new Cliente(0, nome, cc, nif, morada, telemovel, dataNascimento, email);
         repositorio.inserirCliente(cliente);
         return cliente;
+    }
+
+    // para o ecrã avisar antes de atualizar a ficha do funcionário; um NIF mal escrito é recusado depois, no registar
+    public String nomeDoFuncionarioComNif(String nif) {
+        nif = limpar(nif);
+        if (nif == null || !nif.matches("\\d{9}")) {
+            return null;
+        }
+        Cliente funcionario = repositorio.procurarFuncionarioNaoCliente(nif);
+        return funcionario == null ? null : funcionario.getNome();
     }
 
     /**

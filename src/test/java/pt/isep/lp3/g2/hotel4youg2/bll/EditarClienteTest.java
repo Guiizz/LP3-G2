@@ -51,6 +51,15 @@ class EditarClienteTest {
         public Cliente procurarPorNif(String nif) {
             return null;
         }
+
+        @Override
+        public Cliente procurarFuncionarioNaoCliente(String nif) {
+            return null;
+        }
+
+        @Override
+        public void tornarCliente(Cliente c) {
+        }
     }
 
     private Cliente ana() {

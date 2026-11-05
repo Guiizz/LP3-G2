@@ -110,6 +110,45 @@ public class ClienteDAL implements IClienteDAL {
         }
     }
 
+    @Override
+    public Cliente procurarFuncionarioNaoCliente(String nif) {
+        List<Cliente> encontrados = ConexaoBD.select(
+                "SELECT p.id, p.nome, p.cc, p.nif, p.morada, p.telemovel, p.dataNascimento, p.email "
+                + "FROM Funcionario f JOIN Pessoa p ON p.id = f.pessoaId "
+                + "WHERE p.nif = ? AND NOT EXISTS (SELECT 1 FROM Cliente c WHERE c.pessoaId = p.id)",
+                this::criarCliente, nif);
+        return encontrados.isEmpty() ? null : encontrados.get(0);
+    }
+
+    // a pessoa já existe (é funcionário): atualiza os dados dela e liga-a à tabela Cliente, tudo ou nada
+    @Override
+    public void tornarCliente(Cliente c) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement psPessoa = conn.prepareStatement(
+                         "UPDATE Pessoa SET nome = ?, dataNascimento = ?, telemovel = ?, email = ?, cc = ?, morada = ? "
+                         + "WHERE id = ?");
+                 PreparedStatement psCliente = conn.prepareStatement("INSERT Cliente (pessoaId) VALUES (?)")) {
+                psPessoa.setString(1, c.getNome());
+                psPessoa.setObject(2, c.getDataNascimento());
+                psPessoa.setString(3, c.getTelemovel());
+                psPessoa.setString(4, c.getEmail());
+                psPessoa.setString(5, c.getCc());
+                psPessoa.setString(6, c.getMorada());
+                psPessoa.setInt(7, c.getId());
+                psPessoa.executeUpdate();
+                psCliente.setInt(1, c.getId());
+                psCliente.executeUpdate();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao registar o funcionário como cliente!", e);
+        }
+    }
+
     private Cliente criarCliente(ResultSet rs) throws SQLException {
         return new Cliente(
                 rs.getInt("id"),

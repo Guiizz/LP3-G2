@@ -60,6 +60,16 @@ class ClienteBLLTest {
             }
             return null;
         }
+
+        @Override
+        public Cliente procurarFuncionarioNaoCliente(String nif) {
+            return null;
+        }
+
+        @Override
+        public void tornarCliente(Cliente c) {
+            gravou = true;
+        }
     }
 
     private ClienteDALFalsa repositorioComAna() {

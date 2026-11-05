@@ -1,7 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -12,9 +14,10 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Controlador do ecrã de clientes: registar (US13), pesquisar (US14) e editar (US19).
+ * Controlador do ecrã de clientes: registar (US13), incluindo funcionários (US43), pesquisar (US14) e editar (US19).
  */
 public class RegistarClienteController {
 
@@ -63,6 +66,10 @@ public class RegistarClienteController {
             return;
         }
         try {
+            String funcionario = clienteService.nomeDoFuncionarioComNif(nifField.getText());
+            if (funcionario != null && !confirmarFuncionario(funcionario)) {
+                return;
+            }
             Cliente cliente = clienteService.registar(
                     nomeField.getText(),
                     nifField.getText(),
@@ -79,6 +86,18 @@ public class RegistarClienteController {
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível guardar o cliente. Tente novamente.", "red");
         }
+    }
+
+    private boolean confirmarFuncionario(String nome) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Este NIF é do funcionário " + nome + ".\n"
+                        + "Vai ficar também registado como cliente, e os dados pessoais dele passam a ser os deste "
+                        + "formulário. A conta dele não muda. Continuar?",
+                ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Funcionário como cliente");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
     }
 
     @FXML
