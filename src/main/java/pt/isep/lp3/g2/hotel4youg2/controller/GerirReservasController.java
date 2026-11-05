@@ -129,13 +129,13 @@ public class GerirReservasController {
     private void aoServicos() {
         Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
         if (escolhida == null) {
-            mensagemLabel.setText("Escolha uma reserva na tabela.");
+            mostrarErro("Escolha uma reserva na tabela.");
             return;
         }
         try {
             ServicosReservaController.abrir(escolhida);
         } catch (IOException e) {
-            mensagemLabel.setText("Não foi possível abrir os serviços da reserva.");
+            mostrarErro("Não foi possível abrir os serviços da reserva.");
         }
         carregar();
     }

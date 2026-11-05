@@ -24,22 +24,23 @@ public class ServicoDAL implements IServicoDAL {
 
     @Override
     public List<Servico> listar() {
-        return ConexaoBD.select(SELECT_TODOS, this::mapear);
+        return ConexaoBD.select(SELECT_TODOS, new ServicoMapper());
     }
 
     @Override
     public Optional<Servico> procurarPorId(int id) {
-        return ConexaoBD.select(SELECT_POR_ID, this::mapear, id).stream().findFirst();
+        List<Servico> servicos = ConexaoBD.select(SELECT_POR_ID, new ServicoMapper(), id);
+        return servicos.isEmpty() ? Optional.empty() : Optional.of(servicos.get(0));
     }
 
     @Override
     public boolean existeDesignacao(String designacao, int idIgnorar) {
-        return !ConexaoBD.select(EXISTE_DESIGNACAO, rs -> rs.getInt(1), designacao, idIgnorar).isEmpty();
+        return !ConexaoBD.select(EXISTE_DESIGNACAO, new InteiroMapper(), designacao, idIgnorar).isEmpty();
     }
 
     @Override
     public int inserir(Servico servico) {
-        int id = ConexaoBD.select(INSERIR, rs -> rs.getInt(1), servico.getDesignacao(), servico.getPreco(), servico.getCategoria().getId(), servico.isAtivo()).get(0);
+        int id = ConexaoBD.select(INSERIR, new InteiroMapper(), servico.getDesignacao(), servico.getPreco(), servico.getCategoria().getId(), servico.isAtivo()).get(0);
         servico.setId(id);
         return id;
     }
@@ -59,7 +60,17 @@ public class ServicoDAL implements IServicoDAL {
         return ConexaoBD.executar(APAGAR, id) > 0;
     }
 
-    private Servico mapear(ResultSet rs) throws SQLException {
-        return new Servico(rs.getInt("id"), rs.getString("designacao"), rs.getBigDecimal("preco"), new Categoria(rs.getInt("categoriaId"), rs.getString("categoriaNome")), rs.getBoolean("ativo"));
+    private static class ServicoMapper implements RowMapper<Servico> {
+        @Override
+        public Servico map(ResultSet rs) throws SQLException {
+            return new Servico(rs.getInt("id"), rs.getString("designacao"), rs.getBigDecimal("preco"), new Categoria(rs.getInt("categoriaId"), rs.getString("categoriaNome")), rs.getBoolean("ativo"));
+        }
+    }
+
+    private static class InteiroMapper implements RowMapper<Integer> {
+        @Override
+        public Integer map(ResultSet rs) throws SQLException {
+            return rs.getInt(1);
+        }
     }
 }

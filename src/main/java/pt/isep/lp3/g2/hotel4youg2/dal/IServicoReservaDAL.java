@@ -10,5 +10,5 @@ public interface IServicoReservaDAL {
 
     List<ServicoReserva> listarPorReserva(int reservaId);
 
-    boolean apagarSeAberta(int id);
+    boolean apagarSeAberta(int id, int reservaId);
 }

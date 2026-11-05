@@ -4,7 +4,6 @@ import pt.isep.lp3.g2.hotel4youg2.dal.IServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
@@ -78,7 +77,7 @@ public class ServicoReservaBLL {
         if (servicoReserva == null) {
             throw new ValidacaoException("Escolha um serviço da lista");
         }
-        if (!servicoReservaDAL.apagarSeAberta(servicoReserva.getId())) {
+        if (!servicoReservaDAL.apagarSeAberta(servicoReserva.getId(), reserva.getId())) {
             throw new ValidacaoException("O serviço já tinha sido retirado ou a reserva já não aceita alterações");
         }
         reserva.setTotalServicos(reserva.getTotalServicos().subtract(servicoReserva.getTotal()));
@@ -103,9 +102,8 @@ public class ServicoReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         if (!reserva.aceitaServicos()) {
-            String estado = reserva.getEstado() == EstadoReserva.CANCELADA ? "cancelada" : "concluída";
-            throw new ValidacaoException("A reserva " + reserva.getId() + " está " + estado
-                    + ": já não é possível " + acao + " serviços");
+            throw new ValidacaoException("A reserva " + reserva.getId() + " está "
+                    + reserva.getEstado().getDescricao().toLowerCase() + ": já não é possível " + acao + " serviços");
         }
     }
 }

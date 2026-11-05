@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -29,11 +30,21 @@
             <Label text="Esta reserva ainda não tem serviços."/>
         </placeholder>
         <columns>
-            <TableColumn fx:id="colunaServico" text="Serviço" prefWidth="200.0"/>
-            <TableColumn fx:id="colunaQuantidade" text="Quantidade" prefWidth="90.0"/>
-            <TableColumn fx:id="colunaPreco" text="Preço" prefWidth="90.0"/>
-            <TableColumn fx:id="colunaTotal" text="Total" prefWidth="90.0"/>
-            <TableColumn fx:id="colunaData" text="Junto em" prefWidth="120.0"/>
+            <TableColumn text="Serviço" prefWidth="200.0">
+                <cellValueFactory><PropertyValueFactory property="nomeServico"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Preço" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="precoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="totalTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Junto em" prefWidth="120.0">
+                <cellValueFactory><PropertyValueFactory property="adicionadoEmTexto"/></cellValueFactory>
+            </TableColumn>
         </columns>
     </TableView>
 

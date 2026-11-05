@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -59,8 +60,16 @@ public class ServicoReservaBLLTest {
         }
 
         @Override
-        public boolean apagarSeAberta(int id) {
-            return tabela.removeIf(s -> s.getId() == id && !reservasFechadas.contains(s.getReservaId()));
+        public boolean apagarSeAberta(int id, int reservaId) {
+            Iterator<ServicoReserva> iterador = tabela.iterator();
+            while (iterador.hasNext()) {
+                ServicoReserva s = iterador.next();
+                if (s.getId() == id && s.getReservaId() == reservaId && !reservasFechadas.contains(reservaId)) {
+                    iterador.remove();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -74,7 +83,12 @@ public class ServicoReservaBLLTest {
 
         @Override
         public Optional<Servico> procurarPorId(int id) {
-            return tabela.stream().filter(s -> s.getId() == id).findFirst();
+            for (Servico s : tabela) {
+                if (s.getId() == id) {
+                    return Optional.of(s);
+                }
+            }
+            return Optional.empty();
         }
 
         @Override
@@ -100,7 +114,14 @@ public class ServicoReservaBLLTest {
 
         @Override
         public boolean apagar(int id) {
-            return tabela.removeIf(s -> s.getId() == id);
+            Iterator<Servico> iterador = tabela.iterator();
+            while (iterador.hasNext()) {
+                if (iterador.next().getId() == id) {
+                    iterador.remove();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -311,6 +332,20 @@ public class ServicoReservaBLLTest {
             fail("Devia ter lançado ValidacaoException, mas não lançou");
         } catch (ValidacaoException expected) {
             assertEquals("A reserva 10 está cancelada: já não é possível retirar serviços", expected.getMessage());
+            assertEquals(1, servicoReservaDAL.tabela.size());
+        }
+    }
+
+    @Test
+    public void testRetirarDeOutraReserva() {
+        System.out.println("retirar (o serviço é de outra reserva)");
+        ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 2);
+        Reserva outra = new Reserva(11, 5, 202, LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 3), 2,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        try {
+            instance.retirar(RECECAO, outra, junto);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
             assertEquals(1, servicoReservaDAL.tabela.size());
         }
     }

@@ -1,7 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class ServicoReserva {
@@ -58,6 +60,26 @@ public class ServicoReserva {
 
     public BigDecimal getTotal() {
         return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
+    }
+
+    public String getNomeServico() {
+        return servico.getDesignacao();
+    }
+
+    public String getPrecoTexto() {
+        return euros(precoUnitario);
+    }
+
+    public String getTotalTexto() {
+        return euros(getTotal());
+    }
+
+    public String getAdicionadoEmTexto() {
+        return adicionadoEm == null ? "" : adicionadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    private static String euros(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
     }
 
     @Override

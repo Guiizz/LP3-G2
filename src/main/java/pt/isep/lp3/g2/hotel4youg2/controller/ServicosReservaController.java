@@ -1,6 +1,5 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,7 +9,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.ServicoReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
@@ -23,13 +21,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 public class ServicosReservaController {
-
-    private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final ServicoReservaBLL servicoReservaBLL = new ServicoReservaBLL();
     private Reserva reserva;
@@ -40,16 +35,6 @@ public class ServicosReservaController {
     private Label reservaLabel;
     @FXML
     private TableView<ServicoReserva> tabela;
-    @FXML
-    private TableColumn<ServicoReserva, String> colunaServico;
-    @FXML
-    private TableColumn<ServicoReserva, String> colunaQuantidade;
-    @FXML
-    private TableColumn<ServicoReserva, String> colunaPreco;
-    @FXML
-    private TableColumn<ServicoReserva, String> colunaTotal;
-    @FXML
-    private TableColumn<ServicoReserva, String> colunaData;
     @FXML
     private ComboBox<Servico> servicoCombo;
     @FXML
@@ -77,11 +62,6 @@ public class ServicosReservaController {
 
     @FXML
     private void initialize() {
-        colunaServico.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getServico().getDesignacao()));
-        colunaQuantidade.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getQuantidade())));
-        colunaPreco.setCellValueFactory(c -> new SimpleStringProperty(euros(c.getValue().getPrecoUnitario())));
-        colunaTotal.setCellValueFactory(c -> new SimpleStringProperty(euros(c.getValue().getTotal())));
-        colunaData.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getAdicionadoEm().format(FORMATO_DATA)));
         try {
             servicoCombo.getItems().setAll(servicoReservaBLL.listarServicosAtivos());
         } catch (DataAccessException e) {
@@ -93,7 +73,7 @@ public class ServicosReservaController {
         this.reserva = reserva;
         tituloLabel.setText("Serviços da reserva n.º " + reserva.getId());
         reservaLabel.setText("Quarto " + reserva.getQuartoNumero() + ", de " + reserva.getDataEntrada() + " a "
-                + reserva.getDataSaida() + " · " + reserva.getEstado());
+                + reserva.getDataSaida() + " · " + reserva.getEstado().getDescricao());
         boolean aberta = reserva.aceitaServicos();
         servicoCombo.setDisable(!aberta);
         quantidadeSpinner.setDisable(!aberta);

@@ -24,34 +24,51 @@ public class ServicoReservaDAL implements IServicoReservaDAL {
             + "FROM ReservaServico rs JOIN Servico s ON s.id = rs.servicoId JOIN Categoria c ON c.id = s.categoriaId "
             + "WHERE rs.reservaId = ? ORDER BY rs.adicionadoEm, rs.id";
     private static final String APAGAR_SE_ABERTA =
-            "DELETE FROM ReservaServico WHERE id = ? "
-            + "AND reservaId IN (SELECT id FROM Reserva WHERE estado IN ('CONFIRMADA', 'EM_CURSO'))";
+            "DELETE FROM ReservaServico WHERE id = ? AND reservaId = ? "
+            + "AND EXISTS (SELECT 1 FROM Reserva WITH (UPDLOCK, HOLDLOCK) "
+            + "WHERE id = ? AND estado IN ('CONFIRMADA', 'EM_CURSO'))";
 
     @Override
     public boolean inserirSeAberta(ServicoReserva servicoReserva) {
-        List<ServicoReserva> gravado = ConexaoBD.select(INSERIR_SE_ABERTA, rs -> {
-            servicoReserva.setId(rs.getInt("id"));
-            servicoReserva.setAdicionadoEm(rs.getTimestamp("adicionadoEm").toLocalDateTime());
-            return servicoReserva;
-        }, servicoReserva.getReservaId(), servicoReserva.getServico().getId(), servicoReserva.getQuantidade(),
+        List<ServicoReserva> gravado = ConexaoBD.select(INSERIR_SE_ABERTA, new DadosGeradosMapper(servicoReserva),
+                servicoReserva.getReservaId(), servicoReserva.getServico().getId(), servicoReserva.getQuantidade(),
                 servicoReserva.getPrecoUnitario(), servicoReserva.getReservaId(), servicoReserva.getServico().getId());
         return !gravado.isEmpty();
     }
 
     @Override
     public List<ServicoReserva> listarPorReserva(int reservaId) {
-        return ConexaoBD.select(LISTAR_POR_RESERVA, this::mapear, reservaId);
+        return ConexaoBD.select(LISTAR_POR_RESERVA, new ServicoReservaMapper(), reservaId);
     }
 
     @Override
-    public boolean apagarSeAberta(int id) {
-        return ConexaoBD.executar(APAGAR_SE_ABERTA, id) > 0;
+    public boolean apagarSeAberta(int id, int reservaId) {
+        return ConexaoBD.executar(APAGAR_SE_ABERTA, id, reservaId, reservaId) > 0;
     }
 
-    private ServicoReserva mapear(ResultSet rs) throws SQLException {
-        Servico servico = new Servico(rs.getInt("servicoId"), rs.getString("designacao"), rs.getBigDecimal("preco"),
-                new Categoria(rs.getInt("categoriaId"), rs.getString("categoriaNome")), rs.getBoolean("ativo"));
-        return new ServicoReserva(rs.getInt("id"), rs.getInt("reservaId"), servico, rs.getInt("quantidade"),
-                rs.getBigDecimal("precoUnitario"), rs.getTimestamp("adicionadoEm").toLocalDateTime());
+    private static class ServicoReservaMapper implements RowMapper<ServicoReserva> {
+        @Override
+        public ServicoReserva map(ResultSet rs) throws SQLException {
+            Servico servico = new Servico(rs.getInt("servicoId"), rs.getString("designacao"), rs.getBigDecimal("preco"),
+                    new Categoria(rs.getInt("categoriaId"), rs.getString("categoriaNome")), rs.getBoolean("ativo"));
+            return new ServicoReserva(rs.getInt("id"), rs.getInt("reservaId"), servico, rs.getInt("quantidade"),
+                    rs.getBigDecimal("precoUnitario"), rs.getTimestamp("adicionadoEm").toLocalDateTime());
+        }
+    }
+
+    // põe no objeto o id e a data que a BD gerou ao gravar
+    private static class DadosGeradosMapper implements RowMapper<ServicoReserva> {
+        private final ServicoReserva servicoReserva;
+
+        DadosGeradosMapper(ServicoReserva servicoReserva) {
+            this.servicoReserva = servicoReserva;
+        }
+
+        @Override
+        public ServicoReserva map(ResultSet rs) throws SQLException {
+            servicoReserva.setId(rs.getInt("id"));
+            servicoReserva.setAdicionadoEm(rs.getTimestamp("adicionadoEm").toLocalDateTime());
+            return servicoReserva;
+        }
     }
 }
