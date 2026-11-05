@@ -33,4 +33,6 @@ public interface IReservaDAL {
     boolean cancelar(int id);
 
     boolean alterarDatasSeLivre(Reserva reserva);
+
+    boolean registarCheckin(Reserva reserva);
 }

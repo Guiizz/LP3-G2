@@ -45,6 +45,10 @@ public class ReservaDAL implements IReservaDAL {
             "UPDATE Reserva SET estado = 'CANCELADA' "
                     + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
 
+    private static final String REGISTAR_CHECKIN =
+            "UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = ?, cartao = ? "
+            + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
+
     private static final String ALTERAR_DATAS_SE_LIVRE =
             "UPDATE Reserva SET dataEntrada = ?, dataSaida = ?, precoTotal = ? "
             + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL "
@@ -134,5 +138,11 @@ public class ReservaDAL implements IReservaDAL {
                 reserva.getPrecoTotal(), reserva.getId(),
                 reserva.getQuartoNumero(), reserva.getId(),
                 Date.valueOf(reserva.getDataSaida()), Date.valueOf(reserva.getDataEntrada())) > 0;
+    }
+
+    @Override
+    public boolean registarCheckin(Reserva reserva) {
+        return ConexaoBD.executar(REGISTAR_CHECKIN, Timestamp.valueOf(reserva.getCheckinEm()),
+                reserva.getCartao(), reserva.getId()) > 0;
     }
 }

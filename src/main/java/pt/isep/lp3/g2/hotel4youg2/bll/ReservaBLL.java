@@ -10,6 +10,8 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
@@ -18,6 +20,8 @@ import java.util.List;
  * Regras de negócio das reservas (US27).
  */
 public class ReservaBLL {
+
+    private static final LocalTime HORA_CHECKIN = LocalTime.of(15, 0);
 
     private final IReservaDAL repositorio;
 
@@ -115,6 +119,25 @@ public class ReservaBLL {
             throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
                     + " não está livre nessas datas, ou a reserva já não pode ser alterada");
         }
+    }
+
+    public String fazerCheckin(Utilizador quemAge, Reserva reserva) {
+        return fazerCheckin(quemAge, reserva, LocalDateTime.now());
+    }
+
+    public String fazerCheckin(Utilizador quemAge, Reserva reserva, LocalDateTime agora) {
+        if (!Permissoes.podeGerirReservas(quemAge)) {
+            throw new IllegalStateException("Entre na aplicação como rececionista ou gestor para fazer check-in");
+        }
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        reserva.fazerCheckin(agora, HORA_CHECKIN);
+        if (!repositorio.registarCheckin(reserva)) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já não pode fazer check-in: foi cancelada ou já tem o check-in feito");
+        }
+        return reserva.getCartao();
     }
 
     private void validarDatas(LocalDate entrada, LocalDate saida) {
