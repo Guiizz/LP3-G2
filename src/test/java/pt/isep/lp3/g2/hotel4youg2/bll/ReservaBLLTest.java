@@ -632,18 +632,35 @@ public class ReservaBLLTest {
         System.out.println("totalAPagar");
         Reserva reserva = reservaEmCurso();
         BigDecimal expResult = reserva.getPrecoTotal();
-        BigDecimal result = instance.totalAPagar(reserva);
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
         assertEquals(expResult, result);
     }
 
     @Test
     public void testTotalAPagarReservaSemCheckin() {
         System.out.println("totalAPagar (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONFIRMADA)";
         try {
-            instance.totalAPagar(reservaConfirmada());
+            instance.totalAPagar(RECECAO, reserva);
             fail("Devia ter recusado uma reserva que não está em curso");
         } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckout);
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testTotalAPagarSemSessao() {
+        System.out.println("totalAPagar (sem sessão)");
+        String expResult = "Entre na aplicação como rececionista ou gestor para fazer check-out";
+        try {
+            instance.totalAPagar(null, reservaEmCurso());
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 

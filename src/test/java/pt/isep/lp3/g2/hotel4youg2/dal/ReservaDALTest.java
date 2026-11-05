@@ -192,7 +192,7 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        instance.registarCheckin(reserva);
+        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
         reserva.setEstado(EstadoReserva.CONCLUIDA);
         reserva.setCheckoutEm(reserva.getDataSaida().atTime(11, 0));
         boolean expResult = true;
