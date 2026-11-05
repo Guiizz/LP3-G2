@@ -40,6 +40,8 @@ public class ReservaBLLTest {
         private Integer clientePedido;
         private boolean podeFazerCheckinNaBD = true;
         private Reserva comCheckin;
+        private boolean podeFazerCheckoutNaBD = true;
+        private Reserva comCheckout;
 
         @Override
         public boolean cancelar(int id) {
@@ -101,6 +103,15 @@ public class ReservaBLLTest {
                 return false;
             }
             comCheckin = reserva;
+            return true;
+        }
+
+        @Override
+        public boolean registarCheckout(Reserva reserva) {
+            if (!podeFazerCheckoutNaBD) {
+                return false;
+            }
+            comCheckout = reserva;
             return true;
         }
     }
@@ -605,6 +616,159 @@ public class ReservaBLLTest {
             fail("Devia ter recusado");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    private Reserva reservaEmCurso() {
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        return reserva;
+    }
+
+    @Test
+    public void testTotalAPagar() {
+        System.out.println("totalAPagar");
+        Reserva reserva = reservaEmCurso();
+        BigDecimal expResult = reserva.getPrecoTotal();
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTotalAPagarComServicos() {
+        System.out.println("totalAPagar (com serviços extra)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setTotalServicos(new BigDecimal("35.50"));
+        BigDecimal expResult = reserva.getPrecoTotal().add(new BigDecimal("35.50"));
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTotalAPagarReservaSemCheckin() {
+        System.out.println("totalAPagar (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONFIRMADA)";
+        try {
+            instance.totalAPagar(RECECAO, reserva);
+            fail("Devia ter recusado uma reserva que não está em curso");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testTotalAPagarSemSessao() {
+        System.out.println("totalAPagar (sem sessão)");
+        String expResult = "Entre na aplicação como rececionista ou gestor para fazer check-out";
+        try {
+            instance.totalAPagar(null, reservaEmCurso());
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckout() {
+        System.out.println("fazerCheckout");
+        Reserva reserva = reservaEmCurso();
+        LocalDateTime agora = reserva.getDataSaida().atTime(11, 0);
+        BigDecimal expResult = reserva.getTotal();
+        BigDecimal result = instance.fazerCheckout(RECECAO, reserva, agora);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutReservaFicaConcluida() {
+        System.out.println("fazerCheckout (reserva passa a CONCLUIDA)");
+        Reserva reserva = reservaEmCurso();
+        LocalDateTime agora = reserva.getDataSaida().atTime(11, 0);
+        Reserva expResult = new Reserva(reserva.getId(), reserva.getClienteId(), reserva.getQuartoNumero(),
+                reserva.getDataEntrada(), reserva.getDataSaida(), reserva.getNumHospedes(),
+                EstadoReserva.CONCLUIDA, reserva.getPrecoTotal(), reserva.getCheckinEm(), agora);
+        expResult.setCartao(reserva.getCartao());
+        instance.fazerCheckout(GESTOR, reserva, agora);
+        Reserva result = repositorio.comCheckout;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutCartaoDeixaDeDarAcesso() {
+        System.out.println("fazerCheckout (cartão deixa de dar acesso)");
+        Reserva reserva = reservaEmCurso();
+        instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+        boolean expResult = false;
+        boolean result = reserva.cartaoDaAcesso();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutSemCheckin() {
+        System.out.println("fazerCheckout (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado uma reserva sem check-in");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutJaConcluida() {
+        System.out.println("fazerCheckout (reserva já concluída)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONCLUIDA)";
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado uma reserva já concluída");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemReserva() {
+        System.out.println("fazerCheckout (sem reserva)");
+        try {
+            instance.fazerCheckout(RECECAO, null, LocalDateTime.now());
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemSessao() {
+        System.out.println("fazerCheckout (sem sessão)");
+        Reserva reserva = reservaEmCurso();
+        try {
+            instance.fazerCheckout(null, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutJaNaoPodeNaBD() {
+        System.out.println("fazerCheckout (já não está em curso na BD)");
+        repositorio.podeFazerCheckoutNaBD = false;
+        Reserva reserva = reservaEmCurso();
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.comCheckout);
         }
     }
 }
