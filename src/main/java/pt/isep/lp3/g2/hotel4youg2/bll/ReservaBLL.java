@@ -140,6 +140,34 @@ public class ReservaBLL {
         return reserva.getCartao();
     }
 
+    public BigDecimal totalAPagar(Reserva reserva) {
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        if (reserva.getEstado() != EstadoReserva.EM_CURSO) {
+            throw new IllegalStateException("Só é possível fazer check-out de uma reserva em curso (a reserva "
+                    + reserva.getId() + " está " + reserva.getEstado() + ")");
+        }
+        return reserva.getPrecoTotal();
+    }
+
+    public BigDecimal fazerCheckout(Utilizador quemAge, Reserva reserva) {
+        return fazerCheckout(quemAge, reserva, LocalDateTime.now());
+    }
+
+    public BigDecimal fazerCheckout(Utilizador quemAge, Reserva reserva, LocalDateTime agora) {
+        if (!Permissoes.podeGerirReservas(quemAge)) {
+            throw new IllegalStateException("Entre na aplicação como rececionista ou gestor para fazer check-out");
+        }
+        BigDecimal total = totalAPagar(reserva);
+        reserva.fazerCheckout(agora);
+        if (!repositorio.registarCheckout(reserva)) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já não pode fazer check-out: já não está em curso");
+        }
+        return total;
+    }
+
     private void validarDatas(LocalDate entrada, LocalDate saida) {
         if (entrada == null || saida == null) {
             throw new ValidacaoException("Indique as datas de entrada e de saída");
