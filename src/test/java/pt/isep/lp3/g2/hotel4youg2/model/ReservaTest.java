@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -111,6 +112,78 @@ class ReservaTest {
             fail("Devia ter recusado alterar");
         } catch (IllegalStateException e) {
             assertEquals(LocalDate.of(2026, 11, 2), reserva.getDataEntrada());
+        }
+    }
+
+    @Test
+    public void testFazerCheckin() {
+        System.out.println("fazerCheckin");
+        Reserva instance = novaReserva();
+        LocalDateTime agora = instance.getDataEntrada().atTime(15, 30);
+        Reserva expResult = new Reserva(instance.getId(), instance.getClienteId(), instance.getQuartoNumero(),
+                instance.getDataEntrada(), instance.getDataSaida(), instance.getNumHospedes(),
+                EstadoReserva.EM_CURSO, instance.getPrecoTotal(), agora, null);
+        expResult.setCartao("C" + instance.getQuartoNumero());
+        instance.fazerCheckin(agora, LocalTime.of(15, 0));
+        Reserva result = instance;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinAntesDas15h() {
+        System.out.println("fazerCheckin (antes das 15h)");
+        Reserva instance = novaReserva();
+        try {
+            instance.fazerCheckin(instance.getDataEntrada().atTime(14, 59), LocalTime.of(15, 0));
+            fail("Devia ter recusado o check-in antes das 15h");
+        } catch (IllegalStateException expected) {
+            EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+            EstadoReserva result = instance.getEstado();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinForaDoDiaDeEntrada() {
+        System.out.println("fazerCheckin (fora do dia de entrada)");
+        Reserva instance = novaReserva();
+        try {
+            instance.fazerCheckin(instance.getDataEntrada().plusDays(1).atTime(16, 0), LocalTime.of(15, 0));
+            fail("Devia ter recusado o check-in fora do dia de entrada");
+        } catch (IllegalStateException expected) {
+            EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+            EstadoReserva result = instance.getEstado();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinReservaCancelada() {
+        System.out.println("fazerCheckin (reserva cancelada)");
+        Reserva instance = novaReserva();
+        instance.cancelar();
+        String expResult = "A reserva " + instance.getId() + " foi cancelada e não pode fazer check-in";
+        try {
+            instance.fazerCheckin(instance.getDataEntrada().atTime(16, 0), LocalTime.of(15, 0));
+            fail("Devia ter recusado uma reserva cancelada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinRepetido() {
+        System.out.println("fazerCheckin (repetido)");
+        Reserva instance = novaReserva();
+        instance.fazerCheckin(instance.getDataEntrada().atTime(15, 30), LocalTime.of(15, 0));
+        String expResult = "A reserva " + instance.getId() + " já tem o check-in feito";
+        try {
+            instance.fazerCheckin(instance.getDataEntrada().atTime(16, 0), LocalTime.of(15, 0));
+            fail("Devia ter recusado um segundo check-in");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 }

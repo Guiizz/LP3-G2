@@ -10,6 +10,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -156,6 +157,31 @@ public class ReservaDALTest {
         reserva.alterarDatas(novaEntrada, novaEntrada.plusDays(2));
         boolean expResult = false;
         boolean result = instance.alterarDatasSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarCheckin() {
+        System.out.println("registarCheckin");
+        Assumptions.assumeTrue(reserva.getId() > 0, "O quarto estava ocupado nessas datas");
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        boolean expResult = true;
+        boolean result = instance.registarCheckin(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarCheckinSegundaVezDevolveFalse() {
+        System.out.println("registarCheckin (segunda tentativa)");
+        Assumptions.assumeTrue(reserva.getId() > 0, "O quarto estava ocupado nessas datas");
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        instance.registarCheckin(reserva);
+        boolean expResult = false;
+        boolean result = instance.registarCheckin(reserva);
         assertEquals(expResult, result);
     }
 }

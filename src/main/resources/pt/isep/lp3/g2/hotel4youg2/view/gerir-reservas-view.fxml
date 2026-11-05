@@ -51,6 +51,7 @@
         <DatePicker fx:id="novaSaidaPicker" prefWidth="130.0"/>
         <Button text="Alterar datas" onAction="#aoAlterarDatas"/>
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
+        <Button text="Fazer check-in" onAction="#aoFazerCheckin"/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>
