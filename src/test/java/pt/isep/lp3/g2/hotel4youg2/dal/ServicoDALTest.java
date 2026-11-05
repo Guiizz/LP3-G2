@@ -29,6 +29,8 @@ public class ServicoDALTest {
     @AfterAll
     public static void limparRestosDeTestes() {
         try {
+            ConexaoBD.executar("IF OBJECT_ID('ReservaServico') IS NOT NULL DELETE FROM ReservaServico "
+                    + "WHERE servicoId IN (SELECT id FROM Servico WHERE designacao LIKE 'Teste %')");
             ConexaoBD.executar("DELETE FROM Servico WHERE designacao LIKE 'Teste %' "
                     + "OR categoriaId IN (SELECT id FROM Categoria WHERE nome LIKE 'Teste %')");
             ConexaoBD.executar("DELETE FROM Categoria WHERE nome LIKE 'Teste %'");

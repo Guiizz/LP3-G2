@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" prefWidth="620.0" prefHeight="520.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.ServicosReservaController">
+
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label fx:id="tituloLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label fx:id="reservaLabel"/>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <placeholder>
+            <Label text="Esta reserva ainda não tem serviços."/>
+        </placeholder>
+        <columns>
+            <TableColumn fx:id="colunaServico" text="Serviço" prefWidth="200.0"/>
+            <TableColumn fx:id="colunaQuantidade" text="Quantidade" prefWidth="90.0"/>
+            <TableColumn fx:id="colunaPreco" text="Preço" prefWidth="90.0"/>
+            <TableColumn fx:id="colunaTotal" text="Total" prefWidth="90.0"/>
+            <TableColumn fx:id="colunaData" text="Junto em" prefWidth="120.0"/>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Serviço:"/>
+        <ComboBox fx:id="servicoCombo" promptText="Escolha um serviço" prefWidth="240.0"/>
+        <Label text="Quantidade:"/>
+        <Spinner fx:id="quantidadeSpinner" min="1" max="99" initialValue="1" prefWidth="80.0"/>
+        <Button fx:id="adicionarButton" text="Juntar" defaultButton="true" onAction="#aoAdicionar"/>
+    </HBox>
+
+    <Button fx:id="retirarButton" text="Retirar o serviço escolhido" onAction="#aoRetirar"/>
+
+    <Separator/>
+
+    <GridPane hgap="10.0" vgap="4.0">
+        <Label text="Quarto:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label fx:id="quartoLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="Serviços:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label fx:id="servicosLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Total:" style="-fx-font-weight: bold;" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label fx:id="totalLabel" style="-fx-font-weight: bold;" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+    <Button text="Fechar" onAction="#aoFechar"/>
+</VBox>

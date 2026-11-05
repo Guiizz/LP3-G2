@@ -22,6 +22,8 @@ public class Reserva {
     private BigDecimal precoTotal;
     private LocalDateTime checkinEm;
     private LocalDateTime checkoutEm;
+    // soma dos serviços extra juntos à reserva (US37); o precoTotal continua a ser só o quarto
+    private BigDecimal totalServicos = BigDecimal.ZERO;
 
     public int getId() {
         return id;
@@ -143,6 +145,22 @@ public class Reserva {
 
     public boolean podeSerAlterada() {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public boolean aceitaServicos() {
+        return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
+    }
+
+    public BigDecimal getTotalServicos() {
+        return totalServicos;
+    }
+
+    public void setTotalServicos(BigDecimal totalServicos) {
+        this.totalServicos = totalServicos == null ? BigDecimal.ZERO : totalServicos;
+    }
+
+    public BigDecimal getTotal() {
+        return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos);
     }
 
     public long getNoites() {
