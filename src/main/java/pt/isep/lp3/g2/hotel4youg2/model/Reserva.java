@@ -25,7 +25,6 @@ public class Reserva {
     private LocalDateTime checkinEm;
     private LocalDateTime checkoutEm;
     private String cartao;
-    // soma dos serviços extra juntos à reserva (US37); o precoTotal continua a ser só o quarto
     private BigDecimal totalServicos = BigDecimal.ZERO;
 
     public int getId() {

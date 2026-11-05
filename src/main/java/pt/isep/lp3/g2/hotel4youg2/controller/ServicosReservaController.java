@@ -52,7 +52,6 @@ public class ServicosReservaController {
     @FXML
     private Label mensagemLabel;
 
-    // abre o ecrã por cima da janela principal e só volta quando for fechado, para quem o abriu atualizar a lista
     public static void abrir(Reserva reserva) throws IOException {
         FXMLLoader loader = Navegador.carregar("servicos-reserva-view.fxml");
         ServicosReservaController controller = loader.getController();

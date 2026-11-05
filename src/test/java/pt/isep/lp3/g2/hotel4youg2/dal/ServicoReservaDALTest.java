@@ -13,8 +13,6 @@ import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -33,14 +31,6 @@ public class ServicoReservaDALTest {
     private Servico servico;
     private Reserva reserva;
 
-    private static class InteiroMapper implements RowMapper<Integer> {
-        @Override
-        public Integer map(ResultSet rs) throws SQLException {
-            return rs.getInt(1);
-        }
-    }
-
-    // Apaga só o que estes testes criam, se uma execução anterior não tiver chegado ao tearDown
     @BeforeAll
     public static void limparRestosDeTestes() {
         try {
@@ -50,11 +40,9 @@ public class ServicoReservaDALTest {
             ConexaoBD.executar("DELETE FROM Servico WHERE designacao LIKE 'Teste SR %'");
             ConexaoBD.executar("DELETE FROM Categoria WHERE nome LIKE 'Teste SR %'");
         } catch (DataAccessException e) {
-            // sem BD ou sem a tabela ReservaServico: os testes ficam ignorados no setUp
         }
     }
 
-    // Prepara o contexto: um cliente, uma categoria, um serviço de 10 € e uma reserva confirmada, só para o teste
     @BeforeEach
     public void setUp() {
         int quarto = 0;
@@ -86,7 +74,6 @@ public class ServicoReservaDALTest {
         Assumptions.assumeTrue(reservaDAL.inserirSeLivre(reserva), "O quarto de teste já estava ocupado nessas datas");
     }
 
-    // Desfaz o que o setUp fez: a reserva (e os serviços juntos a ela), o serviço, a categoria e o cliente de teste
     @AfterEach
     public void tearDown() {
         if (reserva != null && reserva.getId() > 0) {
@@ -184,7 +171,6 @@ public class ServicoReservaDALTest {
         assertEquals(expResult, result);
     }
 
-    // Processo completo pedido na Sprint Review: inserir, listar e apagar
     @Test
     public void testCrudCompleto() {
         System.out.println("CRUD completo");

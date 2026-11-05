@@ -30,8 +30,6 @@ public class ServicoReservaBLLTest {
 
     private static final LocalDateTime AGORA = LocalDateTime.of(2026, 11, 4, 10, 0);
 
-    // Base de dados falsa (em memória): guarda os serviços juntos às reservas e recusa
-    // as reservas que entretanto foram fechadas, como faz o SQL da DAL verdadeira
     private static class ServicoReservaDALFalsa implements IServicoReservaDAL {
         final List<ServicoReserva> tabela = new ArrayList<>();
         final Set<Integer> reservasFechadas = new HashSet<>();

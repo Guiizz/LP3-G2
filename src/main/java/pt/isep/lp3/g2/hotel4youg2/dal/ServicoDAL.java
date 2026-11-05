@@ -66,11 +66,4 @@ public class ServicoDAL implements IServicoDAL {
             return new Servico(rs.getInt("id"), rs.getString("designacao"), rs.getBigDecimal("preco"), new Categoria(rs.getInt("categoriaId"), rs.getString("categoriaNome")), rs.getBoolean("ativo"));
         }
     }
-
-    private static class InteiroMapper implements RowMapper<Integer> {
-        @Override
-        public Integer map(ResultSet rs) throws SQLException {
-            return rs.getInt(1);
-        }
-    }
 }

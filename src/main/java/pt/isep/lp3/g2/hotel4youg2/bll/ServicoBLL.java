@@ -10,6 +10,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Regras de negócio dos serviços extra, da sua tabela de preços e das suas categorias.
@@ -210,7 +211,11 @@ public class ServicoBLL {
     }
 
     private Servico procurar(int id) {
-        return servicoDAL.procurarPorId(id).orElseThrow(() -> new IllegalArgumentException("Escolha um serviço da lista."));
+        Optional<Servico> servico = servicoDAL.procurarPorId(id);
+        if (servico.isEmpty()) {
+            throw new IllegalArgumentException("Escolha um serviço da lista.");
+        }
+        return servico.get();
     }
 
     private static void exigirGestor(Utilizador quemAge) {

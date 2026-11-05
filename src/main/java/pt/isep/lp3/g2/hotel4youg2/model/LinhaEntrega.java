@@ -68,6 +68,26 @@ public class LinhaEntrega {
         return quantidade;
     }
 
+    public String getQuantidadeTexto() {
+        return quantidade + " " + unidade.getDescricao();
+    }
+
+    public String getPrecoTexto() {
+        return euros(precoUnitario);
+    }
+
+    public String getIvaTexto() {
+        return taxaIva + "% (" + euros(valorIva) + ")";
+    }
+
+    public String getTotalTexto() {
+        return euros(total);
+    }
+
+    private static String euros(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
+    }
+
     public Unidade getUnidade() {
         return unidade;
     }

@@ -61,7 +61,6 @@ public class ServicoReservaBLL {
         if (quantidade > QUANTIDADE_MAXIMA) {
             throw new ValidacaoException("A quantidade não pode ser maior que " + QUANTIDADE_MAXIMA);
         }
-        // o preço vem da tabela de preços (US46) e fica guardado como está agora
         ServicoReserva novo = new ServicoReserva(0, reserva.getId(), servico, quantidade, servico.getPreco(), null);
         if (!servicoReservaDAL.inserirSeAberta(novo)) {
             throw new ValidacaoException("A reserva já não aceita serviços ou o serviço foi desativado. "

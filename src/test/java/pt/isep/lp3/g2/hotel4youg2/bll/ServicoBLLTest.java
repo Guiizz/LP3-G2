@@ -12,6 +12,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,13 +33,22 @@ public class ServicoBLLTest {
 
         @Override
         public Optional<Servico> procurarPorId(int id) {
-            return tabela.stream().filter(s -> s.getId() == id).findFirst();
+            for (Servico s : tabela) {
+                if (s.getId() == id) {
+                    return Optional.of(s);
+                }
+            }
+            return Optional.empty();
         }
 
         @Override
         public boolean existeDesignacao(String designacao, int idIgnorar) {
-            return tabela.stream().anyMatch(s -> s.getId() != idIgnorar
-                    && s.getDesignacao().equalsIgnoreCase(designacao));
+            for (Servico s : tabela) {
+                if (s.getId() != idIgnorar && s.getDesignacao().equalsIgnoreCase(designacao)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -52,24 +62,35 @@ public class ServicoBLLTest {
         @Override
         public boolean atualizar(Servico servico) {
             Optional<Servico> atual = procurarPorId(servico.getId());
-            atual.ifPresent(s -> {
-                s.setDesignacao(servico.getDesignacao());
-                s.setPreco(servico.getPreco());
-                s.setCategoria(servico.getCategoria());
-            });
-            return atual.isPresent();
+            if (atual.isEmpty()) {
+                return false;
+            }
+            atual.get().setDesignacao(servico.getDesignacao());
+            atual.get().setPreco(servico.getPreco());
+            atual.get().setCategoria(servico.getCategoria());
+            return true;
         }
 
         @Override
         public boolean atualizarAtivo(int id, boolean ativo) {
             Optional<Servico> atual = procurarPorId(id);
-            atual.ifPresent(s -> s.setAtivo(ativo));
-            return atual.isPresent();
+            if (atual.isEmpty()) {
+                return false;
+            }
+            atual.get().setAtivo(ativo);
+            return true;
         }
 
         @Override
         public boolean apagar(int id) {
-            return tabela.removeIf(s -> s.getId() == id);
+            Iterator<Servico> iterador = tabela.iterator();
+            while (iterador.hasNext()) {
+                if (iterador.next().getId() == id) {
+                    iterador.remove();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -84,7 +105,12 @@ public class ServicoBLLTest {
 
         @Override
         public boolean existeNome(String nome) {
-            return tabela.stream().anyMatch(c -> c.getNome().equalsIgnoreCase(nome));
+            for (Categoria c : tabela) {
+                if (c.getNome().equalsIgnoreCase(nome)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -96,7 +122,14 @@ public class ServicoBLLTest {
 
         @Override
         public boolean apagar(int id) {
-            return tabela.removeIf(c -> c.getId() == id);
+            Iterator<Categoria> iterador = tabela.iterator();
+            while (iterador.hasNext()) {
+                if (iterador.next().getId() == id) {
+                    iterador.remove();
+                    return true;
+                }
+            }
+            return false;
         }
     }
 

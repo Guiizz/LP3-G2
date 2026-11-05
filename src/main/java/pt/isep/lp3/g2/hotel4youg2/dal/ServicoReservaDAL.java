@@ -10,7 +10,6 @@ import java.util.List;
 
 public class ServicoReservaDAL implements IServicoReservaDAL {
 
-    // só grava se a reserva ainda aceitar serviços e o serviço estiver ativo, mesmo que alguém a cancele ao mesmo tempo
     private static final String INSERIR_SE_ABERTA =
             "INSERT INTO ReservaServico (reservaId, servicoId, quantidade, precoUnitario) "
             + "OUTPUT INSERTED.id, INSERTED.adicionadoEm "
@@ -56,7 +55,6 @@ public class ServicoReservaDAL implements IServicoReservaDAL {
         }
     }
 
-    // põe no objeto o id e a data que a BD gerou ao gravar
     private static class DadosGeradosMapper implements RowMapper<ServicoReserva> {
         private final ServicoReserva servicoReserva;
 

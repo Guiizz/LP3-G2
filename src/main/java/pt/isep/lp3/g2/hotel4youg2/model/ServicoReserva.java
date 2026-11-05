@@ -12,7 +12,6 @@ public class ServicoReserva {
     private int reservaId;
     private Servico servico;
     private int quantidade;
-    // o preço fica guardado como estava na tabela de preços no momento em que o serviço foi junto
     private BigDecimal precoUnitario;
     private LocalDateTime adicionadoEm;
 

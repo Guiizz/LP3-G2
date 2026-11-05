@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 /**
@@ -70,6 +71,18 @@ public class Servico {
 
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public String getNomeCategoria() {
+        return categoria.getNome();
+    }
+
+    public String getPrecoTexto() {
+        return preco.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
+    }
+
+    public String getEstadoTexto() {
+        return ativo ? "Ativo" : "Desativado";
     }
 
     @Override

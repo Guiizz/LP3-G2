@@ -23,8 +23,6 @@ public class ServicoDALTest {
     private Categoria outraCategoria;
     private Servico servico;
 
-    // Apaga os restos de execuções anteriores que não chegaram ao tearDown
-    // (ligação à BD que caiu a meio, testes parados no IntelliJ...)
     @BeforeAll
     @AfterAll
     public static void limparRestosDeTestes() {
@@ -35,7 +33,6 @@ public class ServicoDALTest {
                     + "OR categoriaId IN (SELECT id FROM Categoria WHERE nome LIKE 'Teste %')");
             ConexaoBD.executar("DELETE FROM Categoria WHERE nome LIKE 'Teste %'");
         } catch (DataAccessException e) {
-            // sem BD neste computador: os testes ficam ignorados no setUp
         }
     }
 
@@ -44,7 +41,7 @@ public class ServicoDALTest {
     public void setUp() {
         try {
             List<Integer> tabelas = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('Categoria') IS NOT NULL "
-                    + "AND COL_LENGTH('Servico', 'categoriaId') IS NOT NULL THEN 1 ELSE 0 END", rs -> rs.getInt(1));
+                    + "AND COL_LENGTH('Servico', 'categoriaId') IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabelas.get(0) == 1, "Falta correr o 04_servicos.sql");
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());

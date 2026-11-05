@@ -1,13 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -38,14 +38,6 @@ public class ServicosController {
     @FXML
     private TableView<Servico> tabela;
     @FXML
-    private TableColumn<Servico, String> colunaCategoria;
-    @FXML
-    private TableColumn<Servico, String> colunaDesignacao;
-    @FXML
-    private TableColumn<Servico, String> colunaPreco;
-    @FXML
-    private TableColumn<Servico, String> colunaEstado;
-    @FXML
     private Button desativarButton;
     @FXML
     private Button reativarButton;
@@ -64,17 +56,16 @@ public class ServicosController {
 
     @FXML
     private void initialize() {
-        colunaCategoria.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCategoria().getNome()));
-        colunaDesignacao.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDesignacao()));
-        colunaPreco.setCellValueFactory(c -> new SimpleStringProperty(formatarPreco(c.getValue().getPreco())));
-        colunaEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isAtivo() ? "Ativo" : "Desativado"));
-
-        tabela.getSelectionModel().selectedItemProperty().addListener((obs, antigo, escolhido) -> mostrarEscolhido(escolhido));
-        filtroCategoria.setOnAction(e -> aplicarFiltro());
+        tabela.getSelectionModel().selectedItemProperty().addListener(new AoEscolherServico());
         carregarCategorias();
         filtroCategoria.setValue(TODAS);
         carregar();
         mostrarEscolhido(null);
+    }
+
+    @FXML
+    private void aoFiltrar() {
+        aplicarFiltro();
     }
 
     @FXML
@@ -252,7 +243,10 @@ public class ServicosController {
         mensagemLabel.setText(texto);
     }
 
-    private static String formatarPreco(BigDecimal preco) {
-        return preco.setScale(2).toPlainString().replace('.', ',') + " €";
+    private class AoEscolherServico implements ChangeListener<Servico> {
+        @Override
+        public void changed(ObservableValue<? extends Servico> observavel, Servico antigo, Servico escolhido) {
+            mostrarEscolhido(escolhido);
+        }
     }
 }
