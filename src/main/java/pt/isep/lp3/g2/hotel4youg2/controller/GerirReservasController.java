@@ -55,7 +55,7 @@ public class GerirReservasController {
     private void aoCancelar() {
         Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
         if (escolhida == null) {
-            mensagemLabel.setText("Escolha uma reserva na tabela.");
+            mostrarErro("Escolha uma reserva na tabela.");
             return;
         }
         if (!confirmarCancelar(escolhida)) {
@@ -63,11 +63,11 @@ public class GerirReservasController {
         }
         try {
             reservaService.cancelar(Sessao.getUtilizador(), escolhida);
-            mensagemLabel.setText("Reserva " + escolhida.getId() + " cancelada.");
+            mostrarSucesso("Reserva " + escolhida.getId() + " cancelada.");
         } catch (DataAccessException e) {
-            mensagemLabel.setText(ERRO_BD);
+            mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            mostrarErro(e.getMessage());
         }
         carregar();
     }
@@ -79,10 +79,12 @@ public class GerirReservasController {
             mostrarErro("Escolha uma reserva na tabela.");
             return;
         }
+        if (!confirmarCheckin(escolhida)) {
+            return;
+        }
         try {
             String cartao = reservaService.fazerCheckin(Sessao.getUtilizador(), escolhida);
-            mensagemLabel.setStyle("-fx-text-fill: green;");
-            mensagemLabel.setText("Check-in da reserva " + escolhida.getId() + " feito. Entregue o cartão "
+            mostrarSucesso("Check-in da reserva " + escolhida.getId() + " feito. Entregue o cartão "
                     + cartao + " (quarto " + escolhida.getQuartoNumero() + ").");
         } catch (DataAccessException e) {
             mostrarErro(ERRO_BD);
@@ -97,22 +99,27 @@ public class GerirReservasController {
         mensagemLabel.setText(texto);
     }
 
+    private void mostrarSucesso(String texto) {
+        mensagemLabel.setStyle("-fx-text-fill: green;");
+        mensagemLabel.setText(texto);
+    }
+
     @FXML
     private void aoAlterarDatas() {
         Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
         if (escolhida == null) {
-            mensagemLabel.setText("Escolha uma reserva na tabela.");
+            mostrarErro("Escolha uma reserva na tabela.");
             return;
         }
         try {
             reservaService.alterarDatas(Sessao.getUtilizador(), escolhida,
                     novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
-            mensagemLabel.setText("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
+            mostrarSucesso("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
                     + escolhida.getPrecoTotal() + " €");
         } catch (DataAccessException e) {
-            mensagemLabel.setText(ERRO_BD);
+            mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            mostrarErro(e.getMessage());
         }
         carregar();
     }
@@ -130,12 +137,25 @@ public class GerirReservasController {
         return resposta.isPresent() && resposta.get() == ButtonType.YES;
     }
 
+    private boolean confirmarCheckin(Reserva reserva) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Confirma o check-in da reserva " + reserva.getId() + " (quarto "
+                        + reserva.getQuartoNumero() + ", " + reserva.getDataEntrada() + " a "
+                        + reserva.getDataSaida() + ")?\n"
+                        + "O cliente recebe o cartão C" + reserva.getQuartoNumero() + ".",
+                ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Fazer check-in");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    }
+
     private void carregar() {
         try {
             tabela.getItems().setAll(reservaService.listar());
         } catch (DataAccessException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText(ERRO_BD);
+            mostrarErro(ERRO_BD);
         }
     }
 
