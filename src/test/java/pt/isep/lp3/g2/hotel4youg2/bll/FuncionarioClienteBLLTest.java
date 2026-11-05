@@ -19,7 +19,6 @@ public class FuncionarioClienteBLLTest {
     private static final String NIF_CLIENTE = "555666777";
     private static final LocalDate ADULTO = LocalDate.now().minusYears(30);
 
-    // Base de dados falsa (em memória): tem um funcionário que ainda não é cliente e um cliente
     private static class ClienteDALFalsa implements IClienteDAL {
         Cliente funcionario = new Cliente(9, "Rui Costa", null, NIF_FUNCIONARIO, null, null, null, null);
         Cliente tornado;

@@ -116,11 +116,10 @@ public class ClienteDAL implements IClienteDAL {
                 "SELECT p.id, p.nome, p.cc, p.nif, p.morada, p.telemovel, p.dataNascimento, p.email "
                 + "FROM Funcionario f JOIN Pessoa p ON p.id = f.pessoaId "
                 + "WHERE p.nif = ? AND NOT EXISTS (SELECT 1 FROM Cliente c WHERE c.pessoaId = p.id)",
-                this::criarCliente, nif);
+                new ClienteMapper(), nif);
         return encontrados.isEmpty() ? null : encontrados.get(0);
     }
 
-    // a pessoa já existe (é funcionário): atualiza os dados dela e liga-a à tabela Cliente, tudo ou nada
     @Override
     public void tornarCliente(Cliente c) {
         try (Connection conn = ConexaoBD.abrir()) {
@@ -146,6 +145,13 @@ public class ClienteDAL implements IClienteDAL {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Erro ao registar o funcionário como cliente!", e);
+        }
+    }
+
+    private class ClienteMapper implements RowMapper<Cliente> {
+        @Override
+        public Cliente map(ResultSet rs) throws SQLException {
+            return criarCliente(rs);
         }
     }
 

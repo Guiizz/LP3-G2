@@ -72,7 +72,6 @@ public class ClienteBLL {
         return cliente;
     }
 
-    // para o ecrã avisar antes de atualizar a ficha do funcionário; um NIF mal escrito é recusado depois, no registar
     public String nomeDoFuncionarioComNif(String nif) {
         nif = limpar(nif);
         if (nif == null || !nif.matches("\\d{9}")) {

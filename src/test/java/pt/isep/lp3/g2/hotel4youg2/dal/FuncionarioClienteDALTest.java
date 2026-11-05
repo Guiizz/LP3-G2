@@ -10,6 +10,8 @@ import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -25,13 +27,18 @@ public class FuncionarioClienteDALTest {
     private String nomeUtilizador;
     private int pessoaId;
 
-    // Apaga tudo o que os testes criam, mesmo que uma execução anterior tenha ficado a meio
+    private static class TextoMapper implements RowMapper<String> {
+        @Override
+        public String map(ResultSet rs) throws SQLException {
+            return rs.getString(1);
+        }
+    }
+
     @BeforeAll
     public static void limparRestosDeTestes() {
         try {
             limpar();
         } catch (DataAccessException e) {
-            // sem BD neste computador: os testes ficam ignorados no setUp
         }
     }
 
@@ -43,7 +50,6 @@ public class FuncionarioClienteDALTest {
         ConexaoBD.executar("DELETE FROM Pessoa WHERE nome LIKE 'Teste FC %'");
     }
 
-    // Prepara o contexto: um funcionário com conta, que ainda não é cliente
     @BeforeEach
     public void setUp() {
         long marca = System.nanoTime();
@@ -52,7 +58,7 @@ public class FuncionarioClienteDALTest {
         nomeUtilizador = "tfc" + marca;
         try {
             pessoaId = ConexaoBD.select("INSERT INTO Pessoa (nome, nif) OUTPUT INSERTED.id VALUES (?, ?)",
-                    rs -> rs.getInt(1), nome, nif).get(0);
+                    new InteiroMapper(), nome, nif).get(0);
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
         }
@@ -63,7 +69,6 @@ public class FuncionarioClienteDALTest {
         instance = new ClienteDAL();
     }
 
-    // Desfaz o que o setUp e os testes fizeram
     @AfterEach
     public void tearDown() {
         limpar();
@@ -114,16 +119,16 @@ public class FuncionarioClienteDALTest {
         instance.tornarCliente(comoCliente());
         String expResult = nomeUtilizador;
         String result = ConexaoBD.select("SELECT nomeUtilizador FROM Utilizador WHERE funcionarioId = ? AND ativo = 1",
-                rs -> rs.getString(1), pessoaId).get(0);
+                new TextoMapper(), pessoaId).get(0);
         assertEquals(expResult, result);
-        assertEquals(1, ConexaoBD.select("SELECT 1 FROM Funcionario WHERE pessoaId = ?", rs -> rs.getInt(1), pessoaId).size());
+        assertEquals(1, ConexaoBD.select("SELECT 1 FROM Funcionario WHERE pessoaId = ?", new InteiroMapper(), pessoaId).size());
     }
 
     @Test
     public void testTornarClientePodeTerReservas() {
         System.out.println("tornarCliente (pode ter reservas)");
         instance.tornarCliente(comoCliente());
-        List<Integer> quartos = ConexaoBD.select("SELECT TOP 1 numero FROM Quarto WHERE ativo = 1", rs -> rs.getInt(1));
+        List<Integer> quartos = ConexaoBD.select("SELECT TOP 1 numero FROM Quarto WHERE ativo = 1", new InteiroMapper());
         Assumptions.assumeTrue(!quartos.isEmpty(), "Não há quartos na BD");
         LocalDate entrada = LocalDate.of(2098, 1, 1).plusDays(Math.floorMod(System.nanoTime(), 3000L));
         Reserva reserva = new Reserva(0, pessoaId, quartos.get(0), entrada, entrada.plusDays(1), 1,
