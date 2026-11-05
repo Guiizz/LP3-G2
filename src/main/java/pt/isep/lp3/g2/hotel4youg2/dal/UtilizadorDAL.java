@@ -25,13 +25,13 @@ public class UtilizadorDAL implements IUtilizadorDAL {
      */
     @Override
     public Optional<Utilizador> procurarPorNomeUtilizador(String nomeUtilizador) {
-        List<Utilizador> resultados = ConexaoBD.select(SELECT_POR_NOME, this::mapear, nomeUtilizador);
-        return resultados.stream().findFirst();
+        List<Utilizador> resultados = ConexaoBD.select(SELECT_POR_NOME, new UtilizadorMapper(), nomeUtilizador);
+        return resultados.isEmpty() ? Optional.empty() : Optional.of(resultados.get(0));
     }
 
     @Override
     public List<Utilizador> listar() {
-        return ConexaoBD.select(SELECT_TODOS, this::mapear);
+        return ConexaoBD.select(SELECT_TODOS, new UtilizadorMapper());
     }
 
     @Override
@@ -39,14 +39,17 @@ public class UtilizadorDAL implements IUtilizadorDAL {
         return ConexaoBD.executar(UPDATE_ATIVO, ativo, utilizadorId) > 0;
     }
 
-    private Utilizador mapear(ResultSet rs) throws SQLException {
-        return new Utilizador(
-                rs.getInt("id"),
-                rs.getInt("funcionarioId"),
-                rs.getString("nomeUtilizador"),
-                rs.getString("passwordHash").trim(),
-                rs.getString("passwordSalt").trim(),
-                Perfil.valueOf(rs.getString("perfil")),
-                rs.getBoolean("ativo"));
+    private static class UtilizadorMapper implements RowMapper<Utilizador> {
+        @Override
+        public Utilizador map(ResultSet rs) throws SQLException {
+            return new Utilizador(
+                    rs.getInt("id"),
+                    rs.getInt("funcionarioId"),
+                    rs.getString("nomeUtilizador"),
+                    rs.getString("passwordHash").trim(),
+                    rs.getString("passwordSalt").trim(),
+                    Perfil.valueOf(rs.getString("perfil")),
+                    rs.getBoolean("ativo"));
+        }
     }
 }

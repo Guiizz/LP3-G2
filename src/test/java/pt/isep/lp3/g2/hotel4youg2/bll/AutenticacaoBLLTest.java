@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class AutenticacaoBLLTest {
 
@@ -59,7 +59,13 @@ class AutenticacaoBLLTest {
     }
 
     private String erro(String nome, String password) {
-        return assertThrows(IllegalArgumentException.class, () -> autenticacaoBLL.autenticar(nome, password)).getMessage();
+        try {
+            autenticacaoBLL.autenticar(nome, password);
+            fail("Devia ter sido recusado");
+            return null;
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        }
     }
 
     @Test
