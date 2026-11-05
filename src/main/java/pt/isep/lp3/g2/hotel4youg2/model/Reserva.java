@@ -175,6 +175,19 @@ public class Reserva {
         cartao = "C" + quartoNumero;
     }
 
+    public boolean cartaoDaAcesso() {
+        return estado == EstadoReserva.EM_CURSO;
+    }
+
+    public void fazerCheckout(LocalDateTime agora) {
+        if (estado != EstadoReserva.EM_CURSO) {
+            throw new IllegalStateException("Só é possível fazer check-out de uma reserva em curso (a reserva "
+                    + id + " está " + estado + ")");
+        }
+        estado = EstadoReserva.CONCLUIDA;
+        checkoutEm = agora;
+    }
+
     public long getNoites() {
         return ChronoUnit.DAYS.between(dataEntrada, dataSaida);
     }
