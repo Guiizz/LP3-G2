@@ -186,4 +186,55 @@ class ReservaTest {
             assertEquals(expResult, result);
         }
     }
+
+    @Test
+    public void testFazerCheckout() {
+        System.out.println("fazerCheckout");
+        Reserva instance = novaReserva();
+        LocalDateTime checkin = instance.getDataEntrada().atTime(15, 30);
+        LocalDateTime agora = instance.getDataSaida().atTime(11, 0);
+        instance.fazerCheckin(checkin, LocalTime.of(15, 0));
+        Reserva expResult = new Reserva(instance.getId(), instance.getClienteId(), instance.getQuartoNumero(),
+                instance.getDataEntrada(), instance.getDataSaida(), instance.getNumHospedes(),
+                EstadoReserva.CONCLUIDA, instance.getPrecoTotal(), checkin, agora);
+        expResult.setCartao("C" + instance.getQuartoNumero());
+        instance.fazerCheckout(agora);
+        Reserva result = instance;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutSemCheckin() {
+        System.out.println("fazerCheckout (sem check-in)");
+        Reserva instance = novaReserva();
+        try {
+            instance.fazerCheckout(instance.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado o check-out de uma reserva sem check-in");
+        } catch (IllegalStateException expected) {
+            EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+            EstadoReserva result = instance.getEstado();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCartaoDaAcessoDuranteAEstadia() {
+        System.out.println("cartaoDaAcesso (durante a estadia)");
+        Reserva instance = novaReserva();
+        instance.fazerCheckin(instance.getDataEntrada().atTime(15, 30), LocalTime.of(15, 0));
+        boolean expResult = true;
+        boolean result = instance.cartaoDaAcesso();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCartaoDeixaDeDarAcessoDepoisDoCheckout() {
+        System.out.println("cartaoDaAcesso (depois do check-out)");
+        Reserva instance = novaReserva();
+        instance.fazerCheckin(instance.getDataEntrada().atTime(15, 30), LocalTime.of(15, 0));
+        instance.fazerCheckout(instance.getDataSaida().atTime(11, 0));
+        boolean expResult = false;
+        boolean result = instance.cartaoDaAcesso();
+        assertEquals(expResult, result);
+    }
 }

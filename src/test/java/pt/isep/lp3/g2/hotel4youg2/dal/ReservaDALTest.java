@@ -184,4 +184,29 @@ public class ReservaDALTest {
         boolean result = instance.registarCheckin(reserva);
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testRegistarCheckout() {
+        System.out.println("registarCheckout");
+        Assumptions.assumeTrue(reserva.getId() > 0, "O quarto estava ocupado nessas datas");
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        instance.registarCheckin(reserva);
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        reserva.setCheckoutEm(reserva.getDataSaida().atTime(11, 0));
+        boolean expResult = true;
+        boolean result = instance.registarCheckout(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarCheckoutSemCheckinDevolveFalse() {
+        System.out.println("registarCheckout (sem check-in)");
+        Assumptions.assumeTrue(reserva.getId() > 0, "O quarto estava ocupado nessas datas");
+        reserva.setCheckoutEm(reserva.getDataSaida().atTime(11, 0));
+        boolean expResult = false;
+        boolean result = instance.registarCheckout(reserva);
+        assertEquals(expResult, result);
+    }
 }
