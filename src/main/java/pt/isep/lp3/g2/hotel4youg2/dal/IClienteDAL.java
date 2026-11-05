@@ -46,5 +46,5 @@ public interface IClienteDAL {
 
     Cliente procurarFuncionarioNaoCliente(String nif);
 
-    void tornarCliente(Cliente c);
+    boolean tornarCliente(Cliente c);
 }

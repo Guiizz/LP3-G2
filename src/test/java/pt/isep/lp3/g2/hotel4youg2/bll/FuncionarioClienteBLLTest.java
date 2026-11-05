@@ -23,6 +23,7 @@ public class FuncionarioClienteBLLTest {
         Cliente funcionario = new Cliente(9, "Rui Costa", null, NIF_FUNCIONARIO, null, null, null, null);
         Cliente tornado;
         boolean inseriuPessoaNova;
+        boolean outroJaRegistou;
 
         @Override
         public int inserirCliente(Cliente c) {
@@ -57,9 +58,13 @@ public class FuncionarioClienteBLLTest {
         }
 
         @Override
-        public void tornarCliente(Cliente c) {
+        public boolean tornarCliente(Cliente c) {
+            if (outroJaRegistou) {
+                return false;
+            }
             tornado = c;
             funcionario = null;
+            return true;
         }
     }
 
@@ -103,6 +108,38 @@ public class FuncionarioClienteBLLTest {
         String result = clienteDAL.tornado.getTelemovel();
         assertEquals(expResult, result);
         assertEquals("rui@mail.pt", clienteDAL.tornado.getEmail());
+    }
+
+    @Test
+    public void testRegistarFuncionarioMantemONome() {
+        System.out.println("registar (o nome do funcionário não muda)");
+        instance.registar("Nome Errado", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
+        String expResult = "Rui Costa";
+        String result = clienteDAL.tornado.getNome();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarFuncionarioNaoApagaDados() {
+        System.out.println("registar (um campo vazio não apaga o que o funcionário já tem)");
+        clienteDAL.funcionario = new Cliente(9, "Rui Costa", "11112222", NIF_FUNCIONARIO, "Rua B", null, null, null);
+        instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, "  ", null);
+        String expResult = "11112222";
+        String result = clienteDAL.tornado.getCc();
+        assertEquals(expResult, result);
+        assertEquals("Rua B", clienteDAL.tornado.getMorada());
+    }
+
+    @Test
+    public void testRegistarFuncionarioRegistadoEntretanto() {
+        System.out.println("registar (outro rececionista registou-o ao mesmo tempo)");
+        clienteDAL.outroJaRegistou = true;
+        try {
+            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            assertEquals("Este funcionário já foi registado como cliente", expected.getMessage());
+        }
     }
 
     @Test
@@ -151,26 +188,26 @@ public class FuncionarioClienteBLLTest {
     }
 
     @Test
-    public void testNomeDoFuncionarioComNif() {
-        System.out.println("nomeDoFuncionarioComNif");
+    public void testFuncionarioComNif() {
+        System.out.println("funcionarioComNif");
         String expResult = "Rui Costa";
-        String result = instance.nomeDoFuncionarioComNif(" " + NIF_FUNCIONARIO + " ");
+        String result = instance.funcionarioComNif(" " + NIF_FUNCIONARIO + " ").getNome();
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testNomeDoFuncionarioComNifDeCliente() {
-        System.out.println("nomeDoFuncionarioComNif (não é funcionário)");
-        String expResult = null;
-        String result = instance.nomeDoFuncionarioComNif(NIF_CLIENTE);
+    public void testFuncionarioComNifDeCliente() {
+        System.out.println("funcionarioComNif (não é funcionário)");
+        Cliente expResult = null;
+        Cliente result = instance.funcionarioComNif(NIF_CLIENTE);
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testNomeDoFuncionarioComNifInvalido() {
-        System.out.println("nomeDoFuncionarioComNif (NIF mal escrito)");
-        String expResult = null;
-        String result = instance.nomeDoFuncionarioComNif("abc");
+    public void testFuncionarioComNifInvalido() {
+        System.out.println("funcionarioComNif (NIF mal escrito)");
+        Cliente expResult = null;
+        Cliente result = instance.funcionarioComNif("abc");
         assertEquals(expResult, result);
     }
 }

@@ -1,9 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -14,7 +14,6 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Controlador do ecrã de clientes: registar (US13), incluindo funcionários (US43), pesquisar (US14) e editar (US19).
@@ -53,9 +52,12 @@ public class RegistarClienteController {
     /** O cliente que está a ser editado, ou {@code null} quando o ecrã está em modo de registo. */
     private Cliente clienteEmEdicao;
 
+    private String nifDoFuncionario;
+
     /** Mostra logo todos os clientes quando o ecrã abre. */
     @FXML
     private void initialize() {
+        nifField.focusedProperty().addListener(new AoSairDoNif());
         atualizarLista();
     }
 
@@ -66,8 +68,7 @@ public class RegistarClienteController {
             return;
         }
         try {
-            String funcionario = clienteService.nomeDoFuncionarioComNif(nifField.getText());
-            if (funcionario != null && !confirmarFuncionario(funcionario)) {
+            if (preencherSeForFuncionario()) {
                 return;
             }
             Cliente cliente = clienteService.registar(
@@ -88,16 +89,54 @@ public class RegistarClienteController {
         }
     }
 
-    private boolean confirmarFuncionario(String nome) {
-        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
-                "Este NIF é do funcionário " + nome + ".\n"
-                        + "Vai ficar também registado como cliente, e os dados pessoais dele passam a ser os deste "
-                        + "formulário. A conta dele não muda. Continuar?",
-                ButtonType.YES, ButtonType.NO);
-        alerta.setTitle("Funcionário como cliente");
-        alerta.setHeaderText(null);
-        Optional<ButtonType> resposta = alerta.showAndWait();
-        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    private boolean preencherSeForFuncionario() {
+        String nif = nifField.getText() == null ? "" : nifField.getText().trim();
+        if (nif.equals(nifDoFuncionario)) {
+            return false;
+        }
+        if (nifDoFuncionario != null) {
+            largarFuncionario();
+        }
+        Cliente funcionario = clienteService.funcionarioComNif(nif);
+        if (funcionario == null) {
+            return false;
+        }
+        nifDoFuncionario = funcionario.getNif();
+        nomeField.setText(funcionario.getNome());
+        nomeField.setDisable(true);
+        dataNascimentoPicker.setValue(funcionario.getDataNascimento());
+        telemovelField.setText(funcionario.getTelemovel());
+        emailField.setText(funcionario.getEmail());
+        ccField.setText(funcionario.getCc());
+        moradaField.setText(funcionario.getMorada());
+        mostrarMensagem("Este NIF é do funcionário " + funcionario.getNome()
+                + ". Confirme os dados, complete o que falta e carregue em Registar.", "darkorange");
+        return true;
+    }
+
+    private void largarFuncionario() {
+        nifDoFuncionario = null;
+        nomeField.setDisable(false);
+        nomeField.clear();
+        dataNascimentoPicker.setValue(null);
+        telemovelField.clear();
+        emailField.clear();
+        ccField.clear();
+        moradaField.clear();
+    }
+
+    private class AoSairDoNif implements ChangeListener<Boolean> {
+        @Override
+        public void changed(ObservableValue<? extends Boolean> observavel, Boolean antes, Boolean temFoco) {
+            if (temFoco || clienteEmEdicao != null) {
+                return;
+            }
+            try {
+                preencherSeForFuncionario();
+            } catch (DataAccessException e) {
+                mostrarMensagem("Não foi possível verificar o NIF. Tente novamente.", "red");
+            }
+        }
     }
 
     @FXML
@@ -125,6 +164,8 @@ public class RegistarClienteController {
             return;
         }
         clienteEmEdicao = cliente;
+        nifDoFuncionario = null;
+        nomeField.setDisable(false);
         nomeField.setText(cliente.getNome());
         nifField.setText(cliente.getNif());
         nifField.setDisable(true);
@@ -195,6 +236,8 @@ public class RegistarClienteController {
     }
 
     private void limparCampos() {
+        nifDoFuncionario = null;
+        nomeField.setDisable(false);
         nomeField.clear();
         nifField.clear();
         dataNascimentoPicker.setValue(null);

@@ -67,8 +67,9 @@ class ClienteBLLTest {
         }
 
         @Override
-        public void tornarCliente(Cliente c) {
+        public boolean tornarCliente(Cliente c) {
             gravou = true;
+            return true;
         }
     }
 

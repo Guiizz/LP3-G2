@@ -58,7 +58,8 @@ class EditarClienteTest {
         }
 
         @Override
-        public void tornarCliente(Cliente c) {
+        public boolean tornarCliente(Cliente c) {
+            return true;
         }
     }
 

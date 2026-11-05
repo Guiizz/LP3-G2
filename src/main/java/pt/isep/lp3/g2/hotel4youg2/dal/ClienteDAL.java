@@ -121,24 +121,31 @@ public class ClienteDAL implements IClienteDAL {
     }
 
     @Override
-    public void tornarCliente(Cliente c) {
+    public boolean tornarCliente(Cliente c) {
         try (Connection conn = ConexaoBD.abrir()) {
             conn.setAutoCommit(false);
-            try (PreparedStatement psPessoa = conn.prepareStatement(
-                         "UPDATE Pessoa SET nome = ?, dataNascimento = ?, telemovel = ?, email = ?, cc = ?, morada = ? "
-                         + "WHERE id = ?");
-                 PreparedStatement psCliente = conn.prepareStatement("INSERT Cliente (pessoaId) VALUES (?)")) {
-                psPessoa.setString(1, c.getNome());
-                psPessoa.setObject(2, c.getDataNascimento());
-                psPessoa.setString(3, c.getTelemovel());
-                psPessoa.setString(4, c.getEmail());
-                psPessoa.setString(5, c.getCc());
-                psPessoa.setString(6, c.getMorada());
-                psPessoa.setInt(7, c.getId());
-                psPessoa.executeUpdate();
+            try (PreparedStatement psCliente = conn.prepareStatement(
+                         "INSERT Cliente (pessoaId) SELECT ? WHERE NOT EXISTS "
+                         + "(SELECT 1 FROM Cliente WITH (UPDLOCK, HOLDLOCK) WHERE pessoaId = ?)");
+                 PreparedStatement psPessoa = conn.prepareStatement(
+                         "UPDATE Pessoa SET dataNascimento = COALESCE(?, dataNascimento), "
+                         + "telemovel = COALESCE(?, telemovel), email = COALESCE(?, email), "
+                         + "cc = COALESCE(?, cc), morada = COALESCE(?, morada) WHERE id = ?")) {
                 psCliente.setInt(1, c.getId());
-                psCliente.executeUpdate();
+                psCliente.setInt(2, c.getId());
+                if (psCliente.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                psPessoa.setObject(1, c.getDataNascimento());
+                psPessoa.setString(2, c.getTelemovel());
+                psPessoa.setString(3, c.getEmail());
+                psPessoa.setString(4, c.getCc());
+                psPessoa.setString(5, c.getMorada());
+                psPessoa.setInt(6, c.getId());
+                psPessoa.executeUpdate();
                 conn.commit();
+                return true;
             } catch (SQLException e) {
                 conn.rollback();
                 throw e;

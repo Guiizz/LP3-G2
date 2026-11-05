@@ -53,7 +53,7 @@ public class FuncionarioClienteDALTest {
     @BeforeEach
     public void setUp() {
         long marca = System.nanoTime();
-        nif = String.format("%09d", Math.floorMod(marca, 1_000_000_000L));
+        nif = "9" + String.format("%08d", Math.floorMod(marca, 100_000_000L));
         nome = "Teste FC " + marca;
         nomeUtilizador = "tfc" + marca;
         try {
@@ -83,6 +83,38 @@ public class FuncionarioClienteDALTest {
         System.out.println("procurarFuncionarioNaoCliente");
         int expResult = pessoaId;
         int result = instance.procurarFuncionarioNaoCliente(nif).getId();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTornarClienteMantemONome() {
+        System.out.println("tornarCliente (o nome do funcionário não muda)");
+        Cliente comOutroNome = new Cliente(pessoaId, "Teste FC nome errado", null, nif, null, "912345678",
+                LocalDate.of(1990, 5, 1), null);
+        instance.tornarCliente(comOutroNome);
+        String expResult = nome;
+        String result = instance.procurarPorNif(nif).getNome();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTornarClienteNaoApagaDados() {
+        System.out.println("tornarCliente (um campo vazio não apaga o que já existe)");
+        ConexaoBD.executar("UPDATE Pessoa SET cc = '11112222', morada = 'Rua B' WHERE id = ?", pessoaId);
+        Cliente semCcNemMorada = new Cliente(pessoaId, nome, null, nif, null, "912345678", LocalDate.of(1990, 5, 1), null);
+        instance.tornarCliente(semCcNemMorada);
+        String expResult = "11112222";
+        String result = instance.procurarPorNif(nif).getCc();
+        assertEquals(expResult, result);
+        assertEquals("Rua B", instance.procurarPorNif(nif).getMorada());
+    }
+
+    @Test
+    public void testTornarClienteDuasVezes() {
+        System.out.println("tornarCliente (duas vezes)");
+        instance.tornarCliente(comoCliente());
+        boolean expResult = false;
+        boolean result = instance.tornarCliente(comoCliente());
         assertEquals(expResult, result);
     }
 
