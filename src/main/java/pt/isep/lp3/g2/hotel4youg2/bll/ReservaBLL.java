@@ -148,7 +148,7 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         reserva.exigirPodeFazerCheckout();
-        return reserva.getPrecoTotal();
+        return reserva.getTotal();
     }
 
     public BigDecimal fazerCheckout(Utilizador quemAge, Reserva reserva) {

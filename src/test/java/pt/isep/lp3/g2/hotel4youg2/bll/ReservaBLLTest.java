@@ -637,6 +637,16 @@ public class ReservaBLLTest {
     }
 
     @Test
+    public void testTotalAPagarComServicos() {
+        System.out.println("totalAPagar (com serviços extra)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setTotalServicos(new BigDecimal("35.50"));
+        BigDecimal expResult = reserva.getPrecoTotal().add(new BigDecimal("35.50"));
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testTotalAPagarReservaSemCheckin() {
         System.out.println("totalAPagar (reserva sem check-in)");
         Reserva reserva = reservaConfirmada();
@@ -669,7 +679,7 @@ public class ReservaBLLTest {
         System.out.println("fazerCheckout");
         Reserva reserva = reservaEmCurso();
         LocalDateTime agora = reserva.getDataSaida().atTime(11, 0);
-        BigDecimal expResult = reserva.getPrecoTotal();
+        BigDecimal expResult = reserva.getTotal();
         BigDecimal result = instance.fazerCheckout(RECECAO, reserva, agora);
         assertEquals(expResult, result);
     }
