@@ -16,6 +16,7 @@ public class Entrega {
     private String numeroEncomenda;
     private LocalDate dataEncomenda;
     private Fornecedor fornecedor;
+    private EstadoEntrega estado = EstadoEntrega.PENDENTE;
     private final List<LinhaEntrega> linhas = new ArrayList<>();
 
     /**
@@ -51,6 +52,17 @@ public class Entrega {
 
     public Fornecedor getFornecedor() {
         return fornecedor;
+    }
+
+    /**
+     * @return o estado da entrega; uma entrega nova está pendente
+     */
+    public EstadoEntrega getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoEntrega estado) {
+        this.estado = estado;
     }
 
     public List<LinhaEntrega> getLinhas() {
