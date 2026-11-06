@@ -1,7 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -56,4 +58,11 @@ public interface IEntregaDAL {
      * @return {@code true} se a entrega existia e foi apagada
      */
     boolean apagar(int id);
+
+    /**
+     * @param codigoFornecedor o código do fornecedor
+     * @return o resumo das entregas deste fornecedor, com o estado de cada uma,
+     * da mais recente para a mais antiga; vazio se não tiver nenhuma
+     */
+    List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor);
 }

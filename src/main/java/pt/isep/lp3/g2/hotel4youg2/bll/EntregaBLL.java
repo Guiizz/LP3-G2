@@ -6,6 +6,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.io.File;
@@ -175,5 +176,12 @@ public class EntregaBLL {
 
     private static String euros(BigDecimal valor) {
         return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
+    }
+
+    public List<ResumoEntrega> historico(Fornecedor fornecedor) {
+        if (fornecedor == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
+        }
+        return entregaDAL.listarResumosDoFornecedor(fornecedor.getCodigo());
     }
 }

@@ -4,6 +4,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
 
 import java.sql.Connection;
@@ -55,6 +56,11 @@ public class EntregaDAL implements IEntregaDAL {
             + "l.taxaIva, l.valorIva, l.total "
             + "FROM LinhaEntrega l JOIN Material m ON m.id = l.materialId WHERE l.entregaId = ? ORDER BY l.numeroLinha";
     private static final String APAGAR = "DELETE FROM Entrega WHERE id = ?";
+    private static final String SELECT_RESUMOS_DO_FORNECEDOR =
+            "SELECT e.numeroEncomenda, e.registadaEm, e.total, e.estado, "
+                    + "(SELECT COUNT(DISTINCT l.materialId) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS tipos "
+                    + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE f.codigo = ? "
+                    + "ORDER BY e.registadaEm DESC, e.id DESC";
 
     @Override
     public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
@@ -142,6 +148,16 @@ public class EntregaDAL implements IEntregaDAL {
         executar(conn, ATUALIZAR_FORNECEDOR, f.getNome(), f.getMorada1(), f.getMorada2(), f.getCidade(),
                 f.getCodigoPostal(), f.getPais(), f.getCodigoPais(), id);
         return id;
+    }
+
+    @Override
+    public List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor) {
+        return ConexaoBD.select(SELECT_RESUMOS_DO_FORNECEDOR, rs -> new ResumoEntrega(
+                rs.getString("numeroEncomenda"),
+                rs.getInt("tipos"),
+                rs.getTimestamp("registadaEm").toLocalDateTime(),
+                rs.getBigDecimal("total"),
+                EstadoEntrega.valueOf(rs.getString("estado"))), codigoFornecedor);
     }
 
     private int gravarMaterial(Connection conn, int fornecedorId, LinhaEntrega linha) throws SQLException {

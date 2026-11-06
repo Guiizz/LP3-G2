@@ -9,9 +9,11 @@ import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,6 +65,16 @@ public class EntregaBLLTest {
         @Override
         public boolean apagar(int id) {
             return registadas.removeIf(e -> e.getId() == id);
+        }
+
+        @Override
+        public List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor) {
+            return registadas.stream()
+                    .filter(e -> e.getFornecedor().getCodigo().equals(codigoFornecedor))
+                    .map(e -> new ResumoEntrega(e.getNumeroEncomenda(),
+                            (int) e.getLinhas().stream().map(l -> l.getCodigoProduto()).distinct().count(),
+                            LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado()))
+                    .toList();
         }
     }
 
@@ -299,6 +311,39 @@ public class EntregaBLLTest {
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
             assertEquals("Carregue primeiro um ficheiro XML válido.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testHistoricoSoMostraAsEntregasDoFornecedor() {
+        System.out.println("historico (só as do fornecedor)");
+        entregaPendente("MINHA-1");
+        Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
+        entregaDAL.carregar(new Entrega(0, "DELE-1", java.time.LocalDate.of(2026, 11, 4), outro));
+        List<ResumoEntrega> result = instance.historico(fornecedorDoFicheiro());
+        assertEquals(1, result.size());
+        assertEquals("MINHA-1", result.get(0).getNumeroEncomenda());
+    }
+
+    @Test
+    public void testHistoricoMostraOEstadoDeCadaEntrega() {
+        System.out.println("historico (estado de cada entrega)");
+        entregaPendente("PENDENTE-1");
+        entregaPendente("RECUSADA-1").setEstado(EstadoEntrega.RECUSADA);
+        List<EstadoEntrega> expResult = List.of(EstadoEntrega.PENDENTE, EstadoEntrega.RECUSADA);
+        List<EstadoEntrega> result = instance.historico(fornecedorDoFicheiro()).stream()
+                .map(ResumoEntrega::getEstado).toList();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testHistoricoSemSessao() {
+        System.out.println("historico (sem sessão)");
+        try {
+            instance.historico(null);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            assertEquals("Entre na aplicação para ver as suas entregas.", expected.getMessage());
         }
     }
 }

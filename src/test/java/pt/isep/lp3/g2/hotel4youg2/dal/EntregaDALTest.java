@@ -8,6 +8,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
 
 import java.math.BigDecimal;
@@ -169,6 +170,32 @@ public class EntregaDALTest {
         entregaPendente = carregarPendente(entrega.getNumeroEncomenda());
         boolean expResult = true;
         boolean result = entregaPendente.getId() > 0;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarResumosDoFornecedor() {
+        System.out.println("listarResumosDoFornecedor");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        List<ResumoEntrega> result = instance.listarResumosDoFornecedor(codigoFornecedor);
+        assertEquals(2, result.size());
+        ResumoEntrega maisRecente = result.get(0);
+        assertEquals("TESTE-PENDENTE", maisRecente.getNumeroEncomenda());
+        assertEquals(1, maisRecente.getTiposDeMaterial());
+        assertEquals(new BigDecimal("30.87"), maisRecente.getTotal());
+        assertEquals(EstadoEntrega.PENDENTE, maisRecente.getEstado());
+        ResumoEntrega maisAntiga = result.get(1);
+        assertEquals(entrega.getNumeroEncomenda(), maisAntiga.getNumeroEncomenda());
+        assertEquals(2, maisAntiga.getTiposDeMaterial());
+        assertEquals(new BigDecimal("1012.91"), maisAntiga.getTotal());
+        assertEquals(EstadoEntrega.ACEITE, maisAntiga.getEstado());
+    }
+
+    @Test
+    public void testListarResumosDoFornecedorSemEntregas() {
+        System.out.println("listarResumosDoFornecedor (sem entregas)");
+        List<ResumoEntrega> expResult = List.of();
+        List<ResumoEntrega> result = instance.listarResumosDoFornecedor("NAO-EXISTE");
         assertEquals(expResult, result);
     }
 }
