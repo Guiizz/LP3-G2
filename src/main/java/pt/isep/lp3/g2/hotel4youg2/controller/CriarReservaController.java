@@ -2,17 +2,18 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
+import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
@@ -28,7 +29,6 @@ import java.util.List;
 public class CriarReservaController {
 
     private final ClienteBLL clienteService = new ClienteBLL();
-    private final QuartoBLL quartoService = new QuartoBLL();
     private final ReservaBLL reservaService = new ReservaBLL();
 
     @FXML
@@ -41,6 +41,10 @@ public class CriarReservaController {
     private DatePicker saidaPicker;
     @FXML
     private Spinner<Integer> hospedesSpinner;
+    @FXML
+    private CheckBox earlyCheckBox;
+    @FXML
+    private CheckBox lateCheckBox;
     @FXML
     private TableView<Quarto> quartosTabela;
     @FXML
@@ -58,6 +62,8 @@ public class CriarReservaController {
     private LocalDate entradaPesquisada;
     private LocalDate saidaPesquisada;
     private int hospedesPesquisados;
+    private boolean earlyPesquisado;
+    private boolean latePesquisado;
 
     @FXML
     private void aoProcurarCliente() {
@@ -87,18 +93,40 @@ public class CriarReservaController {
             LocalDate entrada = entradaPicker.getValue();
             LocalDate saida = saidaPicker.getValue();
             int hospedes = hospedesSpinner.getValue();
-            List<Quarto> quartos = quartoService.pesquisarDisponiveis(entrada, saida, hospedes, null, null);
+            boolean early = earlyCheckBox.isSelected();
+            boolean late = lateCheckBox.isSelected();
+            List<Quarto> opcoes = reservaService.opcoesDisponiveis(entrada, saida, hospedes, early, late);
+            String aviso = null;
+            if (opcoes.isEmpty() && (early || late)) {
+                List<Quarto> standard = reservaService.opcoesDisponiveis(entrada, saida, hospedes, false, false);
+                if (!standard.isEmpty()) {
+                    HorarioReserva horario = reservaService.horario();
+                    aviso = "Nenhum quarto permite o early check-in ou o late check-out nestas datas. "
+                            + "Pode fazer a reserva nas horas standard (check-in às " + horario.getHoraCheckin()
+                            + " e check-out às " + horario.getHoraCheckout() + ").";
+                    opcoes = standard;
+                    early = false;
+                    late = false;
+                    earlyCheckBox.setSelected(false);
+                    lateCheckBox.setSelected(false);
+                }
+            }
 
             entradaPesquisada = entrada;
             saidaPesquisada = saida;
             hospedesPesquisados = hospedes;
-            quartosTabela.getItems().setAll(quartos);
-            if (quartos.isEmpty()) {
+            earlyPesquisado = early;
+            latePesquisado = late;
+            quartosTabela.getItems().setAll(opcoes);
+            if (aviso != null) {
+                mostrarMensagem(aviso, "red");
+            } else if (opcoes.isEmpty()) {
                 mostrarMensagem("Não há quartos livres para estas datas e hóspedes", "black");
             } else {
-                mostrarMensagem("Escolha um quarto na tabela", "black");
+                mostrarMensagem("Escolha o tipo de quarto na tabela. O número do quarto é atribuído ao confirmar.",
+                        "black");
             }
-        } catch (IllegalArgumentException e) {
+        } catch (ValidacaoException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível pesquisar os quartos. Tente novamente.", "red");
@@ -113,13 +141,18 @@ public class CriarReservaController {
         }
         try {
             BigDecimal preco = reservaService.calcularPreco(quarto, entradaPesquisada, saidaPesquisada);
+            BigDecimal taxa = reservaService.calcularTaxa(earlyPesquisado, latePesquisado);
             quartoEscolhido = quarto;
-            precoLabel.setText("Quarto " + quarto.getNumero() + ": " + preco + " € ("
-                    + quarto.getValorNoite() + " € por noite)");
+            precoLabel.setText(quarto.getTipo() + " com vista " + quarto.getVista() + ": " + preco + " € ("
+                    + quarto.getValorNoite() + " € por noite) + taxa de horário " + taxa + " € = "
+                    + preco.add(taxa) + " €");
             mostrarMensagem("", "black");
         } catch (ValidacaoException e) {
             limparQuartoEscolhido();
             mostrarMensagem(e.getMessage(), "red");
+        } catch (DataAccessException e) {
+            limparQuartoEscolhido();
+            mostrarMensagem("Não foi possível ler as taxas de horário. Tente novamente.", "red");
         }
         atualizarConfirmar();
     }
@@ -127,10 +160,11 @@ public class CriarReservaController {
     @FXML
     private void aoConfirmar() {
         try {
-            Reserva reserva = reservaService.criar(cliente, quartoEscolhido, entradaPesquisada,
-                    saidaPesquisada, hospedesPesquisados);
+            Reserva reserva = reservaService.criar(cliente, quartoEscolhido.getTipo(), quartoEscolhido.getVista(),
+                    entradaPesquisada, saidaPesquisada, hospedesPesquisados, earlyPesquisado, latePesquisado);
             mostrarMensagem("Reserva n.º " + reserva.getId() + " criada para " + cliente.getNome()
-                    + " (quarto " + reserva.getQuartoNumero() + ", " + reserva.getPrecoTotal() + " €)", "green");
+                    + ": foi atribuído o quarto " + reserva.getQuartoNumero() + " (" + reserva.getTotal() + " €)",
+                    "green");
             reservaCriada = reserva;
             servicosButton.setDisable(false);
             limparQuartoEscolhido();
@@ -150,7 +184,8 @@ public class CriarReservaController {
         try {
             ServicosReservaController.abrir(reservaCriada);
             mostrarMensagem("Reserva n.º " + reservaCriada.getId() + ": quarto " + reservaCriada.getPrecoTotal()
-                    + " € + serviços " + reservaCriada.getTotalServicos() + " € = " + reservaCriada.getTotal() + " €", "green");
+                    + " € + taxa de horário " + reservaCriada.getTaxaHorario() + " € + serviços "
+                    + reservaCriada.getTotalServicos() + " € = " + reservaCriada.getTotal() + " €", "green");
         } catch (IOException e) {
             mostrarMensagem("Não foi possível abrir os serviços da reserva.", "red");
         }
