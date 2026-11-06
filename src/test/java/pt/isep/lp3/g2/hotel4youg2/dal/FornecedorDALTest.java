@@ -21,7 +21,7 @@ public class FornecedorDALTest {
     public void setUp() {
         try {
             List<Integer> colunas = ConexaoBD.select("SELECT CASE WHEN COL_LENGTH('Fornecedor', 'passwordHash') "
-                    + "IS NOT NULL THEN 1 ELSE 0 END", rs -> rs.getInt(1));
+                    + "IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(colunas.get(0) == 1, "Falta correr o 10_entregas_estado_fornecedor_stock.sql");
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());

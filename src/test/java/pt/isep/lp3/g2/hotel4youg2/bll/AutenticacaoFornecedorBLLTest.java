@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class AutenticacaoFornecedorBLLTest {
 
@@ -65,35 +65,50 @@ class AutenticacaoFornecedorBLLTest {
     @Test
     public void testAutenticarPasswordErrada() {
         System.out.println("autenticar (password errada)");
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> instance.autenticar("F-1", "errada"));
-        assertEquals("A password está errada.", e.getMessage());
+        try {
+            instance.autenticar("F-1", "errada");
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("A password está errada.", expected.getMessage());
+        }
     }
 
     @Test
     public void testAutenticarFornecedorQueNaoExiste() {
         System.out.println("autenticar (não existe)");
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> instance.autenticar("XX", "Forn#2026"));
-        assertEquals("Não existe nenhum fornecedor com o código \"XX\".", e.getMessage());
+        try {
+            instance.autenticar("XX", "Forn#2026");
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Não existe nenhum fornecedor com o código \"XX\".", expected.getMessage());
+        }
     }
 
     @Test
     public void testAutenticarSemConta() {
         System.out.println("autenticar (fornecedor sem password)");
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
-                () -> instance.autenticar("F-2", "qualquer"));
-        assertEquals("Este fornecedor ainda não tem conta. Contacte o hotel.", e.getMessage());
+        try {
+            instance.autenticar("F-2", "qualquer");
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Este fornecedor ainda não tem conta. Contacte o hotel.", expected.getMessage());
+        }
     }
 
     @Test
     public void testAutenticarCamposVazios() {
         System.out.println("autenticar (campos vazios)");
-        IllegalArgumentException semCodigo = assertThrows(IllegalArgumentException.class,
-                () -> instance.autenticar(" ", "Forn#2026"));
-        assertEquals("Escreva o código de fornecedor.", semCodigo.getMessage());
-        IllegalArgumentException semPassword = assertThrows(IllegalArgumentException.class,
-                () -> instance.autenticar("F-1", ""));
-        assertEquals("Escreva a password.", semPassword.getMessage());
+        try {
+            instance.autenticar(" ", "Forn#2026");
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Escreva o código de fornecedor.", expected.getMessage());
+        }
+        try {
+            instance.autenticar("F-1", "");
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Escreva a password.", expected.getMessage());
+        }
     }
 }

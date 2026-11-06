@@ -5,6 +5,8 @@ import pt.isep.lp3.g2.hotel4youg2.dal.IFornecedorDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
+import java.util.Optional;
+
 /**
  * Regras de autenticação dos fornecedores, que entram com o código e a password (US38).
  */
@@ -49,9 +51,11 @@ public class AutenticacaoFornecedorBLL {
         }
 
         String codigoLimpo = codigo.trim();
-        Fornecedor fornecedor = fornecedorDAL.procurarPorCodigo(codigoLimpo)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Não existe nenhum fornecedor com o código \"" + codigoLimpo + "\"."));
+        Optional<Fornecedor> encontrado = fornecedorDAL.procurarPorCodigo(codigoLimpo);
+        if (encontrado.isEmpty()) {
+            throw new IllegalArgumentException("Não existe nenhum fornecedor com o código \"" + codigoLimpo + "\".");
+        }
+        Fornecedor fornecedor = encontrado.get();
 
         if (fornecedor.getPasswordHash() == null || fornecedor.getPasswordSalt() == null) {
             throw new IllegalArgumentException("Este fornecedor ainda não tem conta. Contacte o hotel.");

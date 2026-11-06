@@ -8,6 +8,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
+import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
@@ -94,12 +95,24 @@ public class EntregaBLLTest {
 
         @Override
         public List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor) {
-            return registadas.stream()
-                    .filter(e -> e.getFornecedor().getCodigo().equals(codigoFornecedor))
-                    .map(e -> new ResumoEntrega(e.getNumeroEncomenda(),
-                            (int) e.getLinhas().stream().map(l -> l.getCodigoProduto()).distinct().count(),
-                            LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado()))
-                    .toList();
+            List<ResumoEntrega> resumos = new ArrayList<>();
+            for (Entrega e : registadas) {
+                if (e.getFornecedor().getCodigo().equals(codigoFornecedor)) {
+                    resumos.add(new ResumoEntrega(e.getNumeroEncomenda(), contarMateriais(e),
+                            LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado()));
+                }
+            }
+            return resumos;
+        }
+
+        private int contarMateriais(Entrega entrega) {
+            List<String> codigos = new ArrayList<>();
+            for (LinhaEntrega linha : entrega.getLinhas()) {
+                if (!codigos.contains(linha.getCodigoProduto())) {
+                    codigos.add(linha.getCodigoProduto());
+                }
+            }
+            return codigos.size();
         }
     }
 
@@ -356,8 +369,10 @@ public class EntregaBLLTest {
         entregaPendente("PENDENTE-1");
         entregaPendente("RECUSADA-1").setEstado(EstadoEntrega.RECUSADA);
         List<EstadoEntrega> expResult = List.of(EstadoEntrega.PENDENTE, EstadoEntrega.RECUSADA);
-        List<EstadoEntrega> result = instance.historico(fornecedorDoFicheiro()).stream()
-                .map(ResumoEntrega::getEstado).toList();
+        List<EstadoEntrega> result = new ArrayList<>();
+        for (ResumoEntrega resumo : instance.historico(fornecedorDoFicheiro())) {
+            result.add(resumo.getEstado());
+        }
         assertEquals(expResult, result);
     }
 

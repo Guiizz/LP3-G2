@@ -47,10 +47,9 @@ public class EntregaDAL implements IEntregaDAL {
             "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, precoUnitario, "
             + "valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ENTREGA =
-            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
+            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, e.estado, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
             + "f.codigoPostal, f.pais, f.codigoPais, f.id AS fornecedorId "
             + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE e.id = ?";
-    private static final String SELECT_ESTADO = "SELECT estado FROM Entrega WHERE id = ?";
     private static final String SELECT_LINHAS =
             "SELECT l.numeroLinha, m.codigo, m.descricao, l.quantidade, l.unidade, l.precoUnitario, l.valorSemIva, "
             + "l.taxaIva, l.valorIva, l.total "
@@ -69,7 +68,7 @@ public class EntregaDAL implements IEntregaDAL {
 
     @Override
     public int contarPendentes(String codigoFornecedor) {
-        return ConexaoBD.select(CONTAR_PENDENTES, rs -> rs.getInt(1), codigoFornecedor).get(0);
+        return ConexaoBD.select(CONTAR_PENDENTES, new InteiroMapper(), codigoFornecedor).get(0);
     }
 
     // grava o fornecedor, os materiais, a entrega e as linhas: ou fica tudo gravado, ou nada
@@ -123,7 +122,6 @@ public class EntregaDAL implements IEntregaDAL {
             return Optional.empty();
         }
         Entrega entrega = entregas.get(0);
-        entrega.setEstado(ConexaoBD.select(SELECT_ESTADO, rs -> EstadoEntrega.valueOf(rs.getString(1)), id).get(0));
         for (LinhaEntrega linha : ConexaoBD.select(SELECT_LINHAS, new LinhaMapper(), id)) {
             entrega.adicionarLinha(linha);
         }
@@ -148,12 +146,7 @@ public class EntregaDAL implements IEntregaDAL {
 
     @Override
     public List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor) {
-        return ConexaoBD.select(SELECT_RESUMOS_DO_FORNECEDOR, rs -> new ResumoEntrega(
-                rs.getString("numeroEncomenda"),
-                rs.getInt("tipos"),
-                rs.getTimestamp("registadaEm").toLocalDateTime(),
-                rs.getBigDecimal("total"),
-                EstadoEntrega.valueOf(rs.getString("estado"))), codigoFornecedor);
+        return ConexaoBD.select(SELECT_RESUMOS_DO_FORNECEDOR, new ResumoEntregaMapper(), codigoFornecedor);
     }
 
     private int gravarMaterial(Connection conn, int fornecedorId, LinhaEntrega linha) throws SQLException {
@@ -168,13 +161,24 @@ public class EntregaDAL implements IEntregaDAL {
     private static class EntregaMapper implements RowMapper<Entrega> {
         @Override
         public Entrega map(ResultSet rs) throws SQLException {
-            return new Entrega(
+            Entrega entrega = new Entrega(
                     rs.getInt("id"),
                     rs.getString("numeroEncomenda"),
                     rs.getDate("dataEncomenda").toLocalDate(),
                     new Fornecedor(rs.getInt("fornecedorId"), rs.getString("codigo"), rs.getString("nome"),
                             rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
                             rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais")));
+            entrega.setEstado(EstadoEntrega.valueOf(rs.getString("estado")));
+            return entrega;
+        }
+    }
+
+    private static class ResumoEntregaMapper implements RowMapper<ResumoEntrega> {
+        @Override
+        public ResumoEntrega map(ResultSet rs) throws SQLException {
+            return new ResumoEntrega(rs.getString("numeroEncomenda"), rs.getInt("tipos"),
+                    rs.getTimestamp("registadaEm").toLocalDateTime(), rs.getBigDecimal("total"),
+                    EstadoEntrega.valueOf(rs.getString("estado")));
         }
     }
 
