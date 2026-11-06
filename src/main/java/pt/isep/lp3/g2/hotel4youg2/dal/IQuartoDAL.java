@@ -24,6 +24,8 @@ public interface IQuartoDAL {
      */
     List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida);
 
+    List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida, boolean earlyCheckin, boolean lateCheckout);
+
     List<Quarto> listarTodos();
 
     boolean temReservasFuturas(int numero);
