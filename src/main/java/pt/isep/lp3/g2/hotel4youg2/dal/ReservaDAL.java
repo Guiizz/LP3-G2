@@ -26,7 +26,9 @@ public class ReservaDAL implements IReservaDAL {
 
     private static final String SELECT_RESERVA =
             "SELECT id, clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, "
-            + "precoTotal, checkinEm, checkoutEm FROM Reserva ";
+            + "precoTotal, checkinEm, checkoutEm, cartao, "
+            + "(SELECT COALESCE(SUM(rs.quantidade * rs.precoUnitario), 0) FROM ReservaServico rs "
+            + "WHERE rs.reservaId = Reserva.id) AS totalServicos FROM Reserva ";
 
     private static final String PROCURAR_POR_ID = SELECT_RESERVA + "WHERE id = ?";
 
@@ -46,6 +48,9 @@ public class ReservaDAL implements IReservaDAL {
     private static final String REGISTAR_CHECKIN =
             "UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = ?, cartao = ? "
             + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
+
+    private static final String REGISTAR_CHECKOUT =
+            "UPDATE Reserva SET estado = 'CONCLUIDA', checkoutEm = ? WHERE id = ? AND estado = 'EM_CURSO'";
 
     private static final String ALTERAR_DATAS_SE_LIVRE =
             "UPDATE Reserva SET dataEntrada = ?, dataSaida = ?, precoTotal = ? "
@@ -116,14 +121,16 @@ public class ReservaDAL implements IReservaDAL {
         public Reserva map(ResultSet rs) throws SQLException {
             Timestamp checkin = rs.getTimestamp("checkinEm");
             Timestamp checkout = rs.getTimestamp("checkoutEm");
-            return new Reserva(rs.getInt("id"), rs.getInt("clienteId"),
+            Reserva reserva = new Reserva(rs.getInt("id"), rs.getInt("clienteId"),
                     rs.getInt("quartoNumero"),
                     rs.getDate("dataEntrada").toLocalDate(), rs.getDate("dataSaida").toLocalDate(),
                     rs.getInt("numHospedes"), EstadoReserva.valueOf(rs.getString("estado")),
                     rs.getBigDecimal("precoTotal"),
                     checkin != null ? checkin.toLocalDateTime() : null,
                     checkout != null ? checkout.toLocalDateTime() : null);
-
+            reserva.setCartao(rs.getString("cartao"));
+            reserva.setTotalServicos(rs.getBigDecimal("totalServicos"));
+            return reserva;
         }
     }
 
@@ -141,5 +148,11 @@ public class ReservaDAL implements IReservaDAL {
     public boolean registarCheckin(Reserva reserva) {
         return ConexaoBD.executar(REGISTAR_CHECKIN, Timestamp.valueOf(reserva.getCheckinEm()),
                 reserva.getCartao(), reserva.getId()) > 0;
+    }
+
+    @Override
+    public boolean registarCheckout(Reserva reserva) {
+        return ConexaoBD.executar(REGISTAR_CHECKOUT, Timestamp.valueOf(reserva.getCheckoutEm()),
+                reserva.getId()) > 0;
     }
 }

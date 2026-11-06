@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -17,6 +19,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.time.format.DateTimeFormatter;
+import java.util.function.UnaryOperator;
 
 /**
  * Controlador do ecrã para registar sugestões e queixas: procura o cliente pelo NIF
@@ -49,10 +52,22 @@ public class SugestoesController {
     private void initialize() {
         tipoCombo.getItems().setAll(TipoSugestao.values());
         // não deixa escrever mais do que o máximo e vai mostrando quantos caracteres já tem
-        descricaoArea.setTextFormatter(new TextFormatter<String>(mudanca ->
-                mudanca.getControlNewText().length() <= SugestaoQueixaBLL.MAXIMO_DESCRICAO ? mudanca : null));
-        descricaoArea.textProperty().addListener((obs, antes, agora) ->
-                contadorLabel.setText(agora.length() + "/" + SugestaoQueixaBLL.MAXIMO_DESCRICAO));
+        descricaoArea.setTextFormatter(new TextFormatter<String>(new LimiteDeCaracteres()));
+        descricaoArea.textProperty().addListener(new AoMudarDescricao());
+    }
+
+    private static class LimiteDeCaracteres implements UnaryOperator<TextFormatter.Change> {
+        @Override
+        public TextFormatter.Change apply(TextFormatter.Change mudanca) {
+            return mudanca.getControlNewText().length() <= SugestaoQueixaBLL.MAXIMO_DESCRICAO ? mudanca : null;
+        }
+    }
+
+    private class AoMudarDescricao implements ChangeListener<String> {
+        @Override
+        public void changed(ObservableValue<? extends String> observavel, String antes, String agora) {
+            contadorLabel.setText(agora.length() + "/" + SugestaoQueixaBLL.MAXIMO_DESCRICAO);
+        }
     }
 
     @FXML

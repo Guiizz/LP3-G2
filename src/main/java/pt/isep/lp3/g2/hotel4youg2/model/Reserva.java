@@ -25,6 +25,7 @@ public class Reserva {
     private LocalDateTime checkinEm;
     private LocalDateTime checkoutEm;
     private String cartao;
+    private BigDecimal totalServicos = BigDecimal.ZERO;
 
     public int getId() {
         return id;
@@ -148,6 +149,22 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    public boolean aceitaServicos() {
+        return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
+    }
+
+    public BigDecimal getTotalServicos() {
+        return totalServicos;
+    }
+
+    public void setTotalServicos(BigDecimal totalServicos) {
+        this.totalServicos = totalServicos == null ? BigDecimal.ZERO : totalServicos;
+    }
+
+    public BigDecimal getTotal() {
+        return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos);
+    }
+
     public String getCartao() {
         return cartao;
     }
@@ -173,6 +190,23 @@ public class Reserva {
         estado = EstadoReserva.EM_CURSO;
         checkinEm = agora;
         cartao = "C" + quartoNumero;
+    }
+
+    public boolean cartaoDaAcesso() {
+        return estado == EstadoReserva.EM_CURSO;
+    }
+
+    public void exigirPodeFazerCheckout() {
+        if (estado != EstadoReserva.EM_CURSO) {
+            throw new IllegalStateException("Só é possível fazer check-out de uma reserva em curso (a reserva "
+                    + id + " está " + estado + ")");
+        }
+    }
+
+    public void fazerCheckout(LocalDateTime agora) {
+        exigirPodeFazerCheckout();
+        estado = EstadoReserva.CONCLUIDA;
+        checkoutEm = agora;
     }
 
     public long getNoites() {

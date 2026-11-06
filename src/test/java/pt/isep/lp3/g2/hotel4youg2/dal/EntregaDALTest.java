@@ -31,9 +31,9 @@ public class EntregaDALTest {
     public void setUp() {
         try {
             List<Integer> tabelas = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('Entrega') IS NOT NULL "
-                    + "AND OBJECT_ID('LinhaEntrega') IS NOT NULL THEN 1 ELSE 0 END", rs -> rs.getInt(1));
+                    + "AND OBJECT_ID('LinhaEntrega') IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabelas.get(0) == 1, "Falta correr o 05_entregas.sql");
-            List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", rs -> rs.getInt(1));
+            List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", new InteiroMapper());
             Assumptions.assumeTrue(!funcionarios.isEmpty(), "Não há funcionários na BD");
             funcionarioId = funcionarios.get(0);
         } catch (DataAccessException e) {

@@ -6,15 +6,15 @@ import pt.isep.lp3.g2.hotel4youg2.dal.IServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoCobranca;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Regras de negócio dos serviços extra e das suas categorias.
- * Só o gestor os cria, edita, desativa e reativa (US25).
+ * Regras de negócio dos serviços extra, da sua tabela de preços e das suas categorias.
+ * Só o gestor os cria, edita (incluindo o preço), desativa e reativa (US25, US46).
  */
 public class ServicoBLL {
 
@@ -86,20 +86,19 @@ public class ServicoBLL {
     /**
      * Cria um serviço novo, ativo.
      *
-     * @param quemAge      o utilizador com a sessão iniciada (tem de ser gestor)
-     * @param designacao   o nome do serviço (até 100 caracteres)
-     * @param preco        o preço (maior que zero, com no máximo 2 casas decimais, até 999999,99 €)
-     * @param tipoCobranca como o serviço é cobrado
-     * @param categoria    a categoria do serviço
+     * @param quemAge    o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param designacao o nome do serviço (até 100 caracteres)
+     * @param preco      o preço fixo (maior que zero, com no máximo 2 casas decimais, até 999999,99 €)
+     * @param categoria  a categoria do serviço
      * @return o serviço criado
      * @throws IllegalStateException    se quem age não for gestor
      * @throws IllegalArgumentException se algum dado não for válido ou se já existir um serviço
-     *                                  com esta designação e esta forma de cobrança
+     *                                  com esta designação
      */
-    public Servico criar(Utilizador quemAge, String designacao, BigDecimal preco, TipoCobranca tipoCobranca, Categoria categoria) {
+    public Servico criar(Utilizador quemAge, String designacao, BigDecimal preco, Categoria categoria) {
         exigirGestor(quemAge);
-        String nome = validarDados(designacao, preco, tipoCobranca, categoria, 0);
-        Servico servico = new Servico(0, nome, preco, tipoCobranca, categoria, true);
+        String nome = validarDados(designacao, preco, categoria, 0);
+        Servico servico = new Servico(0, nome, preco, categoria, true);
         servicoDAL.inserir(servico);
         return servico;
     }
@@ -107,22 +106,21 @@ public class ServicoBLL {
     /**
      * Altera os dados de um serviço. O serviço continua ativo ou desativado, como estava.
      *
-     * @param quemAge      o utilizador com a sessão iniciada (tem de ser gestor)
-     * @param id           o id do serviço a alterar
-     * @param designacao   o novo nome do serviço
-     * @param preco        o novo preço
-     * @param tipoCobranca a nova forma de cobrança
-     * @param categoria    a nova categoria
+     * @param quemAge    o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param id         o id do serviço a alterar
+     * @param designacao o novo nome do serviço
+     * @param preco      o novo preço fixo
+     * @param categoria  a nova categoria
      * @return o serviço com os dados novos
      * @throws IllegalStateException    se quem age não for gestor
      * @throws IllegalArgumentException se o serviço não existir, algum dado não for válido
-     *                                  ou já existir outro serviço com esta designação e esta cobrança
+     *                                  ou já existir outro serviço com esta designação
      */
-    public Servico editar(Utilizador quemAge, int id, String designacao, BigDecimal preco, TipoCobranca tipoCobranca, Categoria categoria) {
+    public Servico editar(Utilizador quemAge, int id, String designacao, BigDecimal preco, Categoria categoria) {
         exigirGestor(quemAge);
         Servico atual = procurar(id);
-        String nome = validarDados(designacao, preco, tipoCobranca, categoria, id);
-        Servico alterado = new Servico(id, nome, preco, tipoCobranca, categoria, atual.isAtivo());
+        String nome = validarDados(designacao, preco, categoria, id);
+        Servico alterado = new Servico(id, nome, preco, categoria, atual.isAtivo());
         if (!servicoDAL.atualizar(alterado)) {
             throw new IllegalArgumentException("O serviço já não existe.");
         }
@@ -179,7 +177,7 @@ public class ServicoBLL {
         }
     }
 
-    private String validarDados(String designacao, BigDecimal preco, TipoCobranca tipoCobranca, Categoria categoria, int idIgnorar) {
+    private String validarDados(String designacao, BigDecimal preco, Categoria categoria, int idIgnorar) {
         String nome = limpar(designacao);
         if (nome.isEmpty()) {
             throw new IllegalArgumentException("Escreva a designação do serviço.");
@@ -199,14 +197,11 @@ public class ServicoBLL {
         if (preco.compareTo(PRECO_MAXIMO) > 0) {
             throw new IllegalArgumentException("O preço não pode ser maior que 999999,99 €.");
         }
-        if (tipoCobranca == null) {
-            throw new IllegalArgumentException("Escolha o tipo de cobrança.");
-        }
         if (categoria == null) {
             throw new IllegalArgumentException("Escolha a categoria.");
         }
-        if (servicoDAL.existeDesignacao(nome, tipoCobranca, idIgnorar)) {
-            throw new IllegalArgumentException("Já existe o serviço \"" + nome + "\" com a cobrança \"" + tipoCobranca.getDescricao().toLowerCase() + "\". Escolha outra forma de cobrança ou " + "edite o serviço que já existe.");
+        if (servicoDAL.existeDesignacao(nome, idIgnorar)) {
+            throw new IllegalArgumentException("Já existe o serviço \"" + nome + "\". Para mudar o preço, edite o serviço que já existe.");
         }
         return nome;
     }
@@ -216,7 +211,11 @@ public class ServicoBLL {
     }
 
     private Servico procurar(int id) {
-        return servicoDAL.procurarPorId(id).orElseThrow(() -> new IllegalArgumentException("Escolha um serviço da lista."));
+        Optional<Servico> servico = servicoDAL.procurarPorId(id);
+        if (servico.isEmpty()) {
+            throw new IllegalArgumentException("Escolha um serviço da lista.");
+        }
+        return servico.get();
     }
 
     private static void exigirGestor(Utilizador quemAge) {
