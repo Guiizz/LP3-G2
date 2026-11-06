@@ -38,6 +38,12 @@ class QuartoBLLTest {
         }
 
         @Override
+        public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida, boolean earlyCheckin,
+                                              boolean lateCheckout) {
+            return listarDisponiveis(entrada, saida);
+        }
+
+        @Override
         public List<Quarto> listarTodos() {
             return listarComTarifa();
         }
