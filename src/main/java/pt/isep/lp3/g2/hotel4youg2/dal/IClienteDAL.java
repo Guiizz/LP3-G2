@@ -43,4 +43,8 @@ public interface IClienteDAL {
      * @return {@code true} se o cliente existia e foi alterado
      */
     boolean atualizarCliente(Cliente c);
+
+    Cliente procurarFuncionarioNaoCliente(String nif);
+
+    boolean tornarCliente(Cliente c);
 }
