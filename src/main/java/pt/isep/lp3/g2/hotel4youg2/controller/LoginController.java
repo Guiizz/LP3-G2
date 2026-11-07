@@ -8,7 +8,9 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoFornecedorBLL;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
@@ -20,6 +22,7 @@ import java.io.IOException;
 public class LoginController {
 
     private final AutenticacaoBLL autenticacaoBLL = new AutenticacaoBLL();
+    private final AutenticacaoFornecedorBLL autenticacaoFornecedorBLL = new AutenticacaoFornecedorBLL();
 
     @FXML
     private TextField nomeUtilizadorField;
@@ -44,6 +47,27 @@ public class LoginController {
             erroLabel.setText("Não foi possível ligar à base de dados: " + e.getMessage());
         } catch (IOException e) {
             erroLabel.setText("Não foi possível abrir a janela principal.");
+        }
+    }
+
+    // o fornecedor escreve o código dele no campo do nome de utilizador
+    @FXML
+    private void aoEntrarComoFornecedor() {
+        erroLabel.setText("");
+        try {
+            Fornecedor fornecedor = autenticacaoFornecedorBLL.autenticar(nomeUtilizadorField.getText(),
+                    passwordField.getText());
+            Sessao.iniciarFornecedor(fornecedor);
+            Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
+            stage.setScene(new Scene(Navegador.carregar("fornecedor-view.fxml").getRoot(), 1100, 700));
+            stage.setTitle("Hotel4You · Fornecedor " + fornecedor.getNome());
+        } catch (IllegalArgumentException e) {
+            erroLabel.setText(e.getMessage());
+            passwordField.clear();
+        } catch (DataAccessException e) {
+            erroLabel.setText("Não foi possível ligar à base de dados: " + e.getMessage());
+        } catch (IOException e) {
+            erroLabel.setText("Não foi possível abrir o ecrã do fornecedor.");
         }
     }
 

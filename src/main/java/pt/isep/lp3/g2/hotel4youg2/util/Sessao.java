@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.util;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 
 /**
  * Guarda o utilizador que tem a sessão iniciada na aplicação.
@@ -9,6 +10,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 public final class Sessao {
 
     private static Utilizador utilizador;
+    private static Fornecedor fornecedor;
 
     private Sessao() {
     }
@@ -32,6 +34,24 @@ public final class Sessao {
     }
 
     /**
+     * Guarda o fornecedor que acabou de entrar.
+     *
+     * @param fornecedorAutenticado o fornecedor autenticado
+     */
+    public static void iniciarFornecedor(Fornecedor fornecedorAutenticado) {
+        fornecedor = fornecedorAutenticado;
+    }
+
+    /**
+     * Devolve o fornecedor com a sessão iniciada.
+     *
+     * @return o fornecedor autenticado, ou {@code null} se não houver
+     */
+    public static Fornecedor getFornecedor() {
+        return fornecedor;
+    }
+
+    /**
      * Indica se há alguém com a sessão iniciada.
      *
      * @return {@code true} se há um utilizador autenticado
@@ -45,5 +65,6 @@ public final class Sessao {
      */
     public static void terminar() {
         utilizador = null;
+        fornecedor = null;
     }
 }

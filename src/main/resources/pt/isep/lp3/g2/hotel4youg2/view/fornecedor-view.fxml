@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="raiz" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.FornecedorController">
+    <center>
+        <VBox spacing="10.0">
+            <padding>
+                <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+            </padding>
+
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Label text="Hotel4You · Fornecedor" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label fx:id="fornecedorLabel"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Terminar sessão" onAction="#aoTerminarSessao"/>
+            </HBox>
+
+            <Separator/>
+
+            <Label text="Carregar uma entrega" style="-fx-font-weight: bold;"/>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Button text="Escolher ficheiro XML…" onAction="#aoEscolherFicheiro"/>
+                <Label fx:id="ficheiroLabel" text="Nenhum ficheiro escolhido"/>
+            </HBox>
+            <Label fx:id="resumoLabel" wrapText="true"/>
+            <Button fx:id="carregarButton" text="Carregar entrega" onAction="#aoCarregar" disable="true"/>
+            <Label fx:id="mensagemLabel" wrapText="true"/>
+
+            <Separator/>
+
+            <Label text="As minhas entregas" style="-fx-font-weight: bold;"/>
+            <TableView fx:id="tabela" prefHeight="260.0">
+                <columns>
+                    <TableColumn text="Encomenda" prefWidth="130.0">
+                        <cellValueFactory><PropertyValueFactory property="numeroEncomenda"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Tipos de material" prefWidth="120.0">
+                        <cellValueFactory><PropertyValueFactory property="tiposDeMaterial"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Carregada em" prefWidth="260.0">
+                        <cellValueFactory><PropertyValueFactory property="carregadaEmTexto"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Total (€)" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Estado" prefWidth="110.0">
+                        <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+</BorderPane>
