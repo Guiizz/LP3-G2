@@ -11,6 +11,8 @@ import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -19,6 +21,7 @@ public class ReservaDALTest {
     private ReservaDAL instance;
     private Cliente cliente;
     private Reserva reserva;
+    private final List<Reserva> outras = new ArrayList<>();
 
     @BeforeEach
     public void setUp() {
@@ -39,6 +42,11 @@ public class ReservaDALTest {
 
     @AfterEach
     public void tearDown() {
+        for (Reserva outra : outras) {
+            if (outra.getId() > 0) {
+                instance.apagar(outra.getId());
+            }
+        }
         if (reserva != null && reserva.getId() > 0) {
             instance.apagar(reserva.getId());
         }
@@ -207,6 +215,49 @@ public class ReservaDALTest {
         reserva.setCheckoutEm(reserva.getDataSaida().atTime(11, 0));
         boolean expResult = false;
         boolean result = instance.registarCheckout(reserva);
+        assertEquals(expResult, result);
+    }
+
+    private Reserva outraReserva(LocalDate entrada, LocalDate saida) {
+        Reserva outra = new Reserva(0, cliente.getId(), reserva.getQuartoNumero(), entrada, saida, 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
+        outras.add(outra);
+        return outra;
+    }
+
+    @Test
+    public void testInserirSeLivreNoDiaDeSaidaDeUmLateCheckoutFalha() {
+        System.out.println("inserirSeLivre (entrada no dia de um late check-out)");
+        LocalDate dia = reserva.getDataSaida().plusDays(10);
+        Reserva comLate = outraReserva(dia.minusDays(2), dia);
+        comLate.setLateCheckout(true);
+        Assumptions.assumeTrue(instance.inserirSeLivre(comLate), "O quarto estava ocupado nessas datas");
+        boolean expResult = false;
+        boolean result = instance.inserirSeLivre(outraReserva(dia, dia.plusDays(2)));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testInserirSeLivreNoDiaDeSaidaSemLateCheckoutEAceite() {
+        System.out.println("inserirSeLivre (entrada no dia de uma saída standard)");
+        LocalDate dia = reserva.getDataSaida().plusDays(10);
+        Assumptions.assumeTrue(instance.inserirSeLivre(outraReserva(dia.minusDays(2), dia)),
+                "O quarto estava ocupado nessas datas");
+        boolean expResult = true;
+        boolean result = instance.inserirSeLivre(outraReserva(dia, dia.plusDays(2)));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testInserirSeLivreComEarlyCheckinNoDiaDeUmaSaidaFalha() {
+        System.out.println("inserirSeLivre (early check-in no dia de uma saída)");
+        LocalDate dia = reserva.getDataSaida().plusDays(10);
+        Assumptions.assumeTrue(instance.inserirSeLivre(outraReserva(dia.minusDays(2), dia)),
+                "O quarto estava ocupado nessas datas");
+        Reserva comEarly = outraReserva(dia, dia.plusDays(2));
+        comEarly.setEarlyCheckin(true);
+        boolean expResult = false;
+        boolean result = instance.inserirSeLivre(comEarly);
         assertEquals(expResult, result);
     }
 }
