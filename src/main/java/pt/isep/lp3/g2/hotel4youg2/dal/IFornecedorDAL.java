@@ -17,4 +17,26 @@ public interface IFornecedorDAL {
      * @throws DataAccessException se não for possível consultar a base de dados
      */
     Optional<Fornecedor> procurarPorCodigo(String codigo);
+
+    /**
+     * Grava um fornecedor novo, só com o código, o nome e a conta (hash e salt da password).
+     * Atualiza o id do fornecedor.
+     *
+     * @param fornecedor o fornecedor a gravar
+     * @return o id do fornecedor gravado
+     * @throws DataAccessException se não for possível gravar na base de dados
+     */
+    int criar(Fornecedor fornecedor);
+
+    /**
+     * Define a conta (hash e salt da password) de um fornecedor que já existe, por exemplo
+     * porque foi criado a partir de uma entrega e ainda não tinha conta.
+     *
+     * @param fornecedorId o id do fornecedor
+     * @param passwordHash o hash da password, em hexadecimal
+     * @param passwordSalt o salt usado, em hexadecimal
+     * @return {@code true} se o fornecedor existia e foi alterado
+     * @throws DataAccessException se não for possível alterar a base de dados
+     */
+    boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt);
 }

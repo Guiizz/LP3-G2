@@ -16,6 +16,25 @@ public class FornecedorDAL implements IFornecedorDAL {
             "SELECT id, codigo, nome, morada1, morada2, cidade, codigoPostal, pais, codigoPais, "
             + "passwordHash, passwordSalt FROM Fornecedor WHERE codigo = ?";
 
+    private static final String INSERIR =
+            "INSERT INTO Fornecedor (codigo, nome, passwordHash, passwordSalt) OUTPUT INSERTED.id "
+            + "VALUES (?, ?, ?, ?)";
+    private static final String DEFINIR_PASSWORD =
+            "UPDATE Fornecedor SET passwordHash = ?, passwordSalt = ? WHERE id = ?";
+
+    @Override
+    public int criar(Fornecedor fornecedor) {
+        int id = ConexaoBD.select(INSERIR, new InteiroMapper(), fornecedor.getCodigo(), fornecedor.getNome(),
+                fornecedor.getPasswordHash(), fornecedor.getPasswordSalt()).get(0);
+        fornecedor.setId(id);
+        return id;
+    }
+
+    @Override
+    public boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt) {
+        return ConexaoBD.executar(DEFINIR_PASSWORD, passwordHash, passwordSalt, fornecedorId) > 0;
+    }
+
     @Override
     public Optional<Fornecedor> procurarPorCodigo(String codigo) {
         List<Fornecedor> fornecedores = ConexaoBD.select(PROCURAR_POR_CODIGO, new FornecedorMapper(), codigo);

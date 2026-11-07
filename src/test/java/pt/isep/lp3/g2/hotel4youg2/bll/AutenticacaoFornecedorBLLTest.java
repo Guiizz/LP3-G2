@@ -23,6 +23,17 @@ class AutenticacaoFornecedorBLLTest {
         public Optional<Fornecedor> procurarPorCodigo(String codigo) {
             return Optional.ofNullable(fornecedores.get(codigo));
         }
+
+        @Override
+        public int criar(Fornecedor fornecedor) {
+            fornecedores.put(fornecedor.getCodigo(), fornecedor);
+            return fornecedor.getId();
+        }
+
+        @Override
+        public boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt) {
+            return false;
+        }
     }
 
     private final PasswordUtils passwordUtils = new PasswordUtils();
