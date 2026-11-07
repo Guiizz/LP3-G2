@@ -15,6 +15,7 @@ public class FornecedorDALTest {
 
     private FornecedorDAL instance;
     private String codigo;
+    private String codigoCriado;
 
     // Prepara o contexto: um fornecedor de teste com conta (hash e salt) criado só para o teste
     @BeforeEach
@@ -39,6 +40,10 @@ public class FornecedorDALTest {
             return;
         }
         ConexaoBD.executar("DELETE FROM Fornecedor WHERE codigo = ?", codigo);
+
+        if (codigoCriado != null) {
+            ConexaoBD.executar("DELETE FROM Fornecedor WHERE codigo = ?", codigoCriado);
+        }
     }
 
     @Test
@@ -56,5 +61,30 @@ public class FornecedorDALTest {
         Optional<Fornecedor> expResult = Optional.empty();
         Optional<Fornecedor> result = instance.procurarPorCodigo("NAO-EXISTE");
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriar() {
+        System.out.println("criar");
+        codigoCriado = codigo + "N";
+        Fornecedor fornecedor = new Fornecedor(0, codigoCriado, "Fornecedor novo", null, null, null, null, null, null);
+        fornecedor.definirPassword("c".repeat(64), "d".repeat(32));
+        int id = instance.criar(fornecedor);
+        Fornecedor result = instance.procurarPorCodigo(codigoCriado).orElseThrow();
+        assertEquals(id, result.getId());
+        assertEquals("Fornecedor novo", result.getNome());
+        assertEquals("c".repeat(64), result.getPasswordHash());
+    }
+
+    @Test
+    public void testDefinirPassword() {
+        System.out.println("definirPassword");
+        int id = instance.procurarPorCodigo(codigo).orElseThrow().getId();
+        boolean expResult = true;
+        boolean result = instance.definirPassword(id, "e".repeat(64), "f".repeat(32));
+        assertEquals(expResult, result);
+        Fornecedor atualizado = instance.procurarPorCodigo(codigo).orElseThrow();
+        assertEquals("e".repeat(64), atualizado.getPasswordHash());
+        assertEquals("f".repeat(32), atualizado.getPasswordSalt());
     }
 }
