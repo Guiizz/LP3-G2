@@ -72,6 +72,11 @@ public class ReservaBLLTest {
         }
 
         @Override
+        public Reserva procurarEmCursoPorCartao(String cartao) {
+            return null;
+        }
+
+        @Override
         public List<Reserva> listar() {
             return new ArrayList<>();
         }
