@@ -51,6 +51,16 @@ class EditarClienteTest {
         public Cliente procurarPorNif(String nif) {
             return null;
         }
+
+        @Override
+        public Cliente procurarFuncionarioNaoCliente(String nif) {
+            return null;
+        }
+
+        @Override
+        public boolean tornarCliente(Cliente c) {
+            return true;
+        }
     }
 
     private String esperaErro(ClienteDALFalsa repo, Cliente cliente, String nome, LocalDate data,
