@@ -6,6 +6,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Resumo de uma entrega para o histórico do fornecedor: a encomenda, quantos tipos de material tem,
+ * quando foi carregada, o total e o estado em que está.
+ */
 public class ResumoEntrega {
 
     private static final ZoneId FUSO = ZoneId.of("Europe/Lisbon");
@@ -17,6 +21,15 @@ public class ResumoEntrega {
     private final BigDecimal total;
     private final EstadoEntrega estado;
 
+    /**
+     * Cria o resumo de uma entrega.
+     *
+     * @param numeroEncomenda o número da encomenda
+     * @param tiposDeMaterial quantos materiais diferentes a entrega tem
+     * @param carregadaEm     quando a entrega foi carregada
+     * @param total           o total da entrega, em euros
+     * @param estado          o estado da entrega (pendente, aceite ou recusada)
+     */
     public ResumoEntrega(String numeroEncomenda, int tiposDeMaterial, LocalDateTime carregadaEm, BigDecimal total, EstadoEntrega estado) {
         this.numeroEncomenda = numeroEncomenda;
         this.tiposDeMaterial = tiposDeMaterial;
@@ -45,6 +58,12 @@ public class ResumoEntrega {
         return estado;
     }
 
+    /**
+     * Escreve a data em que a entrega foi carregada, até ao segundo e com o fuso horário,
+     * para mostrar no ecrã.
+     *
+     * @return a data e hora, por exemplo {@code 05/11/2026 21:24:38 (Europe/Lisbon)}
+     */
     public String getCarregadaEmTexto() {
         return carregadaEm.atZone(FUSO).format(FORMATO);
     }

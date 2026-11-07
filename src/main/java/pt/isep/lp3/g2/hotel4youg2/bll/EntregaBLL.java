@@ -178,6 +178,14 @@ public class EntregaBLL {
         return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
     }
 
+    /**
+     * Devolve o histórico das entregas do fornecedor, com o estado de cada uma.
+     * Cada fornecedor só vê as suas.
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @return o resumo das entregas do fornecedor, da mais recente para a mais antiga
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<ResumoEntrega> historico(Fornecedor fornecedor) {
         if (fornecedor == null) {
             throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
