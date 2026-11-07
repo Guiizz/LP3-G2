@@ -237,4 +237,24 @@ class ReservaTest {
         boolean result = instance.cartaoDaAcesso();
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testGetTotal() {
+        System.out.println("getTotal (quarto + serviços + taxa)");
+        Reserva instance = novaReserva();
+        instance.setTotalServicos(new BigDecimal("35.50"));
+        instance.setTaxaHorario(new BigDecimal("20.00"));
+        BigDecimal expResult = instance.getPrecoTotal().add(instance.getTotalServicos()).add(instance.getTaxaHorario());
+        BigDecimal result = instance.getTotal();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetTotalSemServicosNemTaxa() {
+        System.out.println("getTotal (só o quarto)");
+        Reserva instance = novaReserva();
+        BigDecimal expResult = instance.getPrecoTotal();
+        BigDecimal result = instance.getTotal();
+        assertEquals(expResult, result);
+    }
 }
