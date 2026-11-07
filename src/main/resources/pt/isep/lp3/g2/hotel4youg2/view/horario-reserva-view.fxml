@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="12.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.HorarioReservaController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Horas e taxas das reservas" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+
+    <GridPane hgap="10.0" vgap="8.0">
+        <Label text="Check-in standard (HH:mm):" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="horaCheckinField" prefWidth="90" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Check-out standard (HH:mm):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextField fx:id="horaCheckoutField" prefWidth="90" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="Early check-in a partir das (HH:mm):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="horaEarlyField" prefWidth="90" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="Late check-out até às (HH:mm):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="horaLateField" prefWidth="90" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Taxa de early check-in (€):" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="taxaEarlyField" prefWidth="90" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="Taxa de late check-out (€):" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="taxaLateField" prefWidth="90" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <Button text="Guardar" onAction="#aoGuardar"/>
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>

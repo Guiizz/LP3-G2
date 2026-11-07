@@ -16,17 +16,25 @@ import java.util.List;
  */
 public class ReservaDAL implements IReservaDAL {
 
+    private static final String CONFLITO_DE_DATAS =
+            "((r.dataEntrada < ? AND r.dataSaida > ?) "
+            + "OR (? = 1 AND r.dataSaida = ?) "
+            + "OR (? = 1 AND r.dataEntrada = ?) "
+            + "OR (r.lateCheckout = 1 AND r.dataSaida = ?) "
+            + "OR (r.earlyCheckin = 1 AND r.dataEntrada = ?))";
+
     private static final String INSERIR_SE_LIVRE =
-            "INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, precoTotal) "
+            "INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, precoTotal, "
+                    + "earlyCheckin, lateCheckout, taxaHorario) "
                     + "OUTPUT INSERTED.id "
-                    + "SELECT ?, ?, ?, ?, ?, ?, ? "
-                    + "WHERE NOT EXISTS (SELECT 1 FROM Reserva WITH (UPDLOCK, HOLDLOCK) "
-                    + "WHERE quartoNumero = ? AND estado <> 'CANCELADA' "
-                    + "AND dataEntrada < ? AND dataSaida > ?)";
+                    + "SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ? "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Reserva r WITH (UPDLOCK, HOLDLOCK) "
+                    + "WHERE r.quartoNumero = ? AND r.estado <> 'CANCELADA' "
+                    + "AND " + CONFLITO_DE_DATAS + ")";
 
     private static final String SELECT_RESERVA =
             "SELECT id, clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, "
-            + "precoTotal, checkinEm, checkoutEm, cartao, "
+            + "precoTotal, checkinEm, checkoutEm, cartao, earlyCheckin, lateCheckout, taxaHorario, "
             + "(SELECT COALESCE(SUM(rs.quantidade * rs.precoUnitario), 0) FROM ReservaServico rs "
             + "WHERE rs.reservaId = Reserva.id) AS totalServicos FROM Reserva ";
 
@@ -57,7 +65,7 @@ public class ReservaDAL implements IReservaDAL {
             + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL "
             + "AND NOT EXISTS (SELECT 1 FROM Reserva r WITH (UPDLOCK, HOLDLOCK) "
             + "WHERE r.quartoNumero = ? AND r.id <> ? AND r.estado <> 'CANCELADA' "
-            + "AND r.dataEntrada < ? AND r.dataSaida > ?)";
+            + "AND " + CONFLITO_DE_DATAS + ")";
 
     @Override
     public boolean inserirSeLivre(Reserva reserva) {
@@ -70,9 +78,11 @@ public class ReservaDAL implements IReservaDAL {
             ps.setInt(5, reserva.getNumHospedes());
             ps.setString(6, reserva.getEstado().name());
             ps.setBigDecimal(7, reserva.getPrecoTotal());
-            ps.setInt(8, reserva.getQuartoNumero());
-            ps.setObject(9, reserva.getDataSaida());
-            ps.setObject(10, reserva.getDataEntrada());
+            ps.setBoolean(8, reserva.isEarlyCheckin());
+            ps.setBoolean(9, reserva.isLateCheckout());
+            ps.setBigDecimal(10, reserva.getTaxaHorario());
+            ps.setInt(11, reserva.getQuartoNumero());
+            definirParametros(ps, 12, conflitoDeDatas(reserva));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     reserva.setId(rs.getInt(1));
@@ -130,18 +140,36 @@ public class ReservaDAL implements IReservaDAL {
                     checkout != null ? checkout.toLocalDateTime() : null);
             reserva.setCartao(rs.getString("cartao"));
             reserva.setTotalServicos(rs.getBigDecimal("totalServicos"));
+            reserva.setEarlyCheckin(rs.getBoolean("earlyCheckin"));
+            reserva.setLateCheckout(rs.getBoolean("lateCheckout"));
+            reserva.setTaxaHorario(rs.getBigDecimal("taxaHorario"));
             return reserva;
         }
     }
 
     @Override
     public boolean alterarDatasSeLivre(Reserva reserva) {
+        Object[] conflito = conflitoDeDatas(reserva);
         return ConexaoBD.executar(ALTERAR_DATAS_SE_LIVRE,
                 Date.valueOf(reserva.getDataEntrada()),
                 Date.valueOf(reserva.getDataSaida()),
                 reserva.getPrecoTotal(), reserva.getId(),
                 reserva.getQuartoNumero(), reserva.getId(),
-                Date.valueOf(reserva.getDataSaida()), Date.valueOf(reserva.getDataEntrada())) > 0;
+                conflito[0], conflito[1], conflito[2], conflito[3],
+                conflito[4], conflito[5], conflito[6], conflito[7]) > 0;
+    }
+
+    private static Object[] conflitoDeDatas(Reserva reserva) {
+        Date entrada = Date.valueOf(reserva.getDataEntrada());
+        Date saida = Date.valueOf(reserva.getDataSaida());
+        return new Object[] {saida, entrada, reserva.isEarlyCheckin(), entrada,
+                reserva.isLateCheckout(), saida, entrada, saida};
+    }
+
+    private static void definirParametros(PreparedStatement ps, int primeiro, Object[] valores) throws SQLException {
+        for (int i = 0; i < valores.length; i++) {
+            ps.setObject(primeiro + i, valores[i]);
+        }
     }
 
     @Override

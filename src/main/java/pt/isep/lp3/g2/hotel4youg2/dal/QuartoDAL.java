@@ -30,8 +30,11 @@ public class QuartoDAL implements IQuartoDAL {
                     + "AND NOT EXISTS (SELECT 1 FROM Reserva r "
                     + "WHERE r.quartoNumero = q.numero "
                     + "AND r.estado <> 'CANCELADA' "
-                    + "AND r.dataEntrada < ? "
-                    + "AND r.dataSaida > ?) "
+                    + "AND ((r.dataEntrada < ? AND r.dataSaida > ?) "
+                    + "OR (? = 1 AND r.dataSaida = ?) "
+                    + "OR (? = 1 AND r.dataEntrada = ?) "
+                    + "OR (r.lateCheckout = 1 AND r.dataSaida = ?) "
+                    + "OR (r.earlyCheckin = 1 AND r.dataEntrada = ?))) "
                     + "ORDER BY q.numero";
 
     private static final String LISTAR_TODOS =
@@ -54,7 +57,15 @@ public class QuartoDAL implements IQuartoDAL {
 
     @Override
     public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida) {
-        return ConexaoBD.select(LISTAR_DISPONIVEIS, new QuartoComTarifaMapper(), Date.valueOf(saida), Date.valueOf(entrada));
+        return listarDisponiveis(entrada, saida, false, false);
+    }
+
+    @Override
+    public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida, boolean earlyCheckin, boolean lateCheckout) {
+        Date diaEntrada = Date.valueOf(entrada);
+        Date diaSaida = Date.valueOf(saida);
+        return ConexaoBD.select(LISTAR_DISPONIVEIS, new QuartoComTarifaMapper(),
+                diaSaida, diaEntrada, earlyCheckin, diaEntrada, lateCheckout, diaSaida, diaEntrada, diaSaida);
     }
 
     @Override

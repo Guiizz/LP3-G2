@@ -1,18 +1,25 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.HorarioReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.IHorarioReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.QuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,16 +28,80 @@ import java.util.List;
  */
 public class ReservaBLL {
 
-    private static final LocalTime HORA_CHECKIN = LocalTime.of(15, 0);
-
     private final IReservaDAL repositorio;
+    private final IQuartoDAL quartos;
+    private final IHorarioReservaDAL horarios;
 
     public ReservaBLL() {
-        this(new ReservaDAL());
+        this(new ReservaDAL(), new QuartoDAL(), new HorarioReservaDAL());
     }
 
-    public ReservaBLL(IReservaDAL repositorio) {
+    public ReservaBLL(IReservaDAL repositorio, IQuartoDAL quartos, IHorarioReservaDAL horarios) {
         this.repositorio = repositorio;
+        this.quartos = quartos;
+        this.horarios = horarios;
+    }
+
+    public HorarioReserva horario() {
+        return horarios.obter();
+    }
+
+    public BigDecimal calcularTaxa(boolean earlyCheckin, boolean lateCheckout) {
+        return horarios.obter().calcularTaxa(earlyCheckin, lateCheckout);
+    }
+
+    public List<Quarto> opcoesDisponiveis(LocalDate entrada, LocalDate saida, int hospedes,
+                                          boolean earlyCheckin, boolean lateCheckout) {
+        validarDatas(entrada, saida);
+        validarHospedes(hospedes);
+        List<Quarto> opcoes = new ArrayList<>();
+        List<String> tiposJaVistos = new ArrayList<>();
+        for (Quarto quarto : quartos.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
+            String tipoEVista = quarto.getTipo() + "/" + quarto.getVista();
+            if (quarto.getCapacidade() >= hospedes && !tiposJaVistos.contains(tipoEVista)) {
+                tiposJaVistos.add(tipoEVista);
+                opcoes.add(quarto);
+            }
+        }
+        return opcoes;
+    }
+
+    public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
+                         int hospedes, boolean earlyCheckin, boolean lateCheckout) {
+        if (cliente == null) {
+            throw new ValidacaoException("Escolha o cliente pelo NIF");
+        }
+        if (tipo == null || vista == null) {
+            throw new ValidacaoException("Escolha o tipo de quarto e a vista");
+        }
+        validarDatas(entrada, saida);
+        validarHospedes(hospedes);
+        BigDecimal taxa = calcularTaxa(earlyCheckin, lateCheckout);
+        for (Quarto quarto : quartos.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
+            if (quarto.getTipo() == tipo && quarto.getVista() == vista && quarto.getCapacidade() >= hospedes) {
+                Reserva reserva = new Reserva(0, cliente.getId(), quarto.getNumero(), entrada, saida, hospedes,
+                        EstadoReserva.CONFIRMADA, calcularPreco(quarto, entrada, saida), null, null);
+                reserva.setEarlyCheckin(earlyCheckin);
+                reserva.setLateCheckout(lateCheckout);
+                reserva.setTaxaHorario(taxa);
+                if (repositorio.inserirSeLivre(reserva)) {
+                    return reserva;
+                }
+            }
+        }
+        if (earlyCheckin || lateCheckout) {
+            throw new ValidacaoException("Nenhum quarto " + tipo + " com vista " + vista
+                    + " permite o early check-in ou o late check-out nestas datas. "
+                    + "Pode fazer a reserva nas horas standard.");
+        }
+        throw new ValidacaoException("Já não há quartos " + tipo + " com vista " + vista
+                + " livres nestas datas. Pesquise outra vez os quartos disponíveis.");
+    }
+
+    private void validarHospedes(int hospedes) {
+        if (hospedes < 1) {
+            throw new ValidacaoException("O número de hóspedes tem de ser pelo menos 1");
+        }
     }
 
     public BigDecimal calcularPreco(Quarto quarto, LocalDate entrada, LocalDate saida) {
@@ -132,7 +203,7 @@ public class ReservaBLL {
         if (reserva == null) {
             throw new ValidacaoException("Escolha uma reserva");
         }
-        reserva.fazerCheckin(agora, HORA_CHECKIN);
+        reserva.fazerCheckin(agora, horarios.obter().horaMinimaCheckin(reserva.isEarlyCheckin()));
         if (!repositorio.registarCheckin(reserva)) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-in: foi cancelada ou já tem o check-in feito");

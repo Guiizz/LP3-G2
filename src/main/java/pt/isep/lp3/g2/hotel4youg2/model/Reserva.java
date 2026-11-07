@@ -26,6 +26,9 @@ public class Reserva {
     private LocalDateTime checkoutEm;
     private String cartao;
     private BigDecimal totalServicos = BigDecimal.ZERO;
+    private boolean earlyCheckin;
+    private boolean lateCheckout;
+    private BigDecimal taxaHorario = BigDecimal.ZERO;
 
     public int getId() {
         return id;
@@ -161,8 +164,32 @@ public class Reserva {
         this.totalServicos = totalServicos == null ? BigDecimal.ZERO : totalServicos;
     }
 
+    public boolean isEarlyCheckin() {
+        return earlyCheckin;
+    }
+
+    public void setEarlyCheckin(boolean earlyCheckin) {
+        this.earlyCheckin = earlyCheckin;
+    }
+
+    public boolean isLateCheckout() {
+        return lateCheckout;
+    }
+
+    public void setLateCheckout(boolean lateCheckout) {
+        this.lateCheckout = lateCheckout;
+    }
+
+    public BigDecimal getTaxaHorario() {
+        return taxaHorario;
+    }
+
+    public void setTaxaHorario(BigDecimal taxaHorario) {
+        this.taxaHorario = taxaHorario == null ? BigDecimal.ZERO : taxaHorario;
+    }
+
     public BigDecimal getTotal() {
-        return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos);
+        return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos).add(taxaHorario);
     }
 
     public String getCartao() {
@@ -246,7 +273,10 @@ public class Reserva {
                 && mesmoValor(precoTotal, outra.precoTotal)
                 && Objects.equals(checkinEm, outra.checkinEm)
                 && Objects.equals(checkoutEm, outra.checkoutEm)
-                && Objects.equals(cartao, outra.cartao);
+                && Objects.equals(cartao, outra.cartao)
+                && earlyCheckin == outra.earlyCheckin
+                && lateCheckout == outra.lateCheckout
+                && mesmoValor(taxaHorario, outra.taxaHorario);
     }
 
     private static boolean mesmoValor(BigDecimal a, BigDecimal b) {
@@ -259,7 +289,7 @@ public class Reserva {
     @Override
     public int hashCode() {
         return Objects.hash(id, clienteId, quartoNumero, numHospedes, dataEntrada, dataSaida, estado,
-                checkinEm, checkoutEm, cartao);
+                checkinEm, checkoutEm, cartao, earlyCheckin, lateCheckout);
     }
 
     @Override
