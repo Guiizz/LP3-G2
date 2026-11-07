@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
@@ -51,5 +52,19 @@ public class LoginController {
         Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
         stage.setScene(new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700));
         stage.setTitle("Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
+    }
+
+    @FXML
+    private void aoSugestaoCliente() {
+        try {
+            Stage janela = new Stage();
+            janela.setTitle("Hotel4You · Sugestão ou queixa");
+            janela.setScene(new Scene(Navegador.carregar("sugestao-cartao-view.fxml").getRoot()));
+            janela.initOwner(nomeUtilizadorField.getScene().getWindow());
+            janela.initModality(Modality.WINDOW_MODAL);
+            janela.showAndWait();
+        } catch (IOException e) {
+            erroLabel.setText("Não foi possível abrir o formulário de sugestões.");
+        }
     }
 }
