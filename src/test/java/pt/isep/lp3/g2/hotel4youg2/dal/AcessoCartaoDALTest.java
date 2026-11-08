@@ -26,7 +26,7 @@ public class AcessoCartaoDALTest {
         try {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('AcessoCartao') IS NOT NULL "
                     + "THEN 1 ELSE 0 END", new InteiroMapper());
-            Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 12_acessos_cartao.sql");
+            Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 15_acessos_cartao.sql");
             List<Integer> quartos = ConexaoBD.select("SELECT TOP 1 numero FROM Quarto", new InteiroMapper());
             Assumptions.assumeTrue(!quartos.isEmpty(), "Faltam quartos na BD");
             quarto = quartos.get(0);
