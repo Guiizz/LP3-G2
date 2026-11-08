@@ -6,6 +6,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class NavegadorTest {
     @Test
+    void ecraDeSaidaDeMateriaisExiste() {
+        assertNotNull(Navegador.localizar("saida-stock-view.fxml"));
+    }
+
+    @Test
     void localizaUmEcraExiste() {
         assertNotNull(Navegador.localizar("login-view.fxml"));
     }
