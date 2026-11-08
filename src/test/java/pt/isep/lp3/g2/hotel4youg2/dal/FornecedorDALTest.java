@@ -23,7 +23,7 @@ public class FornecedorDALTest {
         try {
             List<Integer> colunas = ConexaoBD.select("SELECT CASE WHEN COL_LENGTH('Fornecedor', 'passwordHash') "
                     + "IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
-            Assumptions.assumeTrue(colunas.get(0) == 1, "Falta correr o 11_entregas_estado_fornecedor_stock.sql");
+            Assumptions.assumeTrue(colunas.get(0) == 1, "Falta correr o 12_entregas_estado_fornecedor_stock.sql");
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
         }

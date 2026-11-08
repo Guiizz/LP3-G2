@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,4 +66,34 @@ public interface IEntregaDAL {
      * da mais recente para a mais antiga; vazio se não tiver nenhuma
      */
     List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor);
+
+    /**
+     * Aceita uma entrega pendente: passa-a a aceite, guarda quem a aceitou e quando, e soma ao stock
+     * a quantidade de cada material, tudo numa só transação. Só funciona se a entrega ainda estiver
+     * pendente, por isso duas pessoas não a conseguem aceitar duas vezes.
+     *
+     * @param entregaId     o id da entrega
+     * @param funcionarioId o id do funcionário que a aceita
+     * @return {@code true} se a entrega estava pendente e foi aceite; {@code false} se já tinha sido decidida
+     * @throws IllegalStateException se alguma linha da entrega não tiver o total em unidades; nesse caso
+     *                               nada é alterado
+     */
+    boolean aceitar(int entregaId, int funcionarioId);
+
+    /**
+     * Recusa uma entrega pendente: guarda quem a recusou, quando e o motivo (opcional).
+     * Não altera o stock. Só funciona se a entrega ainda estiver pendente.
+     *
+     * @param entregaId     o id da entrega
+     * @param funcionarioId o id do funcionário que a recusa
+     * @param motivo        o motivo da recusa, ou {@code null} se não houver
+     * @return {@code true} se a entrega estava pendente e foi recusada; {@code false} se já tinha sido decidida
+     */
+    boolean recusar(int entregaId, int funcionarioId, String motivo);
+
+    /**
+     * @return todas as entregas, com as pendentes primeiro e depois as restantes, da mais recente
+     * para a mais antiga, com quem decidiu, quando e o motivo da recusa
+     */
+    List<ResumoEntregaHotel> listarParaHotel();
 }

@@ -102,6 +102,11 @@ public class InicialController {
     }
 
     @FXML
+    private void aoDecidirEntregas() throws IOException {
+        Navegador.mostrar("decidir-entregas-view.fxml");
+    }
+
+    @FXML
     private void aoAbrirServicos() throws IOException {
         if (podeAbrirEcraDeGestor()) {
             Navegador.mostrar("servicos-view.fxml");

@@ -49,10 +49,32 @@ public class LeitorXmlEntregaTest {
     @Test
     public void testLerPrimeiraLinha() {
         System.out.println("ler (primeira linha)");
-        LinhaEntrega expResult = new LinhaEntrega(1, "PZ-1989", "Toalha de banho 400g cinza", 50, Unidade.BOX,
+        LinhaEntrega expResult = new LinhaEntrega(1, "PZ-1989", "Toalha de banho 400g cinza", 50, Unidade.BOX, 500,
                 new BigDecimal("2.51"), new BigDecimal("125.50"), 23, new BigDecimal("28.87"), new BigDecimal("154.37"));
         LinhaEntrega result = instance.ler(ficheiro("entrega-valida.xml")).getLinhas().get(0);
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerUnidadesDeCadaLinha() {
+        System.out.println("ler (unidades de cada linha)");
+        Entrega result = instance.ler(ficheiro("entrega-valida.xml"));
+        // linha 1: 50 caixas, o ficheiro diz que são 500 unidades; as outras já vêm em unidades
+        assertEquals(500, result.getLinhas().get(0).getUnidades());
+        assertEquals(200, result.getLinhas().get(1).getUnidades());
+        assertEquals(50, result.getLinhas().get(2).getUnidades());
+    }
+
+    @Test
+    public void testLerCaixasSemUnidades() {
+        System.out.println("ler (caixas sem o total em unidades)");
+        try {
+            instance.ler(ficheiro("entrega-caixas-sem-unidades.xml"));
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("A linha 1 vem em Caixa e o ficheiro não indica quantas unidades tem.",
+                    expected.getMessage());
+        }
     }
 
     @Test

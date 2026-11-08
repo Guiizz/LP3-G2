@@ -20,9 +20,10 @@ public class ResumoEntrega {
     private final LocalDateTime carregadaEm;
     private final BigDecimal total;
     private final EstadoEntrega estado;
+    private final String motivoRecusa;
 
     /**
-     * Cria o resumo de uma entrega.
+     * Cria o resumo de uma entrega, sem motivo de recusa.
      *
      * @param numeroEncomenda o número da encomenda
      * @param tiposDeMaterial quantos materiais diferentes a entrega tem
@@ -31,11 +32,27 @@ public class ResumoEntrega {
      * @param estado          o estado da entrega (pendente, aceite ou recusada)
      */
     public ResumoEntrega(String numeroEncomenda, int tiposDeMaterial, LocalDateTime carregadaEm, BigDecimal total, EstadoEntrega estado) {
+        this(numeroEncomenda, tiposDeMaterial, carregadaEm, total, estado, null);
+    }
+
+    /**
+     * Cria o resumo de uma entrega, com o motivo da recusa.
+     *
+     * @param numeroEncomenda o número da encomenda
+     * @param tiposDeMaterial quantos materiais diferentes a entrega tem
+     * @param carregadaEm     quando a entrega foi carregada
+     * @param total           o total da entrega, em euros
+     * @param estado          o estado da entrega (pendente, aceite ou recusada)
+     * @param motivoRecusa    o motivo escrito por quem recusou, ou {@code null} se não houve
+     */
+    public ResumoEntrega(String numeroEncomenda, int tiposDeMaterial, LocalDateTime carregadaEm, BigDecimal total,
+                         EstadoEntrega estado, String motivoRecusa) {
         this.numeroEncomenda = numeroEncomenda;
         this.tiposDeMaterial = tiposDeMaterial;
         this.carregadaEm = carregadaEm;
         this.total = total;
         this.estado = estado;
+        this.motivoRecusa = motivoRecusa;
     }
 
     public String getNumeroEncomenda() {
@@ -59,13 +76,25 @@ public class ResumoEntrega {
     }
 
     /**
+     * @return o motivo da recusa, ou {@code null} se a entrega não foi recusada ou não tem motivo
+     */
+    public String getMotivoRecusa() {
+        return motivoRecusa;
+    }
+
+    /**
      * Escreve a data em que a entrega foi carregada, até ao segundo e com o fuso horário,
      * para mostrar no ecrã.
      *
      * @return a data e hora, por exemplo {@code 05/11/2026 21:24:38 (Europe/Lisbon)}
      */
     public String getCarregadaEmTexto() {
-        return carregadaEm.atZone(FUSO).format(FORMATO);
+        return escreverData(carregadaEm);
+    }
+
+    // escreve uma data e hora no formato dos ecrãs, até ao segundo e com o fuso horário
+    static String escreverData(LocalDateTime data) {
+        return data.atZone(FUSO).format(FORMATO);
     }
 
     @Override
