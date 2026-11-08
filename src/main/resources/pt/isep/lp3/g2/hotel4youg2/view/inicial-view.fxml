@@ -21,6 +21,7 @@
             <Button text="Pesquisar cliente" onAction="#aoPesquisarCliente" maxWidth="Infinity"/>
             <Button text="Registar cliente" onAction="#aoRegistarCliente" maxWidth="Infinity"/>
             <Button text="Sugestões e queixas" onAction="#aoAbrirSugestoes" maxWidth="Infinity"/>
+            <Button text="Acesso com cartão" onAction="#aoAbrirAcessoCartao" maxWidth="Infinity"/>
             <Button text="Entregas (XML)" onAction="#aoAbrirEntregas" maxWidth="Infinity"/>
             <Button fx:id="servicosButton" text="Serviços" onAction="#aoAbrirServicos" maxWidth="Infinity"/>
             <Button fx:id="tarifasButton" text="Tarifas" onAction="#aoAbrirTarifas" maxWidth="Infinity"/>
