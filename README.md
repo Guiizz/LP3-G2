@@ -43,8 +43,8 @@ Todos dentro de `pt.isep.lp3.g2.hotel4youg2`:
 | Pacote | Função |
 |---|---|
 | `model` | Entidades do negócio e enumerações |
-| `dal` | Acesso a dados: a ligação (`ConexaoBD`), as interfaces `I...DAL` e as classes `...DAL` que falam com a base de dados |
-| `bll` | Regras de negócio e validações (classes `...BLL`) |
+| `dal` | Acesso a dados: a ligação (`ConexaoBD`) e, depois, os repositórios |
+| `bll` | Regras de negócio e validações |
 | `controller` | Controladores JavaFX, que ligam os ecrãs à BLL |
 | `util` | Classes de apoio |
 
