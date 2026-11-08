@@ -112,6 +112,11 @@ public class InicialController {
     }
 
     @FXML
+    private void aoAbrirSaidaStock() throws IOException {
+        Navegador.mostrar("saida-stock-view.fxml");
+    }
+
+    @FXML
     private void aoAbrirServicos() throws IOException {
         if (podeAbrirEcraDeGestor()) {
             Navegador.mostrar("servicos-view.fxml");
