@@ -77,6 +77,27 @@ public class AcessoCartaoBLL {
         return acessoDAL.listarPorCartao(normalizar(cartao));
     }
 
+    public List<AcessoCartao> consultarPorCartao(Utilizador quemAge, String cartao) {
+        Permissoes.exigirGestor(quemAge);
+        String numero = normalizar(cartao);
+        if (numero.isEmpty()) {
+            throw new IllegalArgumentException("Escreva o número do cartão.");
+        }
+        return acessoDAL.listarPorCartao(numero);
+    }
+
+    public List<AcessoCartao> consultarPorQuarto(Utilizador quemAge, String quarto) {
+        Permissoes.exigirGestor(quemAge);
+        String numero = quarto == null ? "" : quarto.trim();
+        if (numero.isEmpty()) {
+            throw new IllegalArgumentException("Indique o número do quarto.");
+        }
+        if (!numero.matches("\\d{1,9}")) {
+            throw new IllegalArgumentException("O número do quarto tem de ser um número inteiro.");
+        }
+        return acessoDAL.listarPorQuarto(Integer.parseInt(numero));
+    }
+
     private void exigirAcesso(String cartao, Reserva reserva, LocalHotel local, int quarto) {
         if (local == LocalHotel.QUARTO) {
             if (quarto != reserva.getQuartoNumero()) {

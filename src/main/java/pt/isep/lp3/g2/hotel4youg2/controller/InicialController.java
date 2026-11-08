@@ -50,6 +50,9 @@ public class InicialController {
     private Button horarioButton;
 
     @FXML
+    private Button consultarAcessosButton;
+
+    @FXML
     private void initialize() {
         Navegador.iniciar(raiz);
         Utilizador utilizador = Sessao.getUtilizador();
@@ -64,6 +67,7 @@ public class InicialController {
         mostrar(servicosButton, gestor);
         mostrar(consultarSugestoesButton, gestor);
         mostrar(horarioButton, gestor);
+        mostrar(consultarAcessosButton, gestor);
     }
 
     @FXML
@@ -136,6 +140,13 @@ public class InicialController {
     private void aoConsultarSugestoes() throws IOException {
         if (podeAbrirEcraDeGestor()) {
             Navegador.mostrar("consultar-sugestoes-view.fxml");
+        }
+    }
+
+    @FXML
+    private void aoConsultarAcessos() throws IOException {
+        if (podeAbrirEcraDeGestor()) {
+            Navegador.mostrar("consultar-acessos-view.fxml");
         }
     }
 

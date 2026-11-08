@@ -26,7 +26,7 @@ public class NavegadorTest {
                 "utilizadores-view.fxml", "criar-conta-view.fxml", "servicos-view.fxml", "reservas-view.fxml",
                 "entregas-view.fxml", "registar-cliente-view.fxml", "pesquisar-cliente-view.fxml",
                 "sugestoes-view.fxml", "consultar-sugestoes-view.fxml", "criar-fornecedor-view.fxml",
-                "fornecedor-view.fxml", "decidir-entregas-view.fxml"};
+                "fornecedor-view.fxml", "decidir-entregas-view.fxml", "consultar-acessos-view.fxml"};
         for (String ecra : ecras) {
             assertNotNull(Navegador.localizar(ecra), ecra);
         }
