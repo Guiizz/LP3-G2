@@ -29,13 +29,14 @@ public interface IFornecedorDAL {
     int criar(Fornecedor fornecedor);
 
     /**
-     * Define a conta (hash e salt da password) de um fornecedor que já existe, por exemplo
-     * porque foi criado a partir de uma entrega e ainda não tinha conta.
+     * Define a conta (hash e salt da password) de um fornecedor que já existe mas ainda não tem
+     * password, por exemplo porque foi criado a partir de uma entrega. Não altera uma password
+     * que já exista.
      *
      * @param fornecedorId o id do fornecedor
      * @param passwordHash o hash da password, em hexadecimal
      * @param passwordSalt o salt usado, em hexadecimal
-     * @return {@code true} se o fornecedor existia e foi alterado
+     * @return {@code true} se o fornecedor existia sem password e foi alterado
      * @throws DataAccessException se não for possível alterar a base de dados
      */
     boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt);

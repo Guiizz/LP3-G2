@@ -83,7 +83,9 @@ public class FornecedorBLL {
             if (fornecedor.getPasswordHash() != null) {
                 throw new IllegalArgumentException("Já existe um fornecedor com o código " + codigoLimpo + ".");
             }
-            fornecedorDAL.definirPassword(fornecedor.getId(), hash, salt);
+            if (!fornecedorDAL.definirPassword(fornecedor.getId(), hash, salt)) {
+                throw new IllegalArgumentException("Já existe um fornecedor com o código " + codigoLimpo + ".");
+            }
             fornecedor.definirPassword(hash, salt);
             return fornecedor;
         }

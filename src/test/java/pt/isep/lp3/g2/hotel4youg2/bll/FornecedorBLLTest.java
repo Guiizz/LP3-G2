@@ -23,6 +23,7 @@ class FornecedorBLLTest {
     private static class FornecedorDALFalso implements IFornecedorDAL {
         private final Map<String, Fornecedor> fornecedores = new HashMap<>();
         private int passwordsDefinidas;
+        private boolean passwordFoiDefinida = true;
 
         @Override
         public Optional<Fornecedor> procurarPorCodigo(String codigo) {
@@ -39,7 +40,7 @@ class FornecedorBLLTest {
         @Override
         public boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt) {
             passwordsDefinidas++;
-            return true;
+            return passwordFoiDefinida;
         }
     }
 
@@ -122,6 +123,17 @@ class FornecedorBLLTest {
         assertEquals(1, fornecedorDAL.passwordsDefinidas);
         assertNotNull(result.getPasswordHash());
         assertEquals(1, fornecedorDAL.fornecedores.size());
+    }
+
+    @Test
+    public void testCriarQuandoOutroGestorDefiniuAPasswordEntretanto() {
+        System.out.println("criar (outro gestor definiu a password ao mesmo tempo)");
+        Fornecedor semConta = new Fornecedor(5, "F-2", "Fornecedor Dois", "Rua A", "", "Porto", "4000", "Portugal", "PT");
+        fornecedorDAL.fornecedores.put("F-2", semConta);
+        fornecedorDAL.passwordFoiDefinida = false;
+        String expResult = "Já existe um fornecedor com o código F-2.";
+        String result = mensagemDoErro(GESTOR, "F-2", "Fornecedor Dois", "Forn#2026");
+        assertEquals(expResult, result);
     }
 
     @Test

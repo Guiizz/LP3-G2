@@ -20,7 +20,7 @@ public class FornecedorDAL implements IFornecedorDAL {
             "INSERT INTO Fornecedor (codigo, nome, passwordHash, passwordSalt) OUTPUT INSERTED.id "
             + "VALUES (?, ?, ?, ?)";
     private static final String DEFINIR_PASSWORD =
-            "UPDATE Fornecedor SET passwordHash = ?, passwordSalt = ? WHERE id = ?";
+            "UPDATE Fornecedor SET passwordHash = ?, passwordSalt = ? WHERE id = ? AND passwordHash IS NULL";
 
     @Override
     public int criar(Fornecedor fornecedor) {

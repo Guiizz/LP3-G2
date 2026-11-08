@@ -23,7 +23,7 @@ public class FornecedorDALTest {
         try {
             List<Integer> colunas = ConexaoBD.select("SELECT CASE WHEN COL_LENGTH('Fornecedor', 'passwordHash') "
                     + "IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
-            Assumptions.assumeTrue(colunas.get(0) == 1, "Falta correr o 10_entregas_estado_fornecedor_stock.sql");
+            Assumptions.assumeTrue(colunas.get(0) == 1, "Falta correr o 11_entregas_estado_fornecedor_stock.sql");
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
         }
@@ -79,12 +79,24 @@ public class FornecedorDALTest {
     @Test
     public void testDefinirPassword() {
         System.out.println("definirPassword");
-        int id = instance.procurarPorCodigo(codigo).orElseThrow().getId();
+        codigoCriado = codigo + "N";
+        ConexaoBD.executar("INSERT INTO Fornecedor (codigo, nome) VALUES (?, ?)", codigoCriado, "Sem conta");
+        int id = instance.procurarPorCodigo(codigoCriado).orElseThrow().getId();
         boolean expResult = true;
         boolean result = instance.definirPassword(id, "e".repeat(64), "f".repeat(32));
         assertEquals(expResult, result);
-        Fornecedor atualizado = instance.procurarPorCodigo(codigo).orElseThrow();
+        Fornecedor atualizado = instance.procurarPorCodigo(codigoCriado).orElseThrow();
         assertEquals("e".repeat(64), atualizado.getPasswordHash());
         assertEquals("f".repeat(32), atualizado.getPasswordSalt());
+    }
+
+    @Test
+    public void testDefinirPasswordQueJaExiste() {
+        System.out.println("definirPassword (já tem password)");
+        int id = instance.procurarPorCodigo(codigo).orElseThrow().getId();
+        boolean expResult = false;
+        boolean result = instance.definirPassword(id, "e".repeat(64), "f".repeat(32));
+        assertEquals(expResult, result);
+        assertEquals("a".repeat(64), instance.procurarPorCodigo(codigo).orElseThrow().getPasswordHash());
     }
 }
