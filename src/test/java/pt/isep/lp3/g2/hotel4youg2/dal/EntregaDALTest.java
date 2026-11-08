@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class EntregaDALTest {
 
@@ -263,6 +264,25 @@ public class EntregaDALTest {
         boolean expResult = false;
         boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
         assertEquals(expResult, result);
+        assertEquals(500, quantidadeEmStock("M-1"));
+    }
+
+    @Test
+    public void testAceitarEntregaSemUnidades() {
+        System.out.println("aceitar (linha sem o total em unidades)");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        ConexaoBD.executar("UPDATE LinhaEntrega SET unidades = NULL WHERE entregaId = ? AND numeroLinha = 1",
+                entregaPendente.getId());
+        String expResult = "A entrega tem linhas sem o total em unidades. Peça ao fornecedor para a voltar a enviar.";
+        String result = null;
+        try {
+            instance.aceitar(entregaPendente.getId(), funcionarioId);
+            fail("Devia ter recusado a entrega");
+        } catch (IllegalStateException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
         assertEquals(500, quantidadeEmStock("M-1"));
     }
 

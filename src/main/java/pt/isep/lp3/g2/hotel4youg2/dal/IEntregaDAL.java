@@ -75,6 +75,8 @@ public interface IEntregaDAL {
      * @param entregaId     o id da entrega
      * @param funcionarioId o id do funcionário que a aceita
      * @return {@code true} se a entrega estava pendente e foi aceite; {@code false} se já tinha sido decidida
+     * @throws IllegalStateException se alguma linha da entrega não tiver o total em unidades; nesse caso
+     *                               nada é alterado
      */
     boolean aceitar(int entregaId, int funcionarioId);
 

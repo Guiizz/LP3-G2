@@ -72,7 +72,10 @@ public class EntregaDAL implements IEntregaDAL {
             + "WHERE id = ? AND estado = 'PENDENTE'";
     private static final String INSERIR_STOCK_EM_FALTA =
             "INSERT INTO Stock (materialId, quantidade) SELECT DISTINCT l.materialId, 0 FROM LinhaEntrega l "
-            + "WHERE l.entregaId = ? AND NOT EXISTS (SELECT 1 FROM Stock s WHERE s.materialId = l.materialId)";
+            + "WHERE l.entregaId = ? AND NOT EXISTS (SELECT 1 FROM Stock s WITH (UPDLOCK, HOLDLOCK) "
+            + "WHERE s.materialId = l.materialId)";
+    private static final String CONTAR_LINHAS_SEM_UNIDADES =
+            "SELECT COUNT(*) FROM LinhaEntrega WHERE entregaId = ? AND unidades IS NULL";
     private static final String SOMAR_AO_STOCK =
             "UPDATE s SET s.quantidade = s.quantidade + t.soma FROM Stock s JOIN "
             + "(SELECT materialId, SUM(unidades) AS soma FROM LinhaEntrega WHERE entregaId = ? GROUP BY materialId) t "
@@ -171,6 +174,12 @@ public class EntregaDAL implements IEntregaDAL {
                 if (alteradas == 0) {
                     conn.rollback();
                     return false;
+                }
+                // entregas antigas em caixas podem não ter o total em unidades: não se aceitam, para não errar o stock
+                if (procurarId(conn, CONTAR_LINHAS_SEM_UNIDADES, entregaId) > 0) {
+                    conn.rollback();
+                    throw new IllegalStateException("A entrega tem linhas sem o total em unidades. "
+                            + "Peça ao fornecedor para a voltar a enviar.");
                 }
                 creditarStock(conn, entregaId);
                 conn.commit();
