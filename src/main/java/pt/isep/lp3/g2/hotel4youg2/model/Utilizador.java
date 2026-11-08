@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import java.util.Objects;
+
 /**
  * Conta de acesso de um funcionário à aplicação.
  * A password nunca é guardada: só o hash (SHA-256) e o salt, em hexadecimal.
@@ -87,5 +89,31 @@ public class Utilizador {
         this.passwordSalt = passwordSalt;
         this.perfil = perfil;
         this.ativo = ativo;
+    }
+
+    /**
+     * Duas contas são iguais se tiverem os mesmos dados (incluindo o hash e o salt da password).
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Utilizador)) {
+            return false;
+        }
+        Utilizador outro = (Utilizador) o;
+        return id == outro.id
+                && funcionarioId == outro.funcionarioId
+                && ativo == outro.ativo
+                && perfil == outro.perfil
+                && Objects.equals(nomeUtilizador, outro.nomeUtilizador)
+                && Objects.equals(passwordHash, outro.passwordHash)
+                && Objects.equals(passwordSalt, outro.passwordSalt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo);
     }
 }

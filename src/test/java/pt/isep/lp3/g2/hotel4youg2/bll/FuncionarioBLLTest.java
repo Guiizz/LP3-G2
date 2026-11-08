@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.IFuncionarioDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
@@ -9,16 +11,21 @@ import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-class FuncionarioBLLTest {
+/**
+ * Testes unitários da classe FuncionarioBLL.
+ */
+public class FuncionarioBLLTest {
 
-    private static class DALFalsa implements IFuncionarioDAL {
-        boolean nifExiste = false;
-        boolean nomeExiste = false;
-        int chamadas = 0;
-        Funcionario funcionarioGravado;
-        Utilizador contaGravada;
+    /** Repositório de teste: guarda a conta em memória em vez de ir à base de dados. */
+    private static class FuncionarioDALFalso implements IFuncionarioDAL {
+        private boolean nifExiste = false;
+        private boolean nomeExiste = false;
+        private int contasCriadas = 0;
+        private Funcionario funcionarioGravado;
+        private Utilizador contaGravada;
 
         @Override
         public boolean existeNif(String nif) {
@@ -32,126 +39,221 @@ class FuncionarioBLLTest {
 
         @Override
         public void criarConta(Funcionario funcionario, Utilizador utilizador) {
-            chamadas++;
+            contasCriadas++;
             funcionarioGravado = funcionario;
             contaGravada = utilizador;
         }
     }
 
-    private final DALFalsa dal = new DALFalsa();
-    private final PasswordUtils passwordUtils = new PasswordUtils();
-    private final FuncionarioBLL bll = new FuncionarioBLL(dal, passwordUtils);
-    private final Utilizador gestor = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
+    private FuncionarioDALFalso dal;
+    private PasswordUtils passwordUtils;
+    private FuncionarioBLL instance;
+    private Utilizador gestor;
+    private Funcionario dados;
 
-    private static Funcionario dados(String nome, String nif, String email, LocalDate nascimento) {
-        return new Funcionario(0, nome, null, nif, null, null, nascimento, email, 0, null);
+    @BeforeEach
+    public void setUp() {
+        dal = new FuncionarioDALFalso();
+        passwordUtils = new PasswordUtils();
+        instance = new FuncionarioBLL(dal, passwordUtils);
+        gestor = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
+        dados = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0, null);
     }
 
-    private void criarValida() {
-        bll.criarConta(gestor, dados("Ana Silva", "123456789", null, null),
-                "ana.silva", "password123", Perfil.RECECIONISTA);
+    @AfterEach
+    public void tearDown() {
+        dal = null;
+        instance = null;
+        dados = null;
+    }
+
+    // devolve a mensagem de erro ao criar a conta, ou null se a conta foi criada
+    private String mensagemAoCriar(Utilizador quemAge, Funcionario funcionario, String nomeUtilizador,
+                                   String password, Perfil perfil) {
+        try {
+            instance.criarConta(quemAge, funcionario, nomeUtilizador, password, perfil);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
     }
 
     @Test
-    void gestorCriaContaComSucesso() {
-        criarValida();
-
-        assertEquals(1, dal.chamadas);
-        assertEquals("Ana Silva", dal.funcionarioGravado.getNome());
-        assertEquals(LocalDate.now(), dal.funcionarioGravado.getDataAdmissao());
-        assertEquals("ana.silva", dal.contaGravada.getNomeUtilizador());
-        assertEquals(Perfil.RECECIONISTA, dal.contaGravada.getPerfil());
-        assertTrue(dal.contaGravada.isAtivo());
+    public void testCriarContaGravaOFuncionario() {
+        System.out.println("criarConta (grava o funcionário)");
+        Funcionario expResult = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
+                LocalDate.now());
+        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        Funcionario result = dal.funcionarioGravado;
+        assertEquals(expResult, result);
     }
 
     @Test
-    void passwordGuardadaComHashESaltNaoEmTexto() {
-        criarValida();
+    public void testCriarContaGravaAConta() {
+        System.out.println("criarConta (grava a conta de acesso)");
+        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        Utilizador result = dal.contaGravada;
+        Utilizador expResult = new Utilizador(0, 0, "ana.silva",
+                passwordUtils.hashPassword("password123", result.getPasswordSalt()), result.getPasswordSalt(),
+                Perfil.RECECIONISTA, true);
+        assertEquals(expResult, result);
+        assertEquals(1, dal.contasCriadas);
+    }
 
+    @Test
+    public void testCriarContaPasswordNaoFicaEmTexto() {
+        System.out.println("criarConta (password guardada com hash e salt)");
+        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
         Utilizador conta = dal.contaGravada;
         assertNotEquals("password123", conta.getPasswordHash());
         assertEquals(64, conta.getPasswordHash().length());
         assertEquals(32, conta.getPasswordSalt().length());
-        assertTrue(passwordUtils.verificarPassword("password123", conta.getPasswordSalt(), conta.getPasswordHash()));
     }
 
     @Test
-    void camposOpcionaisVaziosFicamNulos() {
-        bll.criarConta(gestor, new Funcionario(0, "Ana Silva", "  ", "123456789", "", " ", null, "", 0, null),
-                "ana.silva", "password123", Perfil.RECECIONISTA);
-
-        Funcionario f = dal.funcionarioGravado;
-        assertNull(f.getCc());
-        assertNull(f.getMorada());
-        assertNull(f.getTelemovel());
-        assertNull(f.getEmail());
-        assertNull(f.getDataNascimento());
+    public void testCriarContaPasswordConfere() {
+        System.out.println("criarConta (a password confere com o hash)");
+        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        Utilizador conta = dal.contaGravada;
+        boolean expResult = true;
+        boolean result = passwordUtils.verificarPassword("password123", conta.getPasswordSalt(),
+                conta.getPasswordHash());
+        assertEquals(expResult, result);
     }
 
     @Test
-    void rececionistaNaoPodeCriarContas() {
+    public void testCriarContaCamposOpcionaisVaziosFicamNulos() {
+        System.out.println("criarConta (campos opcionais vazios ficam nulos)");
+        Funcionario comVazios = new Funcionario(0, "Ana Silva", "  ", "123456789", "", " ", null, "", 0, null);
+        Funcionario expResult = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
+                LocalDate.now());
+        instance.criarConta(gestor, comVazios, "ana.silva", "password123", Perfil.RECECIONISTA);
+        Funcionario result = dal.funcionarioGravado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaComoRececionista() {
+        System.out.println("criarConta (rececionista não pode)");
         Utilizador rececionista = new Utilizador(2, 2, "rece", "h", "s", Perfil.RECECIONISTA, true);
-
-        assertThrows(IllegalStateException.class, () -> bll.criarConta(rececionista,
-                dados("Ana Silva", "123456789", null, null), "ana.silva", "password123", Perfil.RECECIONISTA));
-        assertEquals(0, dal.chamadas);
+        String expResult = "Só o gestor pode criar contas.";
+        String result = mensagemAoCriar(rececionista, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void nomeObrigatorio() {
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("  ", "123456789", null, null), "ana.silva", "password123", Perfil.RECECIONISTA));
-        assertEquals(0, dal.chamadas);
+    public void testCriarContaSemUtilizador() {
+        System.out.println("criarConta (sem utilizador com sessão)");
+        String expResult = "Só o gestor pode criar contas.";
+        String result = mensagemAoCriar(null, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void nifTemDeTerNoveAlgarismos() {
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("Ana Silva", "12345", null, null), "ana.silva", "password123", Perfil.RECECIONISTA));
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("Ana Silva", "12345678A", null, null), "ana.silva", "password123", Perfil.RECECIONISTA));
-        assertEquals(0, dal.chamadas);
+    public void testCriarContaSemDados() {
+        System.out.println("criarConta (sem dados do funcionário)");
+        String expResult = "Faltam os dados do funcionário.";
+        String result = mensagemAoCriar(gestor, null, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void nifRepetidoDaErro() {
+    public void testCriarContaSemNome() {
+        System.out.println("criarConta (nome vazio)");
+        dados.setNome("  ");
+        String expResult = "O nome é obrigatório (até 100 caracteres).";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
+    }
+
+    @Test
+    public void testCriarContaNifCurto() {
+        System.out.println("criarConta (NIF com poucos algarismos)");
+        dados.setNif("12345");
+        String expResult = "O NIF tem de ter 9 algarismos.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
+    }
+
+    @Test
+    public void testCriarContaNifComLetra() {
+        System.out.println("criarConta (NIF com letra)");
+        dados.setNif("12345678A");
+        String expResult = "O NIF tem de ter 9 algarismos.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
+    }
+
+    @Test
+    public void testCriarContaNifRepetido() {
+        System.out.println("criarConta (NIF repetido)");
         dal.nifExiste = true;
-
-        assertThrows(IllegalArgumentException.class, this::criarValida);
-        assertEquals(0, dal.chamadas);
+        String expResult = "Já existe uma pessoa com esse NIF.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void nomeDeUtilizadorRepetidoDaErro() {
+    public void testCriarContaNomeDeUtilizadorRepetido() {
+        System.out.println("criarConta (nome de utilizador repetido)");
         dal.nomeExiste = true;
-
-        assertThrows(IllegalArgumentException.class, this::criarValida);
-        assertEquals(0, dal.chamadas);
+        String expResult = "Esse nome de utilizador já existe.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void passwordCurtaDaErro() {
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("Ana Silva", "123456789", null, null), "ana.silva", "1234567", Perfil.RECECIONISTA));
-        assertEquals(0, dal.chamadas);
+    public void testCriarContaNomeDeUtilizadorCurto() {
+        System.out.println("criarConta (nome de utilizador curto)");
+        String expResult = "O nome de utilizador tem de ter entre 3 e 50 caracteres.";
+        String result = mensagemAoCriar(gestor, dados, "an", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void perfilObrigatorio() {
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("Ana Silva", "123456789", null, null), "ana.silva", "password123", null));
+    public void testCriarContaPasswordCurta() {
+        System.out.println("criarConta (password curta)");
+        String expResult = "A password tem de ter pelo menos 8 caracteres.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "1234567", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void emailInvalidoDaErro() {
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("Ana Silva", "123456789", "sem-arroba", null), "ana.silva", "password123", Perfil.RECECIONISTA));
+    public void testCriarContaSemPerfil() {
+        System.out.println("criarConta (sem perfil)");
+        String expResult = "Escolha o perfil.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", null);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 
     @Test
-    void dataDeNascimentoNoFuturoDaErro() {
-        assertThrows(IllegalArgumentException.class, () -> bll.criarConta(gestor,
-                dados("Ana Silva", "123456789", null, LocalDate.now().plusDays(1)),
-                "ana.silva", "password123", Perfil.RECECIONISTA));
+    public void testCriarContaEmailInvalido() {
+        System.out.println("criarConta (email inválido)");
+        dados.setEmail("sem-arroba");
+        String expResult = "O email não é válido.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
+    }
+
+    @Test
+    public void testCriarContaNascimentoNoFuturo() {
+        System.out.println("criarConta (data de nascimento no futuro)");
+        dados.setDataNascimento(LocalDate.now().plusDays(1));
+        String expResult = "A data de nascimento não pode ser no futuro.";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
     }
 }

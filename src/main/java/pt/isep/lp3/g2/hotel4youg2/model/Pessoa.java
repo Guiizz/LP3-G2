@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * Dados comuns a todas as pessoas do hotel (clientes e funcionários).
@@ -99,5 +100,32 @@ public abstract class Pessoa {
         this.telemovel = telemovel;
         this.dataNascimento = dataNascimento;
         this.email = email;
+    }
+
+    /**
+     * Duas pessoas são iguais se forem do mesmo tipo (cliente ou funcionário) e tiverem os mesmos dados.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Pessoa outra = (Pessoa) o;
+        return id == outra.id
+                && Objects.equals(nome, outra.nome)
+                && Objects.equals(cc, outra.cc)
+                && Objects.equals(nif, outra.nif)
+                && Objects.equals(morada, outra.morada)
+                && Objects.equals(telemovel, outra.telemovel)
+                && Objects.equals(dataNascimento, outra.dataNascimento)
+                && Objects.equals(email, outra.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, nome, cc, nif, morada, telemovel, dataNascimento, email);
     }
 }
