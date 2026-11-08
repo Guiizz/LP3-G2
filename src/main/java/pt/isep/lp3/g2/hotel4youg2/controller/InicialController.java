@@ -83,6 +83,7 @@ public class InicialController {
 
     @FXML
     private void aoAbrirServicos() throws IOException {
+        Permissoes.exigirGestor(Sessao.getUtilizador());
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Tabela de preços", "servicos-view.fxml", false));
         Navegador.mostrarArea("Serviços", opcoes);
@@ -98,6 +99,7 @@ public class InicialController {
 
     @FXML
     private void aoAbrirAdministracao() throws IOException {
+        Permissoes.exigirGestor(Sessao.getUtilizador());
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Contas", "utilizadores-view.fxml", false));
         opcoes.add(new OpcaoMenu("Criar conta", "criar-conta-view.fxml", true));

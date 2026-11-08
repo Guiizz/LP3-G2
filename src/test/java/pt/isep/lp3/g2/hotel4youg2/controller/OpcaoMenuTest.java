@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OpcaoMenuTest {
@@ -59,7 +58,8 @@ public class OpcaoMenuTest {
     @Test
     public void testFicheiroExiste() {
         System.out.println("o ficheiro da opção existe");
-        assertNotNull(Navegador.localizar(ecra.getFicheiro()));
-        assertNotNull(Navegador.localizar(formulario.getFicheiro()));
+        String expResult = "/pt/isep/lp3/g2/hotel4youg2/view/gerir-reservas-view.fxml";
+        String result = Navegador.localizar(ecra.getFicheiro()).getPath();
+        assertTrue(result.endsWith(expResult));
     }
 }
