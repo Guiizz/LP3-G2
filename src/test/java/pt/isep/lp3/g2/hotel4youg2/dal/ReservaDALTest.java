@@ -260,4 +260,43 @@ public class ReservaDALTest {
         boolean result = instance.inserirSeLivre(comEarly);
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testProcurarEmCursoPorCartao() {
+        System.out.println("procurarEmCursoPorCartao");
+        Assumptions.assumeTrue(reserva.getId() > 0, "O quarto estava ocupado nessas datas");
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now().withNano(0));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
+        Integer expResult = reserva.getId();
+        Reserva encontrada = instance.procurarEmCursoPorCartao(reserva.getCartao());
+        Integer result = encontrada == null ? null : encontrada.getId();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testProcurarEmCursoPorCartaoInexistente() {
+        System.out.println("procurarEmCursoPorCartao (cartão sem reserva em curso)");
+        Reserva expResult = null;
+        Reserva result = instance.procurarEmCursoPorCartao("C999");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testProcurarEmCursoPorCartaoDepoisDoCheckout() {
+        System.out.println("procurarEmCursoPorCartao (depois do check-out)");
+        Assumptions.assumeTrue(reserva.getId() > 0, "O quarto estava ocupado nessas datas");
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now().withNano(0));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        reserva.setCheckoutEm(reserva.getCheckinEm().plusHours(1));
+        assertEquals(true, instance.registarCheckout(reserva), "O check-out de preparação devia ter sido registado");
+        boolean expResult = false;
+        Reserva encontrada = instance.procurarEmCursoPorCartao(reserva.getCartao());
+        boolean result = encontrada != null && encontrada.getId() == reserva.getId();
+        assertEquals(expResult, result);
+    }
 }

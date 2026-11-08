@@ -40,6 +40,9 @@ public class ReservaDAL implements IReservaDAL {
 
     private static final String PROCURAR_POR_ID = SELECT_RESERVA + "WHERE id = ?";
 
+    private static final String PROCURAR_EM_CURSO_POR_CARTAO =
+            SELECT_RESERVA + "WHERE cartao = ? AND estado = 'EM_CURSO' ORDER BY checkinEm DESC";
+
     private static final String LISTAR = SELECT_RESERVA + "ORDER BY dataEntrada DESC";
 
     private static final String LISTAR_POR_CLIENTE =
@@ -98,6 +101,12 @@ public class ReservaDAL implements IReservaDAL {
     @Override
     public Reserva procurarPorId(int id) {
         List<Reserva> reservas = ConexaoBD.select(PROCURAR_POR_ID, new ReservaMapper(), id);
+        return reservas.isEmpty() ? null : reservas.get(0);
+    }
+
+    @Override
+    public Reserva procurarEmCursoPorCartao(String cartao) {
+        List<Reserva> reservas = ConexaoBD.select(PROCURAR_EM_CURSO_POR_CARTAO, new ReservaMapper(), cartao);
         return reservas.isEmpty() ? null : reservas.get(0);
     }
 
