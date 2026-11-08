@@ -48,6 +48,7 @@ public class AcessoCartaoController {
                     localCombo.getValue(), quarto);
             Mensagens.sucesso(mensagemLabel, "Acesso permitido: cartão " + acesso.getCartao() + " em "
                     + acesso.getLocalTexto() + " às " + acesso.getRegistadoEmTexto() + ".");
+            atualizarTabela();
         } catch (ValidacaoException e) {
             mostrarErro(e.getMessage());
             atualizarTabela();
