@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class EntregaBLLTest {
@@ -30,6 +31,8 @@ public class EntregaBLLTest {
     private static class EntregaDALFalsa implements IEntregaDAL {
         final List<Entrega> registadas = new ArrayList<>();
         int ultimoFuncionario;
+        int ultimoDecisor;
+        String ultimoMotivo;
 
         @Override
         public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
@@ -108,17 +111,38 @@ public class EntregaBLLTest {
 
         @Override
         public boolean aceitar(int entregaId, int funcionarioId) {
+            for (Entrega e : registadas) {
+                if (e.getId() == entregaId && e.getEstado() == EstadoEntrega.PENDENTE) {
+                    e.setEstado(EstadoEntrega.ACEITE);
+                    ultimoDecisor = funcionarioId;
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         public boolean recusar(int entregaId, int funcionarioId, String motivo) {
+            for (Entrega e : registadas) {
+                if (e.getId() == entregaId && e.getEstado() == EstadoEntrega.PENDENTE) {
+                    e.setEstado(EstadoEntrega.RECUSADA);
+                    ultimoDecisor = funcionarioId;
+                    ultimoMotivo = motivo;
+                    return true;
+                }
+            }
             return false;
         }
 
         @Override
         public List<ResumoEntregaHotel> listarParaHotel() {
-            return new ArrayList<>();
+            List<ResumoEntregaHotel> resumos = new ArrayList<>();
+            for (Entrega e : registadas) {
+                resumos.add(new ResumoEntregaHotel(e.getId(), e.getNumeroEncomenda(), e.getFornecedor().getNome(),
+                        contarMateriais(e), LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado(),
+                        null, null, null));
+            }
+            return resumos;
         }
 
         private int contarMateriais(Entrega entrega) {
@@ -390,6 +414,177 @@ public class EntregaBLLTest {
             result.add(resumo.getEstado());
         }
         assertEquals(expResult, result);
+    }
+
+    // tenta recusar e devolve a mensagem do erro; devolve null se não houve erro
+    private String mensagemAoRecusar(Utilizador quemAge, int entregaId, String motivo) {
+        try {
+            instance.recusar(quemAge, entregaId, motivo);
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        } catch (IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    // tenta aceitar e devolve a mensagem do erro; devolve null se não houve erro
+    private String mensagemAoAceitar(Utilizador quemAge, int entregaId) {
+        try {
+            instance.aceitar(quemAge, entregaId);
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        } catch (IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    @Test
+    public void testAceitar() {
+        System.out.println("aceitar");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.aceitar(RECECAO, entrega.getId());
+        assertEquals(EstadoEntrega.ACEITE, entrega.getEstado());
+        assertEquals(7, entregaDAL.ultimoDecisor);
+    }
+
+    @Test
+    public void testAceitarSemSessao() {
+        System.out.println("aceitar (sem sessão)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = "Entre na aplicação para decidir entregas.";
+        String result = mensagemAoAceitar(null, entrega.getId());
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
+    }
+
+    @Test
+    public void testAceitarQueNaoExiste() {
+        System.out.println("aceitar (não existe)");
+        String expResult = "A entrega não existe.";
+        String result = mensagemAoAceitar(RECECAO, 99);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAceitarJaDecidida() {
+        System.out.println("aceitar (já foi decidida)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.aceitar(RECECAO, entrega.getId());
+        String expResult = "Esta entrega já foi decidida.";
+        String result = mensagemAoAceitar(RECECAO, entrega.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRecusar() {
+        System.out.println("recusar");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.recusar(RECECAO, entrega.getId(), "Faltam toalhas");
+        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
+        assertEquals("Faltam toalhas", entregaDAL.ultimoMotivo);
+        assertEquals(7, entregaDAL.ultimoDecisor);
+    }
+
+    @Test
+    public void testRecusarSemMotivo() {
+        System.out.println("recusar (sem motivo)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.recusar(RECECAO, entrega.getId(), "   ");
+        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
+        assertNull(entregaDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRecusarMotivoSoComSimbolos() {
+        System.out.println("recusar (motivo só com símbolos)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.recusar(RECECAO, entrega.getId(), "....................");
+        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
+        assertNull(entregaDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRecusarMotivoComSimbolosEUmaPalavra() {
+        System.out.println("recusar (motivo com símbolos e uma palavra)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.recusar(RECECAO, entrega.getId(), "... Atrasada!");
+        assertEquals("... Atrasada!", entregaDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRecusarMotivoComMuitosSimbolos() {
+        System.out.println("recusar (201 pontos não dá erro, não há motivo)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        assertNull(mensagemAoRecusar(RECECAO, entrega.getId(), ".".repeat(201)));
+        assertNull(entregaDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRecusarTiraOsEspacosDoMotivo() {
+        System.out.println("recusar (tira os espaços do motivo)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.recusar(RECECAO, entrega.getId(), "  Faltam toalhas  ");
+        assertEquals("Faltam toalhas", entregaDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRecusarMotivoComMuitosCaracteres() {
+        System.out.println("recusar (motivo com 201 caracteres)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = "O motivo pode ter no máximo 200 caracteres.";
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(201));
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
+    }
+
+    @Test
+    public void testRecusarMotivoComOLimiteDeCaracteres() {
+        System.out.println("recusar (motivo com 200 caracteres)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        assertNull(mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(200)));
+        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
+    }
+
+    @Test
+    public void testRecusarSemSessao() {
+        System.out.println("recusar (sem sessão)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = "Entre na aplicação para decidir entregas.";
+        String result = mensagemAoRecusar(null, entrega.getId(), "Motivo");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRecusarJaAceite() {
+        System.out.println("recusar (já foi aceite)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.aceitar(RECECAO, entrega.getId());
+        String expResult = "Esta entrega já foi decidida.";
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "Tarde de mais");
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.ACEITE, entrega.getEstado());
+    }
+
+    @Test
+    public void testListarParaHotel() {
+        System.out.println("listarParaHotel");
+        entregaPendente("PENDENTE-1");
+        List<ResumoEntregaHotel> result = instance.listarParaHotel(RECECAO);
+        assertEquals(1, result.size());
+        assertEquals("PENDENTE-1", result.get(0).getNumeroEncomenda());
+    }
+
+    @Test
+    public void testListarParaHotelSemSessao() {
+        System.out.println("listarParaHotel (sem sessão)");
+        try {
+            instance.listarParaHotel(null);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            assertEquals("Entre na aplicação para ver as entregas.", expected.getMessage());
+        }
     }
 
     @Test
