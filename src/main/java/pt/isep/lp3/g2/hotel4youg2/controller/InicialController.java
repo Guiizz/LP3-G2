@@ -97,11 +97,6 @@ public class InicialController {
     }
 
     @FXML
-    private void aoAbrirAcessoCartao() throws IOException {
-        Navegador.mostrar("acesso-cartao-view.fxml");
-    }
-
-    @FXML
     private void aoAbrirEntregas() throws IOException {
         Navegador.mostrar("entregas-view.fxml");
     }
