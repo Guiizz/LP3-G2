@@ -1,8 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
 
 import java.sql.Connection;
@@ -20,7 +22,10 @@ public class EntregaDAL implements IEntregaDAL {
 
     private static final String EXISTE_ENTREGA =
             "SELECT 1 FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId "
-            + "WHERE f.codigo = ? AND e.numeroEncomenda = ?";
+            + "WHERE f.codigo = ? AND e.numeroEncomenda = ? AND e.estado <> 'RECUSADA'";
+    private static final String CONTAR_PENDENTES =
+            "SELECT COUNT(*) FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId "
+            + "WHERE f.codigo = ? AND e.estado = 'PENDENTE'";
     private static final String PROCURAR_FORNECEDOR = "SELECT id FROM Fornecedor WHERE codigo = ?";
     private static final String INSERIR_FORNECEDOR =
             "INSERT INTO Fornecedor (codigo, nome, morada1, morada2, cidade, codigoPostal, pais, codigoPais) "
@@ -35,11 +40,14 @@ public class EntregaDAL implements IEntregaDAL {
     private static final String INSERIR_ENTREGA =
             "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, registadaPor) "
             + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?)";
+    private static final String INSERIR_ENTREGA_PENDENTE =
+            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, estado) "
+            + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, 'PENDENTE')";
     private static final String INSERIR_LINHA =
             "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, precoUnitario, "
             + "valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ENTREGA =
-            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
+            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, e.estado, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
             + "f.codigoPostal, f.pais, f.codigoPais, f.id AS fornecedorId "
             + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE e.id = ?";
     private static final String SELECT_LINHAS =
@@ -47,21 +55,46 @@ public class EntregaDAL implements IEntregaDAL {
             + "l.taxaIva, l.valorIva, l.total "
             + "FROM LinhaEntrega l JOIN Material m ON m.id = l.materialId WHERE l.entregaId = ? ORDER BY l.numeroLinha";
     private static final String APAGAR = "DELETE FROM Entrega WHERE id = ?";
+    private static final String SELECT_RESUMOS_DO_FORNECEDOR =
+            "SELECT e.numeroEncomenda, e.registadaEm, e.total, e.estado, "
+                    + "(SELECT COUNT(DISTINCT l.materialId) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS tipos "
+                    + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE f.codigo = ? "
+                    + "ORDER BY e.registadaEm DESC, e.id DESC";
 
     @Override
     public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
         return !ConexaoBD.select(EXISTE_ENTREGA, new InteiroMapper(), codigoFornecedor, numeroEncomenda).isEmpty();
     }
 
+    @Override
+    public int contarPendentes(String codigoFornecedor) {
+        return ConexaoBD.select(CONTAR_PENDENTES, new InteiroMapper(), codigoFornecedor).get(0);
+    }
+
     // grava o fornecedor, os materiais, a entrega e as linhas: ou fica tudo gravado, ou nada
     @Override
     public int registar(Entrega entrega, int funcionarioId) {
+        return gravar(entrega, INSERIR_ENTREGA, EstadoEntrega.ACEITE, funcionarioId);
+    }
+
+    @Override
+    public int carregar(Entrega entrega) {
+        return gravar(entrega, INSERIR_ENTREGA_PENDENTE, EstadoEntrega.PENDENTE);
+    }
+
+    // os parametros extra (o funcionario, quando o SQL o pede) vao no fim dos parametros da entrega
+    private int gravar(Entrega entrega, String sqlEntrega, EstadoEntrega estado, Object... extra) {
         try (Connection conn = ConexaoBD.abrir()) {
             conn.setAutoCommit(false);
             try {
                 int fornecedorId = gravarFornecedor(conn, entrega.getFornecedor());
-                int entregaId = inserir(conn, INSERIR_ENTREGA, fornecedorId, entrega.getNumeroEncomenda(),
-                        Date.valueOf(entrega.getDataEncomenda()), entrega.getTotal(), funcionarioId);
+                Object[] params = new Object[4 + extra.length];
+                params[0] = fornecedorId;
+                params[1] = entrega.getNumeroEncomenda();
+                params[2] = Date.valueOf(entrega.getDataEncomenda());
+                params[3] = entrega.getTotal();
+                System.arraycopy(extra, 0, params, 4, extra.length);
+                int entregaId = inserir(conn, sqlEntrega, params);
                 for (LinhaEntrega linha : entrega.getLinhas()) {
                     int materialId = gravarMaterial(conn, fornecedorId, linha);
                     executar(conn, INSERIR_LINHA, entregaId, linha.getNumero(), materialId, linha.getQuantidade(),
@@ -70,6 +103,7 @@ public class EntregaDAL implements IEntregaDAL {
                 }
                 conn.commit();
                 entrega.setId(entregaId);
+                entrega.setEstado(estado);
                 entrega.getFornecedor().setId(fornecedorId);
                 return entregaId;
             } catch (SQLException | RuntimeException e) {
@@ -77,7 +111,7 @@ public class EntregaDAL implements IEntregaDAL {
                 throw e;
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Erro ao registar a entrega", e);
+            throw new DataAccessException("Erro ao gravar a entrega", e);
         }
     }
 
@@ -110,6 +144,11 @@ public class EntregaDAL implements IEntregaDAL {
         return id;
     }
 
+    @Override
+    public List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor) {
+        return ConexaoBD.select(SELECT_RESUMOS_DO_FORNECEDOR, new ResumoEntregaMapper(), codigoFornecedor);
+    }
+
     private int gravarMaterial(Connection conn, int fornecedorId, LinhaEntrega linha) throws SQLException {
         Integer id = procurarId(conn, PROCURAR_MATERIAL, fornecedorId, linha.getCodigoProduto());
         if (id == null) {
@@ -122,13 +161,24 @@ public class EntregaDAL implements IEntregaDAL {
     private static class EntregaMapper implements RowMapper<Entrega> {
         @Override
         public Entrega map(ResultSet rs) throws SQLException {
-            return new Entrega(
+            Entrega entrega = new Entrega(
                     rs.getInt("id"),
                     rs.getString("numeroEncomenda"),
                     rs.getDate("dataEncomenda").toLocalDate(),
                     new Fornecedor(rs.getInt("fornecedorId"), rs.getString("codigo"), rs.getString("nome"),
                             rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
                             rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais")));
+            entrega.setEstado(EstadoEntrega.valueOf(rs.getString("estado")));
+            return entrega;
+        }
+    }
+
+    private static class ResumoEntregaMapper implements RowMapper<ResumoEntrega> {
+        @Override
+        public ResumoEntrega map(ResultSet rs) throws SQLException {
+            return new ResumoEntrega(rs.getString("numeroEncomenda"), rs.getInt("tipos"),
+                    rs.getTimestamp("registadaEm").toLocalDateTime(), rs.getBigDecimal("total"),
+                    EstadoEntrega.valueOf(rs.getString("estado")));
         }
     }
 

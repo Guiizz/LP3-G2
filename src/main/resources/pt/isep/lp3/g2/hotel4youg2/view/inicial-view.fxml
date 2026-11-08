@@ -29,6 +29,8 @@
                     onAction="#aoConsultarSugestoes" maxWidth="Infinity"/>
             <Button fx:id="contasButton" text="Contas" onAction="#aoAbrirContas" maxWidth="Infinity"/>
             <Button fx:id="criarContaButton" text="Criar conta" onAction="#aoCriarConta" maxWidth="Infinity"/>
+            <Button fx:id="fornecedoresButton" text="Criar fornecedor" onAction="#aoCriarFornecedor"
+                    maxWidth="Infinity"/>
             <Region VBox.vgrow="ALWAYS"/>
             <Button text="Terminar sessão" onAction="#aoTerminarSessao" maxWidth="Infinity"/>
         </VBox>

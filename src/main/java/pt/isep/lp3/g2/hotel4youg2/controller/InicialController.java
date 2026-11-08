@@ -38,6 +38,9 @@ public class InicialController {
     private Button criarContaButton;
 
     @FXML
+    private Button fornecedoresButton;
+
+    @FXML
     private Button servicosButton;
 
     @FXML
@@ -57,6 +60,7 @@ public class InicialController {
         mostrar(tarifasButton, gestor);
         mostrar(contasButton, gestor);
         mostrar(criarContaButton, gestor);
+        mostrar(fornecedoresButton, gestor);
         mostrar(servicosButton, gestor);
         mostrar(consultarSugestoesButton, gestor);
         mostrar(horarioButton, gestor);
@@ -136,6 +140,13 @@ public class InicialController {
     private void aoCriarConta() throws IOException {
         if (podeAbrirEcraDeGestor()) {
             Navegador.abrirFormulario("criar-conta-view.fxml", "Criar conta");
+        }
+    }
+
+    @FXML
+    private void aoCriarFornecedor() throws IOException {
+        if (podeAbrirEcraDeGestor()) {
+            Navegador.abrirFormulario("criar-fornecedor-view.fxml", "Criar fornecedor");
         }
     }
 
