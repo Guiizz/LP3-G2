@@ -17,6 +17,7 @@ public class LinhaEntrega {
     private String descricao;
     private int quantidade;
     private Unidade unidade;
+    private int unidades;
     private BigDecimal precoUnitario;
     private BigDecimal valorSemIva;
     private int taxaIva;
@@ -31,6 +32,8 @@ public class LinhaEntrega {
      * @param descricao      a descrição do material
      * @param quantidade     a quantidade entregue
      * @param unidade        a unidade em que vem
+     * @param unidades       o total em unidades, que é o que entra no stock: igual à quantidade se vier em
+     *                       unidades, ou o que o ficheiro indica se vier, por exemplo, em caixas
      * @param precoUnitario  o preço de cada unidade, sem IVA
      * @param valorSemIva    o valor da linha sem IVA
      * @param taxaIva        a taxa de IVA, em percentagem (por exemplo, 23)
@@ -38,13 +41,14 @@ public class LinhaEntrega {
      * @param total          o valor da linha com IVA
      */
     public LinhaEntrega(int numero, String codigoProduto, String descricao, int quantidade, Unidade unidade,
-                        BigDecimal precoUnitario, BigDecimal valorSemIva, int taxaIva, BigDecimal valorIva,
-                        BigDecimal total) {
+                        int unidades, BigDecimal precoUnitario, BigDecimal valorSemIva, int taxaIva,
+                        BigDecimal valorIva, BigDecimal total) {
         this.numero = numero;
         this.codigoProduto = codigoProduto;
         this.descricao = descricao;
         this.quantidade = quantidade;
         this.unidade = unidade;
+        this.unidades = unidades;
         this.precoUnitario = precoUnitario;
         this.valorSemIva = valorSemIva;
         this.taxaIva = taxaIva;
@@ -68,8 +72,35 @@ public class LinhaEntrega {
         return quantidade;
     }
 
+    public String getQuantidadeTexto() {
+        return quantidade + " " + unidade.getDescricao();
+    }
+
+    public String getPrecoTexto() {
+        return euros(precoUnitario);
+    }
+
+    public String getIvaTexto() {
+        return taxaIva + "% (" + euros(valorIva) + ")";
+    }
+
+    public String getTotalTexto() {
+        return euros(total);
+    }
+
+    private static String euros(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
+    }
+
     public Unidade getUnidade() {
         return unidade;
+    }
+
+    /**
+     * @return o total da linha em unidades, que é o que entra no stock quando a entrega é aceite
+     */
+    public int getUnidades() {
+        return unidades;
     }
 
     public BigDecimal getPrecoUnitario() {
@@ -145,8 +176,8 @@ public class LinhaEntrega {
         if (!(o instanceof LinhaEntrega outra)) {
             return false;
         }
-        return numero == outra.numero && quantidade == outra.quantidade && taxaIva == outra.taxaIva
-                && Objects.equals(codigoProduto, outra.codigoProduto) && Objects.equals(descricao, outra.descricao)
+        return numero == outra.numero && quantidade == outra.quantidade && unidades == outra.unidades
+                && taxaIva == outra.taxaIva && Objects.equals(codigoProduto, outra.codigoProduto) && Objects.equals(descricao, outra.descricao)
                 && unidade == outra.unidade && iguais(precoUnitario, outra.precoUnitario)
                 && iguais(valorSemIva, outra.valorSemIva) && iguais(valorIva, outra.valorIva)
                 && iguais(total, outra.total);
@@ -158,6 +189,6 @@ public class LinhaEntrega {
 
     @Override
     public int hashCode() {
-        return Objects.hash(numero, codigoProduto, descricao, quantidade, unidade, taxaIva);
+        return Objects.hash(numero, codigoProduto, descricao, quantidade, unidade, unidades, taxaIva);
     }
 }

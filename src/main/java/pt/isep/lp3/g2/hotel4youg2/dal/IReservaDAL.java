@@ -35,4 +35,8 @@ public interface IReservaDAL {
     boolean alterarDatasSeLivre(Reserva reserva);
 
     boolean registarCheckin(Reserva reserva);
+
+    boolean registarCheckout(Reserva reserva);
+
+    Reserva procurarEmCursoPorCartao(String cartao);
 }

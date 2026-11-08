@@ -1,10 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
@@ -47,36 +45,9 @@ public class EntregasController {
     @FXML
     private TableView<LinhaEntrega> tabela;
     @FXML
-    private TableColumn<LinhaEntrega, String> colunaLinha;
-    @FXML
-    private TableColumn<LinhaEntrega, String> colunaCodigo;
-    @FXML
-    private TableColumn<LinhaEntrega, String> colunaDescricao;
-    @FXML
-    private TableColumn<LinhaEntrega, String> colunaQuantidade;
-    @FXML
-    private TableColumn<LinhaEntrega, String> colunaPreco;
-    @FXML
-    private TableColumn<LinhaEntrega, String> colunaIva;
-    @FXML
-    private TableColumn<LinhaEntrega, String> colunaTotal;
-    @FXML
     private Label totalLabel;
     @FXML
     private Button registarButton;
-
-    @FXML
-    private void initialize() {
-        colunaLinha.setCellValueFactory(c -> new SimpleStringProperty(String.valueOf(c.getValue().getNumero())));
-        colunaCodigo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getCodigoProduto()));
-        colunaDescricao.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDescricao()));
-        colunaQuantidade.setCellValueFactory(c -> new SimpleStringProperty(
-                c.getValue().getQuantidade() + " " + c.getValue().getUnidade().getDescricao()));
-        colunaPreco.setCellValueFactory(c -> new SimpleStringProperty(euros(c.getValue().getPrecoUnitario())));
-        colunaIva.setCellValueFactory(c -> new SimpleStringProperty(
-                c.getValue().getTaxaIva() + "% (" + euros(c.getValue().getValorIva()) + ")"));
-        colunaTotal.setCellValueFactory(c -> new SimpleStringProperty(euros(c.getValue().getTotal())));
-    }
 
     @FXML
     private void aoEscolherFicheiro() {

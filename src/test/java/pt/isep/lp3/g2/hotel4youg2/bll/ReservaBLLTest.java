@@ -3,9 +3,12 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pt.isep.lp3.g2.hotel4youg2.dal.IHorarioReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
@@ -17,6 +20,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +44,8 @@ public class ReservaBLLTest {
         private Integer clientePedido;
         private boolean podeFazerCheckinNaBD = true;
         private Reserva comCheckin;
+        private boolean podeFazerCheckoutNaBD = true;
+        private Reserva comCheckout;
 
         @Override
         public boolean cancelar(int id) {
@@ -63,6 +69,11 @@ public class ReservaBLLTest {
         @Override
         public Reserva procurarPorId(int id) {
             return gravada;
+        }
+
+        @Override
+        public Reserva procurarEmCursoPorCartao(String cartao) {
+            return null;
         }
 
         @Override
@@ -103,6 +114,15 @@ public class ReservaBLLTest {
             comCheckin = reserva;
             return true;
         }
+
+        @Override
+        public boolean registarCheckout(Reserva reserva) {
+            if (!podeFazerCheckoutNaBD) {
+                return false;
+            }
+            comCheckout = reserva;
+            return true;
+        }
     }
 
     private ReservaDALFalsa repositorio;
@@ -119,10 +139,76 @@ public class ReservaBLLTest {
                 EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
     }
 
+    private static class QuartoDALFalsa implements IQuartoDAL {
+        private List<Quarto> livres = new ArrayList<>();
+        private Boolean earlyPedido;
+        private Boolean latePedido;
+
+        @Override
+        public List<Quarto> listarComTarifa() {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida) {
+            return listarDisponiveis(entrada, saida, false, false);
+        }
+
+        @Override
+        public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida, boolean earlyCheckin,
+                                              boolean lateCheckout) {
+            earlyPedido = earlyCheckin;
+            latePedido = lateCheckout;
+            return new ArrayList<>(livres);
+        }
+
+        @Override
+        public List<Quarto> listarTodos() {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public boolean temReservasFuturas(int numero) {
+            return false;
+        }
+
+        @Override
+        public boolean atualizarAtivo(int numero, boolean ativo) {
+            return true;
+        }
+    }
+
+    private static class HorarioReservaDALFalso implements IHorarioReservaDAL {
+        private HorarioReserva horario = new HorarioReserva(LocalTime.of(15, 0), LocalTime.of(12, 0),
+                LocalTime.of(13, 0), LocalTime.of(14, 0), new BigDecimal("20.00"), new BigDecimal("25.00"));
+
+        @Override
+        public HorarioReserva obter() {
+            return horario;
+        }
+
+        @Override
+        public boolean atualizar(HorarioReserva novo) {
+            horario = novo;
+            return true;
+        }
+    }
+
+    private QuartoDALFalsa quartos;
+    private HorarioReservaDALFalso horarios;
+
+    private static Quarto quartoLivre(int numero, TipoQuarto tipo, Vista vista, int capacidade, String precoNoite) {
+        Quarto livre = new Quarto(numero, numero / 100, tipo, vista, capacidade);
+        livre.setTarifa(new Tarifa(tipo, vista, new BigDecimal(precoNoite)));
+        return livre;
+    }
+
     @BeforeEach
     public void setUp() {
         repositorio = new ReservaDALFalsa();
-        instance = new ReservaBLL(repositorio);
+        quartos = new QuartoDALFalsa();
+        horarios = new HorarioReservaDALFalso();
+        instance = new ReservaBLL(repositorio, quartos, horarios);
         cliente = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678",
                 LocalDate.of(1990, 5, 20), null);
         quarto = new Quarto(201, 2, TipoQuarto.DUPLO, Vista.MAR, 2);
@@ -606,5 +692,333 @@ public class ReservaBLLTest {
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.comCheckin);
         }
+    }
+
+    private Reserva reservaEmCurso() {
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        return reserva;
+    }
+
+    @Test
+    public void testTotalAPagar() {
+        System.out.println("totalAPagar");
+        Reserva reserva = reservaEmCurso();
+        BigDecimal expResult = reserva.getPrecoTotal();
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTotalAPagarComServicos() {
+        System.out.println("totalAPagar (com serviços extra)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setTotalServicos(new BigDecimal("35.50"));
+        BigDecimal expResult = reserva.getPrecoTotal().add(new BigDecimal("35.50"));
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTotalAPagarReservaSemCheckin() {
+        System.out.println("totalAPagar (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONFIRMADA)";
+        try {
+            instance.totalAPagar(RECECAO, reserva);
+            fail("Devia ter recusado uma reserva que não está em curso");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testTotalAPagarSemSessao() {
+        System.out.println("totalAPagar (sem sessão)");
+        String expResult = "Entre na aplicação como rececionista ou gestor para fazer check-out";
+        try {
+            instance.totalAPagar(null, reservaEmCurso());
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckout() {
+        System.out.println("fazerCheckout");
+        Reserva reserva = reservaEmCurso();
+        LocalDateTime agora = reserva.getDataSaida().atTime(11, 0);
+        BigDecimal expResult = reserva.getTotal();
+        BigDecimal result = instance.fazerCheckout(RECECAO, reserva, agora);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutReservaFicaConcluida() {
+        System.out.println("fazerCheckout (reserva passa a CONCLUIDA)");
+        Reserva reserva = reservaEmCurso();
+        LocalDateTime agora = reserva.getDataSaida().atTime(11, 0);
+        Reserva expResult = new Reserva(reserva.getId(), reserva.getClienteId(), reserva.getQuartoNumero(),
+                reserva.getDataEntrada(), reserva.getDataSaida(), reserva.getNumHospedes(),
+                EstadoReserva.CONCLUIDA, reserva.getPrecoTotal(), reserva.getCheckinEm(), agora);
+        expResult.setCartao(reserva.getCartao());
+        instance.fazerCheckout(GESTOR, reserva, agora);
+        Reserva result = repositorio.comCheckout;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutCartaoDeixaDeDarAcesso() {
+        System.out.println("fazerCheckout (cartão deixa de dar acesso)");
+        Reserva reserva = reservaEmCurso();
+        instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+        boolean expResult = false;
+        boolean result = reserva.cartaoDaAcesso();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutSemCheckin() {
+        System.out.println("fazerCheckout (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado uma reserva sem check-in");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutJaConcluida() {
+        System.out.println("fazerCheckout (reserva já concluída)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONCLUIDA)";
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado uma reserva já concluída");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemReserva() {
+        System.out.println("fazerCheckout (sem reserva)");
+        try {
+            instance.fazerCheckout(RECECAO, null, LocalDateTime.now());
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemSessao() {
+        System.out.println("fazerCheckout (sem sessão)");
+        Reserva reserva = reservaEmCurso();
+        try {
+            instance.fazerCheckout(null, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutJaNaoPodeNaBD() {
+        System.out.println("fazerCheckout (já não está em curso na BD)");
+        repositorio.podeFazerCheckoutNaBD = false;
+        Reserva reserva = reservaEmCurso();
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.comCheckout);
+        }
+    }
+
+    private List<Integer> numeros(List<Quarto> lista) {
+        List<Integer> numeros = new ArrayList<>();
+        for (Quarto q : lista) {
+            numeros.add(q.getNumero());
+        }
+        return numeros;
+    }
+
+    @Test
+    public void testCalcularTaxa() {
+        System.out.println("calcularTaxa (early e late)");
+        BigDecimal expResult = horarios.obter().getTaxaEarlyCheckin().add(horarios.obter().getTaxaLateCheckout());
+        BigDecimal result = instance.calcularTaxa(true, true);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCalcularTaxaSemPedido() {
+        System.out.println("calcularTaxa (horas standard)");
+        BigDecimal expResult = BigDecimal.ZERO;
+        BigDecimal result = instance.calcularTaxa(false, false);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testOpcoesDisponiveisUmaPorTipoEVista() {
+        System.out.println("opcoesDisponiveis (uma opção por tipo e vista)");
+        Quarto primeiroDuplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        Quarto familia = quartoLivre(309, TipoQuarto.FAMILIA, Vista.MAR, 4, "150.00");
+        quartos.livres.add(primeiroDuplo);
+        quartos.livres.add(quartoLivre(202, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        quartos.livres.add(familia);
+        List<Integer> expResult = new ArrayList<>();
+        expResult.add(primeiroDuplo.getNumero());
+        expResult.add(familia.getNumero());
+        List<Integer> result = numeros(instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 2, false, false));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testOpcoesDisponiveisSoComCapacidade() {
+        System.out.println("opcoesDisponiveis (só quartos com capacidade)");
+        Quarto familia = quartoLivre(309, TipoQuarto.FAMILIA, Vista.MAR, 4, "150.00");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        quartos.livres.add(familia);
+        List<Integer> expResult = new ArrayList<>();
+        expResult.add(familia.getNumero());
+        List<Integer> result = numeros(instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 3, false, false));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testOpcoesDisponiveisPedeEarlyELateAoDAL() {
+        System.out.println("opcoesDisponiveis (passa o pedido de early e late)");
+        instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 1, true, true);
+        List<Boolean> expResult = new ArrayList<>();
+        expResult.add(true);
+        expResult.add(true);
+        List<Boolean> result = new ArrayList<>();
+        result.add(quartos.earlyPedido);
+        result.add(quartos.latePedido);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarComEarlyCheckin() {
+        System.out.println("criar (com early check-in)");
+        Quarto livre = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        quartos.livres.add(livre);
+        LocalDate saida = entrada.plusDays(2);
+        Reserva expResult = new Reserva(1, cliente.getId(), livre.getNumero(), entrada, saida, 2,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        expResult.setEarlyCheckin(true);
+        expResult.setTaxaHorario(horarios.obter().getTaxaEarlyCheckin());
+        Reserva result = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, saida, 2, true, false);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarComEarlyELateSomaAsDuasTaxasAoTotal() {
+        System.out.println("criar (taxas somadas ao total)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        Reserva result = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+                true, true);
+        BigDecimal expResult = result.getPrecoTotal()
+                .add(horarios.obter().getTaxaEarlyCheckin())
+                .add(horarios.obter().getTaxaLateCheckout());
+        assertEquals(expResult, result.getTotal());
+    }
+
+    @Test
+    public void testCriarAtribuiOPrimeiroQuartoDoTipoEscolhido() {
+        System.out.println("criar (a aplicação atribui o quarto)");
+        Quarto duplo = quartoLivre(205, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        quartos.livres.add(quartoLivre(101, TipoQuarto.INDIVIDUAL, Vista.MAR, 1, "65.00"));
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MONTANHA, 2, "90.00"));
+        quartos.livres.add(duplo);
+        quartos.livres.add(quartoLivre(306, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        Integer expResult = duplo.getNumero();
+        Integer result = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(1), 1,
+                false, false).getQuartoNumero();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarSemQuartoQuePermitaOPedido() {
+        System.out.println("criar (nenhum quarto permite o pedido)");
+        String expResult = "Nenhum quarto DUPLO com vista MAR permite o early check-in ou o late check-out "
+                + "nestas datas. Pode fazer a reserva nas horas standard.";
+        try {
+            instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, true);
+            fail("Devia ter recusado sem quarto que permita o late check-out");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarSemTipoDeQuarto() {
+        System.out.println("criar (sem tipo de quarto)");
+        try {
+            instance.criar(cliente, null, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false);
+            fail("Devia ter recusado sem tipo de quarto");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.gravada);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinComEarlyCheckin() {
+        System.out.println("fazerCheckin (early check-in às 13h30)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEarlyCheckin(true);
+        String expResult = "C" + reserva.getQuartoNumero();
+        String result = instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(13, 30));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinComEarlyCheckinAntesDaHora() {
+        System.out.println("fazerCheckin (early check-in antes das 13h)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEarlyCheckin(true);
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(12, 59));
+            fail("Devia ter recusado antes da hora do early check-in");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemEarlyAs13h30() {
+        System.out.println("fazerCheckin (sem early check-in às 13h30)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(13, 30));
+            fail("Devia ter recusado: sem early check-in só a partir das 15h");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.comCheckin);
+        }
+    }
+
+    @Test
+    public void testTotalAPagarComTaxaDeHorario() {
+        System.out.println("totalAPagar (com taxa de late check-out)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setLateCheckout(true);
+        reserva.setTaxaHorario(horarios.obter().getTaxaLateCheckout());
+        BigDecimal expResult = reserva.getPrecoTotal().add(horarios.obter().getTaxaLateCheckout());
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
     }
 }

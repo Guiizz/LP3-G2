@@ -141,18 +141,44 @@ public class LeitorXmlEntrega {
         Element quantidade = filho(filho(linha, "Quantity"), "Value");
         Element ajuste = filho(linha, "MonetaryAdjustment");
         Element imposto = filho(ajuste, "TaxAdjustment");
+        int numero = Integer.parseInt(texto(linha, "LineNumber"));
+        int quantidadeLida = Integer.parseInt(quantidade.getTextContent().trim());
+        Unidade unidade = Unidade.doXml(quantidade.getAttribute("UOM"));
 
         return new LinhaEntrega(
-                Integer.parseInt(texto(linha, "LineNumber")),
+                numero,
                 texto(produto, "ProductIdentifier"),
                 texto(produto, "ProductDescription"),
-                Integer.parseInt(quantidade.getTextContent().trim()),
-                Unidade.doXml(quantidade.getAttribute("UOM")),
+                quantidadeLida,
+                unidade,
+                lerUnidades(linha, numero, quantidadeLida, unidade),
                 valor(filho(linha, "PricePerUnit")),
                 valor(filho(ajuste, "MonetaryAdjustmentStartAmount")),
                 Integer.parseInt(texto(imposto, "TaxPercent")),
                 valor(filho(imposto, "TaxAmount")),
                 valor(filho(linha, "LineBaseAmount")));
+    }
+
+    // total da linha em unidades: se a quantidade já vem em unidades é essa; se vem em caixas ou quilos,
+    // é a contagem em unidades que o ficheiro indica em <InformationalQuantity>
+    private static int lerUnidades(Element linha, int numeroLinha, int quantidade, Unidade unidade) {
+        if (unidade == Unidade.UNIT) {
+            return quantidade;
+        }
+        for (Node no = linha.getFirstChild(); no != null; no = no.getNextSibling()) {
+            if (no instanceof Element elemento && elemento.getTagName().equals("InformationalQuantity")
+                    && elemento.getAttribute("QuantityType").equals("Count")) {
+                Element valor = filho(elemento, "Value");
+                if (valor.getAttribute("UOM").equals("Unit")) {
+                    int unidades = Integer.parseInt(valor.getTextContent().trim());
+                    if (unidades > 0) {
+                        return unidades;
+                    }
+                }
+            }
+        }
+        throw new IllegalArgumentException("A linha " + numeroLinha + " vem em " + unidade.getDescricao()
+                + " e o ficheiro não indica quantas unidades tem.");
     }
 
     private static LocalDate lerData(Element data) {

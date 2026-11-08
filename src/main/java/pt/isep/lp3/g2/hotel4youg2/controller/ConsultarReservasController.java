@@ -11,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ConsultarReservasController {
@@ -50,6 +51,21 @@ public class ConsultarReservasController {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível consultar as reservas. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
+    private void aoVerServicos() {
+        Reserva escolhida = reservasTabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarMensagem("Escolha uma reserva na tabela.", "red");
+            return;
+        }
+        try {
+            ServicosReservaController.abrir(escolhida);
+            aoProcurar();
+        } catch (IOException e) {
+            mostrarMensagem("Não foi possível abrir os serviços da reserva.", "red");
         }
     }
 

@@ -29,6 +29,8 @@
     <PasswordField fx:id="passwordField" onAction="#aoEntrar"/>
 
     <Button text="Entrar" defaultButton="true" maxWidth="Infinity" onAction="#aoEntrar"/>
+    <Button text="Entrar como fornecedor" maxWidth="Infinity" onAction="#aoEntrarComoFornecedor"/>
 
     <Label fx:id="erroLabel" wrapText="true" maxWidth="300" styleClass="mensagem-erro"/>
+    <Button text="Sugestão ou queixa (cliente)" maxWidth="Infinity" onAction="#aoSugestaoCliente"/>
 </VBox>

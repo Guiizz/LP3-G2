@@ -1,7 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoCobranca;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,16 +22,14 @@ public interface IServicoDAL {
     Optional<Servico> procurarPorId(int id);
 
     /**
-     * Diz se já existe outro serviço com a mesma designação e a mesma forma de cobrança
-     * (sem distinguir maiúsculas).
+     * Diz se já existe outro serviço com a mesma designação (sem distinguir maiúsculas).
      *
-     * @param designacao   a designação a procurar
-     * @param tipoCobranca a forma de cobrança a procurar
-     * @param idIgnorar    o id do serviço a ignorar, para não o comparar consigo próprio ao editar
-     *                     (0 ao criar)
+     * @param designacao a designação a procurar
+     * @param idIgnorar  o id do serviço a ignorar, para não o comparar consigo próprio ao editar
+     *                   (0 ao criar)
      * @return {@code true} se já existir
      */
-    boolean existeDesignacao(String designacao, TipoCobranca tipoCobranca, int idIgnorar);
+    boolean existeDesignacao(String designacao, int idIgnorar);
 
     /**
      * Grava o serviço e atualiza o seu id.
@@ -43,7 +40,7 @@ public interface IServicoDAL {
     int inserir(Servico servico);
 
     /**
-     * Atualiza a designação, o preço, a forma de cobrança e a categoria do serviço.
+     * Atualiza a designação, o preço e a categoria do serviço.
      * Não mexe no estado (ativo ou desativado).
      *
      * @param servico o serviço com os novos dados

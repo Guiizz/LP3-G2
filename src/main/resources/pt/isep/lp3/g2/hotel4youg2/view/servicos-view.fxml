@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -21,20 +22,27 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Serviços extra" styleClass="titulo"/>
+    <Label text="Serviços extra · tabela de preços" styleClass="titulo"/>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Mostrar:"/>
-        <ComboBox fx:id="filtroCategoria" prefWidth="220.0"/>
+        <ComboBox fx:id="filtroCategoria" prefWidth="220.0" onAction="#aoFiltrar"/>
     </HBox>
 
     <TableView fx:id="tabela" prefHeight="260.0">
         <columns>
-            <TableColumn fx:id="colunaCategoria" text="Categoria" prefWidth="110.0"/>
-            <TableColumn fx:id="colunaDesignacao" text="Designação" prefWidth="170.0"/>
-            <TableColumn fx:id="colunaPreco" text="Preço" prefWidth="80.0"/>
-            <TableColumn fx:id="colunaCobranca" text="Cobrança" prefWidth="110.0"/>
-            <TableColumn fx:id="colunaEstado" text="Estado" prefWidth="90.0"/>
+            <TableColumn text="Categoria" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="nomeCategoria"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Designação" prefWidth="220.0">
+                <cellValueFactory><PropertyValueFactory property="designacao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Preço" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="precoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Estado" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="estadoTexto"/></cellValueFactory>
+            </TableColumn>
         </columns>
     </TableView>
 
@@ -59,9 +67,6 @@
 
         <Label text="Preço (€) *" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <TextField fx:id="campoPreco" promptText="ex.: 12,50" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-
-        <Label text="Cobrança *" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="campoTipoCobranca" prefWidth="260.0" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
     </GridPane>
 
     <HBox spacing="10.0">

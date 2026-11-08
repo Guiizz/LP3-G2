@@ -1,8 +1,11 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
 
 import java.sql.Connection;
@@ -10,6 +13,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +25,10 @@ public class EntregaDAL implements IEntregaDAL {
 
     private static final String EXISTE_ENTREGA =
             "SELECT 1 FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId "
-            + "WHERE f.codigo = ? AND e.numeroEncomenda = ?";
+            + "WHERE f.codigo = ? AND e.numeroEncomenda = ? AND e.estado <> 'RECUSADA'";
+    private static final String CONTAR_PENDENTES =
+            "SELECT COUNT(*) FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId "
+            + "WHERE f.codigo = ? AND e.estado = 'PENDENTE'";
     private static final String PROCURAR_FORNECEDOR = "SELECT id FROM Fornecedor WHERE codigo = ?";
     private static final String INSERIR_FORNECEDOR =
             "INSERT INTO Fornecedor (codigo, nome, morada1, morada2, cidade, codigoPostal, pais, codigoPais) "
@@ -33,43 +41,101 @@ public class EntregaDAL implements IEntregaDAL {
             "INSERT INTO Material (fornecedorId, codigo, descricao) OUTPUT INSERTED.id VALUES (?, ?, ?)";
     private static final String ATUALIZAR_MATERIAL = "UPDATE Material SET descricao = ? WHERE id = ?";
     private static final String INSERIR_ENTREGA =
-            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, registadaPor) "
-            + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, registadaPor, decididaPor, "
+            + "decididaEm) OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, ?, SYSDATETIME())";
+    private static final String INSERIR_ENTREGA_PENDENTE =
+            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, estado) "
+            + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, 'PENDENTE')";
     private static final String INSERIR_LINHA =
-            "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, precoUnitario, "
-            + "valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, unidades, "
+            + "precoUnitario, valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ENTREGA =
-            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
+            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, e.estado, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
             + "f.codigoPostal, f.pais, f.codigoPais, f.id AS fornecedorId "
             + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE e.id = ?";
     private static final String SELECT_LINHAS =
-            "SELECT l.numeroLinha, m.codigo, m.descricao, l.quantidade, l.unidade, l.precoUnitario, l.valorSemIva, "
+            "SELECT l.numeroLinha, m.codigo, m.descricao, l.quantidade, l.unidade, l.unidades, l.precoUnitario, "
+            + "l.valorSemIva, "
             + "l.taxaIva, l.valorIva, l.total "
             + "FROM LinhaEntrega l JOIN Material m ON m.id = l.materialId WHERE l.entregaId = ? ORDER BY l.numeroLinha";
     private static final String APAGAR = "DELETE FROM Entrega WHERE id = ?";
+    private static final String SELECT_RESUMOS_DO_FORNECEDOR =
+            "SELECT e.numeroEncomenda, e.registadaEm, e.total, e.estado, e.motivoRecusa, "
+                    + "(SELECT COUNT(DISTINCT l.materialId) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS tipos "
+                    + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE f.codigo = ? "
+                    + "ORDER BY e.registadaEm DESC, e.id DESC";
+    private static final String ACEITAR =
+            "UPDATE Entrega SET estado = 'ACEITE', decididaPor = ?, decididaEm = SYSDATETIME() "
+            + "WHERE id = ? AND estado = 'PENDENTE'";
+    private static final String RECUSAR =
+            "UPDATE Entrega SET estado = 'RECUSADA', decididaPor = ?, decididaEm = SYSDATETIME(), motivoRecusa = ? "
+            + "WHERE id = ? AND estado = 'PENDENTE'";
+    private static final String INSERIR_STOCK_EM_FALTA =
+            "INSERT INTO Stock (materialId, quantidade) SELECT DISTINCT l.materialId, 0 FROM LinhaEntrega l "
+            + "WHERE l.entregaId = ? AND NOT EXISTS (SELECT 1 FROM Stock s WITH (UPDLOCK, HOLDLOCK) "
+            + "WHERE s.materialId = l.materialId)";
+    private static final String CONTAR_LINHAS_SEM_UNIDADES =
+            "SELECT COUNT(*) FROM LinhaEntrega WHERE entregaId = ? AND unidades IS NULL";
+    private static final String SOMAR_AO_STOCK =
+            "UPDATE s SET s.quantidade = s.quantidade + t.soma FROM Stock s JOIN "
+            + "(SELECT materialId, SUM(unidades) AS soma FROM LinhaEntrega WHERE entregaId = ? GROUP BY materialId) t "
+            + "ON t.materialId = s.materialId";
+    private static final String SELECT_PARA_HOTEL =
+            "SELECT e.id, e.numeroEncomenda, f.nome AS fornecedor, e.registadaEm, e.total, e.estado, e.motivoRecusa, "
+            + "(SELECT COUNT(DISTINCT l.materialId) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS tipos, "
+            + "(SELECT SUM(l.unidades) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS totalUnidades, "
+            + "p.nome AS decididaPorNome, "
+            + "CASE WHEN e.estado = 'PENDENTE' THEN NULL ELSE COALESCE(e.decididaEm, e.registadaEm) END AS decididaQuando "
+            + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId "
+            + "LEFT JOIN Pessoa p ON p.id = COALESCE(e.decididaPor, e.registadaPor) "
+            + "ORDER BY CASE WHEN e.estado = 'PENDENTE' THEN 0 ELSE 1 END, e.registadaEm DESC, e.id DESC";
 
     @Override
     public boolean existeEntrega(String codigoFornecedor, String numeroEncomenda) {
-        return !ConexaoBD.select(EXISTE_ENTREGA, rs -> rs.getInt(1), codigoFornecedor, numeroEncomenda).isEmpty();
+        return !ConexaoBD.select(EXISTE_ENTREGA, new InteiroMapper(), codigoFornecedor, numeroEncomenda).isEmpty();
+    }
+
+    @Override
+    public int contarPendentes(String codigoFornecedor) {
+        return ConexaoBD.select(CONTAR_PENDENTES, new InteiroMapper(), codigoFornecedor).get(0);
     }
 
     // grava o fornecedor, os materiais, a entrega e as linhas: ou fica tudo gravado, ou nada
     @Override
     public int registar(Entrega entrega, int funcionarioId) {
+        return gravar(entrega, INSERIR_ENTREGA, EstadoEntrega.ACEITE, funcionarioId, funcionarioId);
+    }
+
+    @Override
+    public int carregar(Entrega entrega) {
+        return gravar(entrega, INSERIR_ENTREGA_PENDENTE, EstadoEntrega.PENDENTE);
+    }
+
+    // os parametros extra (o funcionario, quando o SQL o pede) vao no fim dos parametros da entrega
+    private int gravar(Entrega entrega, String sqlEntrega, EstadoEntrega estado, Object... extra) {
         try (Connection conn = ConexaoBD.abrir()) {
             conn.setAutoCommit(false);
             try {
                 int fornecedorId = gravarFornecedor(conn, entrega.getFornecedor());
-                int entregaId = inserir(conn, INSERIR_ENTREGA, fornecedorId, entrega.getNumeroEncomenda(),
-                        Date.valueOf(entrega.getDataEncomenda()), entrega.getTotal(), funcionarioId);
+                Object[] params = new Object[4 + extra.length];
+                params[0] = fornecedorId;
+                params[1] = entrega.getNumeroEncomenda();
+                params[2] = Date.valueOf(entrega.getDataEncomenda());
+                params[3] = entrega.getTotal();
+                System.arraycopy(extra, 0, params, 4, extra.length);
+                int entregaId = inserir(conn, sqlEntrega, params);
                 for (LinhaEntrega linha : entrega.getLinhas()) {
                     int materialId = gravarMaterial(conn, fornecedorId, linha);
                     executar(conn, INSERIR_LINHA, entregaId, linha.getNumero(), materialId, linha.getQuantidade(),
-                            linha.getUnidade().name(), linha.getPrecoUnitario(), linha.getValorSemIva(),
-                            linha.getTaxaIva(), linha.getValorIva(), linha.getTotal());
+                            linha.getUnidade().name(), linha.getUnidades(), linha.getPrecoUnitario(),
+                            linha.getValorSemIva(), linha.getTaxaIva(), linha.getValorIva(), linha.getTotal());
+                }
+                if (estado == EstadoEntrega.ACEITE) {
+                    creditarStock(conn, entregaId);
                 }
                 conn.commit();
                 entrega.setId(entregaId);
+                entrega.setEstado(estado);
                 entrega.getFornecedor().setId(fornecedorId);
                 return entregaId;
             } catch (SQLException | RuntimeException e) {
@@ -77,30 +143,70 @@ public class EntregaDAL implements IEntregaDAL {
                 throw e;
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Erro ao registar a entrega", e);
+            throw new DataAccessException("Erro ao gravar a entrega", e);
         }
     }
 
     @Override
     public Optional<Entrega> procurarPorId(int id) {
-        List<Entrega> entregas = ConexaoBD.select(SELECT_ENTREGA, rs -> new Entrega(
-                rs.getInt("id"),
-                rs.getString("numeroEncomenda"),
-                rs.getDate("dataEncomenda").toLocalDate(),
-                new Fornecedor(rs.getInt("fornecedorId"), rs.getString("codigo"), rs.getString("nome"),
-                        rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
-                        rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais"))), id);
+        List<Entrega> entregas = ConexaoBD.select(SELECT_ENTREGA, new EntregaMapper(), id);
         if (entregas.isEmpty()) {
             return Optional.empty();
         }
         Entrega entrega = entregas.get(0);
-        ConexaoBD.select(SELECT_LINHAS, this::mapearLinha, id).forEach(entrega::adicionarLinha);
+        for (LinhaEntrega linha : ConexaoBD.select(SELECT_LINHAS, new LinhaMapper(), id)) {
+            entrega.adicionarLinha(linha);
+        }
         return Optional.of(entrega);
     }
 
     @Override
     public boolean apagar(int id) {
         return ConexaoBD.executar(APAGAR, id) > 0;
+    }
+
+    @Override
+    public boolean aceitar(int entregaId, int funcionarioId) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try {
+                int alteradas = atualizar(conn, ACEITAR, funcionarioId, entregaId);
+                if (alteradas == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                // entregas antigas em caixas podem não ter o total em unidades: não se aceitam, para não errar o stock
+                if (procurarId(conn, CONTAR_LINHAS_SEM_UNIDADES, entregaId) > 0) {
+                    conn.rollback();
+                    throw new IllegalStateException("A entrega tem linhas sem o total em unidades. "
+                            + "Peça ao fornecedor para a voltar a enviar.");
+                }
+                creditarStock(conn, entregaId);
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao aceitar a entrega", e);
+        }
+    }
+
+    @Override
+    public boolean recusar(int entregaId, int funcionarioId, String motivo) {
+        return ConexaoBD.executar(RECUSAR, funcionarioId, motivo, entregaId) > 0;
+    }
+
+    @Override
+    public List<ResumoEntregaHotel> listarParaHotel() {
+        return ConexaoBD.select(SELECT_PARA_HOTEL, new ResumoEntregaHotelMapper());
+    }
+
+    // soma ao stock a quantidade de cada material da entrega; cria a linha do material se ainda não existir
+    private static void creditarStock(Connection conn, int entregaId) throws SQLException {
+        executar(conn, INSERIR_STOCK_EM_FALTA, entregaId);
+        executar(conn, SOMAR_AO_STOCK, entregaId);
     }
 
     private int gravarFornecedor(Connection conn, Fornecedor f) throws SQLException {
@@ -114,6 +220,11 @@ public class EntregaDAL implements IEntregaDAL {
         return id;
     }
 
+    @Override
+    public List<ResumoEntrega> listarResumosDoFornecedor(String codigoFornecedor) {
+        return ConexaoBD.select(SELECT_RESUMOS_DO_FORNECEDOR, new ResumoEntregaMapper(), codigoFornecedor);
+    }
+
     private int gravarMaterial(Connection conn, int fornecedorId, LinhaEntrega linha) throws SQLException {
         Integer id = procurarId(conn, PROCURAR_MATERIAL, fornecedorId, linha.getCodigoProduto());
         if (id == null) {
@@ -123,11 +234,54 @@ public class EntregaDAL implements IEntregaDAL {
         return id;
     }
 
-    private LinhaEntrega mapearLinha(ResultSet rs) throws SQLException {
-        return new LinhaEntrega(rs.getInt("numeroLinha"), rs.getString("codigo"), rs.getString("descricao"),
-                rs.getInt("quantidade"), Unidade.valueOf(rs.getString("unidade")), rs.getBigDecimal("precoUnitario"),
-                rs.getBigDecimal("valorSemIva"), rs.getInt("taxaIva"), rs.getBigDecimal("valorIva"),
-                rs.getBigDecimal("total"));
+    private static class EntregaMapper implements RowMapper<Entrega> {
+        @Override
+        public Entrega map(ResultSet rs) throws SQLException {
+            Entrega entrega = new Entrega(
+                    rs.getInt("id"),
+                    rs.getString("numeroEncomenda"),
+                    rs.getDate("dataEncomenda").toLocalDate(),
+                    new Fornecedor(rs.getInt("fornecedorId"), rs.getString("codigo"), rs.getString("nome"),
+                            rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
+                            rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais")));
+            entrega.setEstado(EstadoEntrega.valueOf(rs.getString("estado")));
+            return entrega;
+        }
+    }
+
+    private static class ResumoEntregaMapper implements RowMapper<ResumoEntrega> {
+        @Override
+        public ResumoEntrega map(ResultSet rs) throws SQLException {
+            return new ResumoEntrega(rs.getString("numeroEncomenda"), rs.getInt("tipos"),
+                    rs.getTimestamp("registadaEm").toLocalDateTime(), rs.getBigDecimal("total"),
+                    EstadoEntrega.valueOf(rs.getString("estado")), rs.getString("motivoRecusa"));
+        }
+    }
+
+    private static class ResumoEntregaHotelMapper implements RowMapper<ResumoEntregaHotel> {
+        @Override
+        public ResumoEntregaHotel map(ResultSet rs) throws SQLException {
+            Timestamp decididaQuando = rs.getTimestamp("decididaQuando");
+            LocalDateTime decididaEm = null;
+            if (decididaQuando != null) {
+                decididaEm = decididaQuando.toLocalDateTime();
+            }
+            return new ResumoEntregaHotel(rs.getInt("id"), rs.getString("numeroEncomenda"), rs.getString("fornecedor"),
+                    rs.getInt("tipos"), rs.getInt("totalUnidades"), rs.getTimestamp("registadaEm").toLocalDateTime(),
+                    rs.getBigDecimal("total"), EstadoEntrega.valueOf(rs.getString("estado")),
+                    rs.getString("decididaPorNome"), decididaEm,
+                    rs.getString("motivoRecusa"));
+        }
+    }
+
+    private static class LinhaMapper implements RowMapper<LinhaEntrega> {
+        @Override
+        public LinhaEntrega map(ResultSet rs) throws SQLException {
+            return new LinhaEntrega(rs.getInt("numeroLinha"), rs.getString("codigo"), rs.getString("descricao"),
+                    rs.getInt("quantidade"), Unidade.valueOf(rs.getString("unidade")), rs.getInt("unidades"),
+                    rs.getBigDecimal("precoUnitario"), rs.getBigDecimal("valorSemIva"), rs.getInt("taxaIva"),
+                    rs.getBigDecimal("valorIva"), rs.getBigDecimal("total"));
+        }
     }
 
     private static Integer procurarId(Connection conn, String sql, Object... params) throws SQLException {
@@ -146,6 +300,14 @@ public class EntregaDAL implements IEntregaDAL {
                 rs.next();
                 return rs.getInt(1);
             }
+        }
+    }
+
+    // devolve quantas linhas o comando alterou
+    private static int atualizar(Connection conn, String sql, Object... params) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            definirParametros(ps, params);
+            return ps.executeUpdate();
         }
     }
 

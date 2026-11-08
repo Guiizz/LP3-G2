@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -53,5 +54,19 @@ class SessaoTest {
         Sessao.terminar();
         Sessao.iniciar(rececao);
         assertEquals("rececao", Sessao.getUtilizador().getNomeUtilizador());
+    }
+
+    @Test
+    void depoisDoLoginDoFornecedorGuardaOFornecedor() {
+        Fornecedor fornecedor = new Fornecedor(1, "F-1", "Fornecedor", null, null, null, null, null, null);
+        Sessao.iniciarFornecedor(fornecedor);
+        assertEquals("F-1", Sessao.getFornecedor().getCodigo());
+    }
+
+    @Test
+    void terminarSessaoEsqueceOFornecedor() {
+        Sessao.iniciarFornecedor(new Fornecedor(1, "F-1", "Fornecedor", null, null, null, null, null, null));
+        Sessao.terminar();
+        assertNull(Sessao.getFornecedor());
     }
 }

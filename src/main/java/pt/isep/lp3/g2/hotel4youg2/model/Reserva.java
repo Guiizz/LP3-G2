@@ -25,6 +25,10 @@ public class Reserva {
     private LocalDateTime checkinEm;
     private LocalDateTime checkoutEm;
     private String cartao;
+    private BigDecimal totalServicos = BigDecimal.ZERO;
+    private boolean earlyCheckin;
+    private boolean lateCheckout;
+    private BigDecimal taxaHorario = BigDecimal.ZERO;
 
     public int getId() {
         return id;
@@ -148,6 +152,46 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    public boolean aceitaServicos() {
+        return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
+    }
+
+    public BigDecimal getTotalServicos() {
+        return totalServicos;
+    }
+
+    public void setTotalServicos(BigDecimal totalServicos) {
+        this.totalServicos = totalServicos == null ? BigDecimal.ZERO : totalServicos;
+    }
+
+    public boolean isEarlyCheckin() {
+        return earlyCheckin;
+    }
+
+    public void setEarlyCheckin(boolean earlyCheckin) {
+        this.earlyCheckin = earlyCheckin;
+    }
+
+    public boolean isLateCheckout() {
+        return lateCheckout;
+    }
+
+    public void setLateCheckout(boolean lateCheckout) {
+        this.lateCheckout = lateCheckout;
+    }
+
+    public BigDecimal getTaxaHorario() {
+        return taxaHorario;
+    }
+
+    public void setTaxaHorario(BigDecimal taxaHorario) {
+        this.taxaHorario = taxaHorario == null ? BigDecimal.ZERO : taxaHorario;
+    }
+
+    public BigDecimal getTotal() {
+        return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos).add(taxaHorario);
+    }
+
     public String getCartao() {
         return cartao;
     }
@@ -173,6 +217,23 @@ public class Reserva {
         estado = EstadoReserva.EM_CURSO;
         checkinEm = agora;
         cartao = "C" + quartoNumero;
+    }
+
+    public boolean cartaoDaAcesso() {
+        return estado == EstadoReserva.EM_CURSO;
+    }
+
+    public void exigirPodeFazerCheckout() {
+        if (estado != EstadoReserva.EM_CURSO) {
+            throw new IllegalStateException("Só é possível fazer check-out de uma reserva em curso (a reserva "
+                    + id + " está " + estado + ")");
+        }
+    }
+
+    public void fazerCheckout(LocalDateTime agora) {
+        exigirPodeFazerCheckout();
+        estado = EstadoReserva.CONCLUIDA;
+        checkoutEm = agora;
     }
 
     public long getNoites() {
@@ -212,7 +273,10 @@ public class Reserva {
                 && mesmoValor(precoTotal, outra.precoTotal)
                 && Objects.equals(checkinEm, outra.checkinEm)
                 && Objects.equals(checkoutEm, outra.checkoutEm)
-                && Objects.equals(cartao, outra.cartao);
+                && Objects.equals(cartao, outra.cartao)
+                && earlyCheckin == outra.earlyCheckin
+                && lateCheckout == outra.lateCheckout
+                && mesmoValor(taxaHorario, outra.taxaHorario);
     }
 
     private static boolean mesmoValor(BigDecimal a, BigDecimal b) {
@@ -225,7 +289,7 @@ public class Reserva {
     @Override
     public int hashCode() {
         return Objects.hash(id, clienteId, quartoNumero, numHospedes, dataEntrada, dataSaida, estado,
-                checkinEm, checkoutEm, cartao);
+                checkinEm, checkoutEm, cartao, earlyCheckin, lateCheckout);
     }
 
     @Override

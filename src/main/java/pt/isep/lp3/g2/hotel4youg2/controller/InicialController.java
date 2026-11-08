@@ -65,6 +65,7 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Criar reserva", "criar-reserva-view.fxml", true));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
         opcoes.add(new OpcaoMenu("Reservas de um cliente", "consultar-reservas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Acesso com cartão", "acesso-cartao-view.fxml", false));
         Navegador.mostrarArea("Reservas", opcoes);
     }
 
@@ -91,6 +92,7 @@ public class InicialController {
     private void aoAbrirStock() throws IOException {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Entregas (XML)", "entregas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Decidir entregas", "decidir-entregas-view.fxml", false));
         Navegador.mostrarArea("Stock", opcoes);
     }
 
@@ -99,7 +101,9 @@ public class InicialController {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Contas", "utilizadores-view.fxml", false));
         opcoes.add(new OpcaoMenu("Criar conta", "criar-conta-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Criar fornecedor", "criar-fornecedor-view.fxml", true));
         opcoes.add(new OpcaoMenu("Sugestões e queixas", "consultar-sugestoes-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Horas e taxas", "horario-reserva-view.fxml", false));
         Navegador.mostrarArea("Administração", opcoes);
     }
 
