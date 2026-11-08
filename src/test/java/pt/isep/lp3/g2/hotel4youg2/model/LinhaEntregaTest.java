@@ -15,7 +15,7 @@ public class LinhaEntregaTest {
     // a linha 1 do XML do professor: 50 caixas de toalhas a 2,51 €, IVA 23%
     @BeforeEach
     public void setUp() {
-        instance = new LinhaEntrega(1, "PZ-1989", "Toalha de banho 400g cinza", 50, Unidade.BOX,
+        instance = new LinhaEntrega(1, "PZ-1989", "Toalha de banho 400g cinza", 50, Unidade.BOX, 500,
                 new BigDecimal("2.51"), new BigDecimal("125.50"), 23, new BigDecimal("28.87"), new BigDecimal("154.37"));
     }
 
@@ -51,7 +51,7 @@ public class LinhaEntregaTest {
     @Test
     public void testIsTotalCorretoComTotalErrado() {
         System.out.println("isTotalCorreto (total errado)");
-        LinhaEntrega errada = new LinhaEntrega(1, "PZ-1989", "Toalha", 50, Unidade.BOX, new BigDecimal("2.51"),
+        LinhaEntrega errada = new LinhaEntrega(1, "PZ-1989", "Toalha", 50, Unidade.BOX, 500, new BigDecimal("2.51"),
                 new BigDecimal("125.50"), 23, new BigDecimal("28.87"), new BigDecimal("999.99"));
         boolean expResult = false;
         boolean result = errada.isTotalCorreto();

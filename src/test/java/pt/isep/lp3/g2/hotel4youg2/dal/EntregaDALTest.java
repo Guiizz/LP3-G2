@@ -49,9 +49,9 @@ public class EntregaDALTest {
         Fornecedor fornecedor = new Fornecedor(0, codigoFornecedor, "Fornecedor de teste", "Rua A", "nº1", "Porto",
                 "4000-000", "Portugal", "PT");
         entrega = new Entrega(0, "TESTE" + marca, LocalDate.of(2026, 10, 5), fornecedor);
-        entrega.adicionarLinha(new LinhaEntrega(1, "M-1", "Toalha de teste", 50, Unidade.BOX, new BigDecimal("2.51"),
+        entrega.adicionarLinha(new LinhaEntrega(1, "M-1", "Toalha de teste", 50, Unidade.BOX, 500, new BigDecimal("2.51"),
                 new BigDecimal("125.50"), 23, new BigDecimal("28.87"), new BigDecimal("154.37")));
-        entrega.adicionarLinha(new LinhaEntrega(2, "M-2", "Champô de teste", 200, Unidade.UNIT, new BigDecimal("3.49"),
+        entrega.adicionarLinha(new LinhaEntrega(2, "M-2", "Champô de teste", 200, Unidade.UNIT, 200, new BigDecimal("3.49"),
                 new BigDecimal("698.00"), 23, new BigDecimal("160.54"), new BigDecimal("858.54")));
         instance.registar(entrega, funcionarioId);
     }
@@ -120,7 +120,7 @@ public class EntregaDALTest {
     // uma entrega pendente do mesmo fornecedor de teste, como se tivesse sido carregada por ele
     private Entrega carregarPendente(String numero) {
         Entrega pendente = new Entrega(0, numero, LocalDate.of(2026, 11, 4), entrega.getFornecedor());
-        pendente.adicionarLinha(new LinhaEntrega(1, "M-1", "Toalha de teste", 10, Unidade.BOX, new BigDecimal("2.51"),
+        pendente.adicionarLinha(new LinhaEntrega(1, "M-1", "Toalha de teste", 10, Unidade.BOX, 100, new BigDecimal("2.51"),
                 new BigDecimal("25.10"), 23, new BigDecimal("5.77"), new BigDecimal("30.87")));
         instance.carregar(pendente);
         return pendente;
@@ -229,7 +229,7 @@ public class EntregaDALTest {
     @Test
     public void testRegistarSomaAoStock() {
         System.out.println("registar (soma ao stock)");
-        assertEquals(50, quantidadeEmStock("M-1"));
+        assertEquals(500, quantidadeEmStock("M-1"));
         assertEquals(200, quantidadeEmStock("M-2"));
     }
 
@@ -241,7 +241,7 @@ public class EntregaDALTest {
         boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
         assertEquals(expResult, result);
         assertEquals(EstadoEntrega.ACEITE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
-        assertEquals(60, quantidadeEmStock("M-1"));
+        assertEquals(600, quantidadeEmStock("M-1"));
     }
 
     @Test
@@ -252,7 +252,7 @@ public class EntregaDALTest {
         boolean expResult = false;
         boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
         assertEquals(expResult, result);
-        assertEquals(60, quantidadeEmStock("M-1"));
+        assertEquals(600, quantidadeEmStock("M-1"));
     }
 
     @Test
@@ -263,7 +263,7 @@ public class EntregaDALTest {
         boolean expResult = false;
         boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
         assertEquals(expResult, result);
-        assertEquals(50, quantidadeEmStock("M-1"));
+        assertEquals(500, quantidadeEmStock("M-1"));
     }
 
     @Test
@@ -274,7 +274,7 @@ public class EntregaDALTest {
         boolean result = instance.recusar(entregaPendente.getId(), funcionarioId, "Faltam toalhas");
         assertEquals(expResult, result);
         assertEquals(EstadoEntrega.RECUSADA, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
-        assertEquals(50, quantidadeEmStock("M-1"));
+        assertEquals(500, quantidadeEmStock("M-1"));
         ResumoEntrega maisRecente = instance.listarResumosDoFornecedor(codigoFornecedor).get(0);
         assertEquals("Faltam toalhas", maisRecente.getMotivoRecusa());
     }

@@ -47,14 +47,15 @@ public class EntregaDAL implements IEntregaDAL {
             "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, estado) "
             + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, 'PENDENTE')";
     private static final String INSERIR_LINHA =
-            "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, precoUnitario, "
-            + "valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, unidades, "
+            + "precoUnitario, valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ENTREGA =
             "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, e.estado, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
             + "f.codigoPostal, f.pais, f.codigoPais, f.id AS fornecedorId "
             + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE e.id = ?";
     private static final String SELECT_LINHAS =
-            "SELECT l.numeroLinha, m.codigo, m.descricao, l.quantidade, l.unidade, l.precoUnitario, l.valorSemIva, "
+            "SELECT l.numeroLinha, m.codigo, m.descricao, l.quantidade, l.unidade, l.unidades, l.precoUnitario, "
+            + "l.valorSemIva, "
             + "l.taxaIva, l.valorIva, l.total "
             + "FROM LinhaEntrega l JOIN Material m ON m.id = l.materialId WHERE l.entregaId = ? ORDER BY l.numeroLinha";
     private static final String APAGAR = "DELETE FROM Entrega WHERE id = ?";
@@ -74,7 +75,7 @@ public class EntregaDAL implements IEntregaDAL {
             + "WHERE l.entregaId = ? AND NOT EXISTS (SELECT 1 FROM Stock s WHERE s.materialId = l.materialId)";
     private static final String SOMAR_AO_STOCK =
             "UPDATE s SET s.quantidade = s.quantidade + t.soma FROM Stock s JOIN "
-            + "(SELECT materialId, SUM(quantidade) AS soma FROM LinhaEntrega WHERE entregaId = ? GROUP BY materialId) t "
+            + "(SELECT materialId, SUM(unidades) AS soma FROM LinhaEntrega WHERE entregaId = ? GROUP BY materialId) t "
             + "ON t.materialId = s.materialId";
     private static final String SELECT_PARA_HOTEL =
             "SELECT e.id, e.numeroEncomenda, f.nome AS fornecedor, e.registadaEm, e.total, e.estado, e.motivoRecusa, "
@@ -122,8 +123,8 @@ public class EntregaDAL implements IEntregaDAL {
                 for (LinhaEntrega linha : entrega.getLinhas()) {
                     int materialId = gravarMaterial(conn, fornecedorId, linha);
                     executar(conn, INSERIR_LINHA, entregaId, linha.getNumero(), materialId, linha.getQuantidade(),
-                            linha.getUnidade().name(), linha.getPrecoUnitario(), linha.getValorSemIva(),
-                            linha.getTaxaIva(), linha.getValorIva(), linha.getTotal());
+                            linha.getUnidade().name(), linha.getUnidades(), linha.getPrecoUnitario(),
+                            linha.getValorSemIva(), linha.getTaxaIva(), linha.getValorIva(), linha.getTotal());
                 }
                 if (estado == EstadoEntrega.ACEITE) {
                     creditarStock(conn, entregaId);
@@ -266,9 +267,9 @@ public class EntregaDAL implements IEntregaDAL {
         @Override
         public LinhaEntrega map(ResultSet rs) throws SQLException {
             return new LinhaEntrega(rs.getInt("numeroLinha"), rs.getString("codigo"), rs.getString("descricao"),
-                    rs.getInt("quantidade"), Unidade.valueOf(rs.getString("unidade")), rs.getBigDecimal("precoUnitario"),
-                    rs.getBigDecimal("valorSemIva"), rs.getInt("taxaIva"), rs.getBigDecimal("valorIva"),
-                    rs.getBigDecimal("total"));
+                    rs.getInt("quantidade"), Unidade.valueOf(rs.getString("unidade")), rs.getInt("unidades"),
+                    rs.getBigDecimal("precoUnitario"), rs.getBigDecimal("valorSemIva"), rs.getInt("taxaIva"),
+                    rs.getBigDecimal("valorIva"), rs.getBigDecimal("total"));
         }
     }
 
