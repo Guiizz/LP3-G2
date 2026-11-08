@@ -2,12 +2,15 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.AcessoCartaoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IAcessoCartaoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.QuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
 import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
@@ -23,15 +26,18 @@ public class AcessoCartaoBLL {
     private final IAcessoCartaoDAL acessoDAL;
     private final IReservaDAL reservaDAL;
     private final IServicoReservaDAL servicoReservaDAL;
+    private final IQuartoDAL quartoDAL;
 
     public AcessoCartaoBLL() {
-        this(new AcessoCartaoDAL(), new ReservaDAL(), new ServicoReservaDAL());
+        this(new AcessoCartaoDAL(), new ReservaDAL(), new ServicoReservaDAL(), new QuartoDAL());
     }
 
-    public AcessoCartaoBLL(IAcessoCartaoDAL acessoDAL, IReservaDAL reservaDAL, IServicoReservaDAL servicoReservaDAL) {
+    public AcessoCartaoBLL(IAcessoCartaoDAL acessoDAL, IReservaDAL reservaDAL, IServicoReservaDAL servicoReservaDAL,
+                           IQuartoDAL quartoDAL) {
         this.acessoDAL = acessoDAL;
         this.reservaDAL = reservaDAL;
         this.servicoReservaDAL = servicoReservaDAL;
+        this.quartoDAL = quartoDAL;
     }
 
     public AcessoCartao registarPassagem(Utilizador quemAge, String cartao, LocalHotel local, int quartoNumero) {
@@ -47,6 +53,9 @@ public class AcessoCartaoBLL {
         }
         if (local == LocalHotel.QUARTO && quartoNumero <= 0) {
             throw new IllegalArgumentException("Indique o número do quarto.");
+        }
+        if (local == LocalHotel.QUARTO && !quartoExiste(quartoNumero)) {
+            throw new IllegalArgumentException("O quarto " + quartoNumero + " não existe.");
         }
         int quarto = local == LocalHotel.QUARTO ? quartoNumero : 0;
         int reservaId = 0;
@@ -91,6 +100,15 @@ public class AcessoCartaoBLL {
             }
             if (local == LocalHotel.PISCINA && servico.getDesignacao() != null
                     && servico.getDesignacao().toLowerCase().startsWith(SERVICO_PISCINA.toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean quartoExiste(int numero) {
+        for (Quarto quarto : quartoDAL.listarTodos()) {
+            if (quarto.getNumero() == numero) {
                 return true;
             }
         }

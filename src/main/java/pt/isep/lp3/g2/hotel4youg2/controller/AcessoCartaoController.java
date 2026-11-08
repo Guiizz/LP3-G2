@@ -56,7 +56,7 @@ public class AcessoCartaoController {
         } catch (IllegalArgumentException | IllegalStateException e) {
             mostrarErro(e.getMessage());
         } catch (DataAccessException e) {
-            mostrarErro("Não foi possível registar a passagem. Confirme o número do quarto e tente novamente.");
+            mostrarErro("Não foi possível registar a passagem. Tente novamente.");
         }
     }
 

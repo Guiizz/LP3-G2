@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.IAcessoCartaoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
@@ -11,10 +12,13 @@ import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -143,6 +147,42 @@ public class AcessoCartaoBLLTest {
         }
     }
 
+    private static class QuartoDALFalsa implements IQuartoDAL {
+
+        @Override
+        public List<Quarto> listarComTarifa() {
+            return listarTodos();
+        }
+
+        @Override
+        public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida) {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public List<Quarto> listarDisponiveis(LocalDate entrada, LocalDate saida, boolean earlyCheckin,
+                                              boolean lateCheckout) {
+            return new ArrayList<>();
+        }
+
+        @Override
+        public List<Quarto> listarTodos() {
+            return List.of(new Quarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1),
+                    new Quarto(202, 2, TipoQuarto.DUPLO, Vista.MAR, 2),
+                    new Quarto(305, 3, TipoQuarto.FAMILIA, Vista.MONTANHA, 4));
+        }
+
+        @Override
+        public boolean temReservasFuturas(int numero) {
+            return false;
+        }
+
+        @Override
+        public boolean atualizarAtivo(int numero, boolean ativo) {
+            return false;
+        }
+    }
+
     private static final Utilizador RECECAO = new Utilizador(2, 7, "rececao", "h", "s", Perfil.RECECIONISTA, true);
     private static final Servico JANTAR = new Servico(3, "Jantar", new BigDecimal("22.00"),
             new Categoria(1, "Refeição"), true);
@@ -165,7 +205,7 @@ public class AcessoCartaoBLLTest {
         reservaDAL.emCurso = new Reserva(30, 15, 201, hoje.minusDays(1), hoje.plusDays(2), 1,
                 EstadoReserva.EM_CURSO, new BigDecimal("300.00"), hoje.minusDays(1).atTime(15, 30), null);
         reservaDAL.emCurso.setCartao("C201");
-        instance = new AcessoCartaoBLL(acessoDAL, reservaDAL, servicoReservaDAL);
+        instance = new AcessoCartaoBLL(acessoDAL, reservaDAL, servicoReservaDAL, new QuartoDALFalsa());
     }
 
     @AfterEach
@@ -287,9 +327,22 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
+    public void testRegistarPassagemCartaoMestreQuartoQueNaoExiste() {
+        System.out.println("registarPassagem (cartão mestre num quarto que não existe)");
+        String expResult = "O quarto 999 não existe.";
+        try {
+            instance.registarPassagem(RECECAO, "C000", LocalHotel.QUARTO, 999);
+            fail("Devia ter recusado um quarto que não existe");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+            assertEquals(0, acessoDAL.registados.size());
+        }
+    }
+
+    @Test
     public void testRegistarPassagemCartaoInvalido() {
         System.out.println("registarPassagem (cartão sem reserva em curso)");
-        esperarRecusa("C999", LocalHotel.QUARTO, 999,
+        esperarRecusa("C999", LocalHotel.QUARTO, 201,
                 "Acesso recusado: o cartão C999 não é válido ou é de uma reserva que já não está em curso.");
     }
 
