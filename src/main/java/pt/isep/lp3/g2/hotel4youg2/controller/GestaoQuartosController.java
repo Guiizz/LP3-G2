@@ -35,7 +35,7 @@ public class GestaoQuartosController {
     private void executar(boolean ativar) {
         Quarto escolhido = tabela.getSelectionModel().getSelectedItem();
         if (escolhido == null) {
-            mensagemLabel.setText("Escolha um quarto na tabela.");
+            Mensagens.erro(mensagemLabel, "Escolha um quarto na tabela.");
             return;
         }
         try {
@@ -45,10 +45,10 @@ public class GestaoQuartosController {
             } else {
                 quartoService.desativar(perfil, escolhido.getNumero());
             }
-            mensagemLabel.setText(ativar ? "Quarto reativado." : "Quarto desativado.");
+            Mensagens.sucesso(mensagemLabel, ativar ? "Quarto reativado." : "Quarto desativado.");
             carregar();
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 
@@ -57,7 +57,7 @@ public class GestaoQuartosController {
             tabela.getItems().setAll(quartoService.listarTodos(Sessao.getUtilizador().getPerfil()));
         } catch (RuntimeException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText("Não foi possível carregar os quartos: " + e.getMessage());
+            Mensagens.erro(mensagemLabel, "Não foi possível carregar os quartos: " + e.getMessage());
         }
     }
 }

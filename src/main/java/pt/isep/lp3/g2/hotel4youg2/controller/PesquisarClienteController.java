@@ -2,12 +2,11 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
@@ -73,15 +72,11 @@ public class PesquisarClienteController {
 
     @FXML
     private void aoRegistarNovo() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                PesquisarClienteController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/registar-cliente-view.fxml"));
-        Scene cena = new Scene(loader.load());
+        FXMLLoader loader = Navegador.carregar("registar-cliente-view.fxml");
         RegistarClienteController registo = loader.getController();
         registo.preencherNif(nifNaoEncontrado);
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Registar cliente");
-        stage.setScene(cena);
-        stage.show();
+        Parent formulario = loader.getRoot();
+        Navegador.abrirFormulario(formulario, "Registar cliente");
     }
 
     private void mostrarCliente(Cliente cliente) {
@@ -101,7 +96,7 @@ public class PesquisarClienteController {
     }
 
     private void esconderResultado() {
-        mensagemLabel.setText("");
+        Mensagens.info(mensagemLabel, "");
         dadosGrid.setVisible(false);
         dadosGrid.setManaged(false);
         registarButton.setVisible(false);
@@ -109,8 +104,7 @@ public class PesquisarClienteController {
     }
 
     private void mostrarMensagem(String texto, String cor) {
-        mensagemLabel.setStyle("-fx-text-fill: " + cor + ";");
-        mensagemLabel.setText(texto);
+        Mensagens.mostrar(mensagemLabel, texto, cor);
     }
 
     private String textoOuTraco(String texto) {

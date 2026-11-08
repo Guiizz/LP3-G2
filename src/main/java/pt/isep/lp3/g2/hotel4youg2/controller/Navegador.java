@@ -15,9 +15,11 @@ import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 public final class Navegador {
     private static final String PASTA_VIEWS = "/pt/isep/lp3/g2/hotel4youg2/view/";
+    private static final String ESTILO = "/pt/isep/lp3/g2/hotel4youg2/css/hotel4you.css";
     private static BorderPane janelaPrincipal;
     private static final Deque<Node> anteriores = new ArrayDeque<>();
 
@@ -68,7 +70,9 @@ public final class Navegador {
     public static void abrirFormulario(Parent formulario, String titulo) {
         Stage janela = new Stage();
         janela.setTitle("Hotel4You - " + titulo);
-        janela.setScene(new Scene(formulario));
+        Scene cena = new Scene(formulario);
+        aplicarEstilo(cena);
+        janela.setScene(cena);
         janela.initOwner(janelaPrincipal.getScene().getWindow());
         janela.initModality(Modality.WINDOW_MODAL);
         janela.showAndWait();
@@ -89,5 +93,16 @@ public final class Navegador {
         anteriores.clear();
         janela.getScene().setRoot(carregar("login-view.fxml").getRoot());
         janela.setTitle("Hotel4You · Entrar");
+    }
+
+    public static void mostrarArea(String titulo, List<OpcaoMenu> opcoes) throws IOException {
+        FXMLLoader loader = carregar("area-view.fxml");
+        AreaController controlador = loader.getController();
+        controlador.configurar(titulo, opcoes);
+        anteriores.clear();
+        janelaPrincipal.setCenter(loader.getRoot());
+    }
+    public static void aplicarEstilo(Scene cena) {
+        cena.getStylesheets().add(Navegador.class.getResource(ESTILO).toExternalForm());
     }
 }

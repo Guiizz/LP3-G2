@@ -52,10 +52,10 @@ public class UtilizadoresController {
             } else {
                 utilizadorBLL.desativar(Sessao.getUtilizador(), escolhida);
             }
-            mensagemLabel.setText(ativar ? "Conta reativada." : "Conta desativada.");
+            Mensagens.sucesso(mensagemLabel, ativar ? "Conta reativada." : "Conta desativada.");
             carregar();
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 

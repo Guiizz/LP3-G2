@@ -16,7 +16,7 @@
         <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
     </padding>
 
-    <Label text="Pesquisar cliente por NIF" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label text="Pesquisar cliente por NIF" styleClass="titulo"/>
 
     <HBox spacing="10.0">
         <TextField fx:id="nifField" promptText="NIF (9 dígitos)" HBox.hgrow="ALWAYS"/>

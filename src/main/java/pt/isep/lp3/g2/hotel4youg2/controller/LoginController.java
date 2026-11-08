@@ -49,7 +49,9 @@ public class LoginController {
 
     private void abrirJanelaPrincipal(Utilizador utilizador) throws IOException {
         Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
-        stage.setScene(new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700));
+        Scene cena = new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700);
+        Navegador.aplicarEstilo(cena);
+        stage.setScene(cena);
         stage.setTitle("Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
     }
 }

@@ -10,11 +10,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Controlador da janela principal: o menu fica sempre visível à esquerda e cada área
- * abre no painel central (US34); as opções do gestor ficam escondidas ao rececionista (US12).
- */
 public class InicialController {
 
     private final LigacaoBLL ligacaoService = new LigacaoBLL();
@@ -29,19 +27,10 @@ public class InicialController {
     private Label utilizadorLabel;
 
     @FXML
-    private Button tarifasButton;
-
-    @FXML
-    private Button contasButton;
-
-    @FXML
-    private Button criarContaButton;
-
-    @FXML
     private Button servicosButton;
 
     @FXML
-    private Button consultarSugestoesButton;
+    private Button administracaoButton;
 
     @FXML
     private void initialize() {
@@ -51,11 +40,8 @@ public class InicialController {
             utilizadorLabel.setText(utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
         }
         boolean gestor = Permissoes.eGestor(utilizador);
-        mostrar(tarifasButton, gestor);
-        mostrar(contasButton, gestor);
-        mostrar(criarContaButton, gestor);
         mostrar(servicosButton, gestor);
-        mostrar(consultarSugestoesButton, gestor);
+        mostrar(administracaoButton, gestor);
     }
 
     @FXML
@@ -64,83 +50,62 @@ public class InicialController {
     }
 
     @FXML
-    private void aoAbrirQuartos() throws IOException {
-        Navegador.mostrar("quartos-menu-view.fxml");
+    private void aoAbrirClientes() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Pesquisar cliente", "pesquisar-cliente-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Registar cliente", "registar-cliente-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Registar sugestão ou queixa", "sugestoes-view.fxml", true));
+        Navegador.mostrarArea("Clientes", opcoes);
     }
 
     @FXML
     private void aoAbrirReservas() throws IOException {
-        Navegador.mostrar("reservas-view.fxml");
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Gerir reservas", "gerir-reservas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Criar reserva", "criar-reserva-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Reservas de um cliente", "consultar-reservas-view.fxml", false));
+        Navegador.mostrarArea("Reservas", opcoes);
     }
 
     @FXML
-    private void aoPesquisarCliente() throws IOException {
-        Navegador.mostrar("pesquisar-cliente-view.fxml");
-    }
-
-    @FXML
-    private void aoRegistarCliente() throws IOException {
-        Navegador.abrirFormulario("registar-cliente-view.fxml", "Registar cliente");
-    }
-
-    @FXML
-    private void aoAbrirSugestoes() throws IOException {
-        Navegador.abrirFormulario("sugestoes-view.fxml", "Registar sugestão ou queixa");
-    }
-
-    @FXML
-    private void aoAbrirEntregas() throws IOException {
-        Navegador.mostrar("entregas-view.fxml");
+    private void aoAbrirQuartos() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Consultar quartos", "quartos-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
+        if (Permissoes.eGestor(Sessao.getUtilizador())) {
+            opcoes.add(new OpcaoMenu("Gestão de quartos", "gestao-quartos-view.fxml", false));
+            opcoes.add(new OpcaoMenu("Tarifas", "tarifas-view.fxml", false));
+        }
+        Navegador.mostrarArea("Quartos", opcoes);
     }
 
     @FXML
     private void aoAbrirServicos() throws IOException {
-        if (podeAbrirEcraDeGestor()) {
-            Navegador.mostrar("servicos-view.fxml");
-        }
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Tabela de preços", "servicos-view.fxml", false));
+        Navegador.mostrarArea("Serviços", opcoes);
     }
 
     @FXML
-    private void aoAbrirTarifas() throws IOException {
-        if (podeAbrirEcraDeGestor()) {
-            Navegador.mostrar("tarifas-view.fxml");
-        }
+    private void aoAbrirStock() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Entregas (XML)", "entregas-view.fxml", false));
+        Navegador.mostrarArea("Stock", opcoes);
     }
 
     @FXML
-    private void aoConsultarSugestoes() throws IOException {
-        if (podeAbrirEcraDeGestor()) {
-            Navegador.mostrar("consultar-sugestoes-view.fxml");
-        }
-    }
-
-    @FXML
-    private void aoAbrirContas() throws IOException {
-        if (podeAbrirEcraDeGestor()) {
-            Navegador.mostrar("utilizadores-view.fxml");
-        }
-    }
-
-    @FXML
-    private void aoCriarConta() throws IOException {
-        if (podeAbrirEcraDeGestor()) {
-            Navegador.abrirFormulario("criar-conta-view.fxml", "Criar conta");
-        }
+    private void aoAbrirAdministracao() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Contas", "utilizadores-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Criar conta", "criar-conta-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Sugestões e queixas", "consultar-sugestoes-view.fxml", false));
+        Navegador.mostrarArea("Administração", opcoes);
     }
 
     @FXML
     private void aoTerminarSessao() throws IOException {
         Navegador.terminarSessao();
-    }
-
-    private boolean podeAbrirEcraDeGestor() {
-        try {
-            Permissoes.exigirGestor(Sessao.getUtilizador());
-            return true;
-        } catch (IllegalStateException e) {
-            estadoLabel.setText(e.getMessage());
-            return false;
-        }
     }
 
     private void mostrar(Button botao, boolean visivel) {

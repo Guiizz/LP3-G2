@@ -45,13 +45,13 @@ public class ConsultarSugestoesController {
         try {
             List<SugestaoQueixa> lista = sugestaoBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
             tabela.getItems().setAll(lista);
-            mensagemLabel.setText(lista.size() + " registo(s)");
+            Mensagens.info(mensagemLabel, lista.size() + " registo(s)");
         } catch (DataAccessException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText("Não foi possível comunicar com a base de dados. Tente novamente.");
+            Mensagens.erro(mensagemLabel, "Não foi possível comunicar com a base de dados. Tente novamente.");
         } catch (RuntimeException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 }

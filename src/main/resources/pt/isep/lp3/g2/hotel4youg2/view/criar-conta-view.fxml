@@ -17,8 +17,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Criar conta de funcionário" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-    <Label text="Os campos com * são obrigatórios."/>
+    <Label text="Criar conta de funcionário" styleClass="titulo"/>    <Label text="Os campos com * são obrigatórios."/>
 
     <GridPane hgap="10.0" vgap="8.0">
         <columnConstraints>

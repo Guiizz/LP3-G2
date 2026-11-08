@@ -55,9 +55,9 @@ public class CriarContaController {
             funcionarioBLL.criarConta(Sessao.getUtilizador(), dados, campoNomeUtilizador.getText(),
                     campoPassword.getText(), campoPerfil.getValue());
             limpar();
-            mensagemLabel.setText("Conta criada.");
+            Mensagens.sucesso(mensagemLabel, "Conta criada.");
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 
