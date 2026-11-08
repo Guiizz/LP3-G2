@@ -64,6 +64,10 @@ public class AcessoCartao {
         return local == null ? "" : local.getDescricao();
     }
 
+    public String getReservaTexto() {
+        return reservaId > 0 ? String.valueOf(reservaId) : "-";
+    }
+
     public String getRegistadoEmTexto() {
         return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }

@@ -10,5 +10,7 @@ public interface IAcessoCartaoDAL {
 
     List<AcessoCartao> listarPorCartao(String cartao);
 
+    List<AcessoCartao> listarPorQuarto(int quartoNumero);
+
     boolean apagar(int id);
 }
