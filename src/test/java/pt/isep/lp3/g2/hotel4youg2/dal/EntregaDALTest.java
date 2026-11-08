@@ -314,5 +314,7 @@ public class EntregaDALTest {
         assertEquals(EstadoEntrega.ACEITE, aceite.getEstado());
         assertNotNull(aceite.getDecididaPor());
         assertEquals("Fornecedor de teste", aceite.getFornecedor());
+        assertEquals(100, pendente.getTotalUnidades());
+        assertEquals(700, aceite.getTotalUnidades());
     }
 }

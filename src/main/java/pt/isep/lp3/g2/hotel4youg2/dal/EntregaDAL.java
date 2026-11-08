@@ -80,6 +80,7 @@ public class EntregaDAL implements IEntregaDAL {
     private static final String SELECT_PARA_HOTEL =
             "SELECT e.id, e.numeroEncomenda, f.nome AS fornecedor, e.registadaEm, e.total, e.estado, e.motivoRecusa, "
             + "(SELECT COUNT(DISTINCT l.materialId) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS tipos, "
+            + "(SELECT SUM(l.unidades) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS totalUnidades, "
             + "p.nome AS decididaPorNome, "
             + "CASE WHEN e.estado = 'PENDENTE' THEN NULL ELSE COALESCE(e.decididaEm, e.registadaEm) END AS decididaQuando "
             + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId "
@@ -257,8 +258,9 @@ public class EntregaDAL implements IEntregaDAL {
                 decididaEm = decididaQuando.toLocalDateTime();
             }
             return new ResumoEntregaHotel(rs.getInt("id"), rs.getString("numeroEncomenda"), rs.getString("fornecedor"),
-                    rs.getInt("tipos"), rs.getTimestamp("registadaEm").toLocalDateTime(), rs.getBigDecimal("total"),
-                    EstadoEntrega.valueOf(rs.getString("estado")), rs.getString("decididaPorNome"), decididaEm,
+                    rs.getInt("tipos"), rs.getInt("totalUnidades"), rs.getTimestamp("registadaEm").toLocalDateTime(),
+                    rs.getBigDecimal("total"), EstadoEntrega.valueOf(rs.getString("estado")),
+                    rs.getString("decididaPorNome"), decididaEm,
                     rs.getString("motivoRecusa"));
         }
     }

@@ -12,7 +12,7 @@ public class ResumoEntregaHotelTest {
     @Test
     public void testGetDecididaEmTextoPendente() {
         System.out.println("getDecididaEmTexto (pendente)");
-        ResumoEntregaHotel instance = new ResumoEntregaHotel(1, "E-1", "Fornecedor Um", 2,
+        ResumoEntregaHotel instance = new ResumoEntregaHotel(1, "E-1", "Fornecedor Um", 2, 500,
                 LocalDateTime.of(2026, 11, 5, 21, 24, 38), new BigDecimal("100.00"), EstadoEntrega.PENDENTE,
                 null, null, null);
         String expResult = "";
@@ -23,7 +23,7 @@ public class ResumoEntregaHotelTest {
     @Test
     public void testGetDecididaEmTexto() {
         System.out.println("getDecididaEmTexto");
-        ResumoEntregaHotel instance = new ResumoEntregaHotel(1, "E-1", "Fornecedor Um", 2,
+        ResumoEntregaHotel instance = new ResumoEntregaHotel(1, "E-1", "Fornecedor Um", 2, 500,
                 LocalDateTime.of(2026, 11, 5, 21, 24, 38), new BigDecimal("100.00"), EstadoEntrega.RECUSADA,
                 "Ana", LocalDateTime.of(2026, 11, 6, 10, 0, 5), "Faltam toalhas");
         String expResult = "06/11/2026 10:00:05 (Europe/Lisbon)";

@@ -13,6 +13,7 @@ public class ResumoEntregaHotel {
     private final String numeroEncomenda;
     private final String fornecedor;
     private final int tiposDeMaterial;
+    private final int totalUnidades;
     private final LocalDateTime carregadaEm;
     private final BigDecimal total;
     private final EstadoEntrega estado;
@@ -27,6 +28,7 @@ public class ResumoEntregaHotel {
      * @param numeroEncomenda o número da encomenda
      * @param fornecedor      o nome do fornecedor
      * @param tiposDeMaterial quantos materiais diferentes a entrega tem
+     * @param totalUnidades   o total de unidades da entrega, que é o que entra no stock se for aceite
      * @param carregadaEm     quando a entrega foi carregada
      * @param total           o total da entrega, em euros
      * @param estado          o estado da entrega
@@ -35,12 +37,13 @@ public class ResumoEntregaHotel {
      * @param motivoRecusa    o motivo da recusa, ou {@code null} se não houve
      */
     public ResumoEntregaHotel(int entregaId, String numeroEncomenda, String fornecedor, int tiposDeMaterial,
-                              LocalDateTime carregadaEm, BigDecimal total, EstadoEntrega estado,
+                              int totalUnidades, LocalDateTime carregadaEm, BigDecimal total, EstadoEntrega estado,
                               String decididaPor, LocalDateTime decididaEm, String motivoRecusa) {
         this.entregaId = entregaId;
         this.numeroEncomenda = numeroEncomenda;
         this.fornecedor = fornecedor;
         this.tiposDeMaterial = tiposDeMaterial;
+        this.totalUnidades = totalUnidades;
         this.carregadaEm = carregadaEm;
         this.total = total;
         this.estado = estado;
@@ -63,6 +66,10 @@ public class ResumoEntregaHotel {
 
     public int getTiposDeMaterial() {
         return tiposDeMaterial;
+    }
+
+    public int getTotalUnidades() {
+        return totalUnidades;
     }
 
     public BigDecimal getTotal() {

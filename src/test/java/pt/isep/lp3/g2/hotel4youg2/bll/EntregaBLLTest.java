@@ -139,8 +139,8 @@ public class EntregaBLLTest {
             List<ResumoEntregaHotel> resumos = new ArrayList<>();
             for (Entrega e : registadas) {
                 resumos.add(new ResumoEntregaHotel(e.getId(), e.getNumeroEncomenda(), e.getFornecedor().getNome(),
-                        contarMateriais(e), LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado(),
-                        null, null, null));
+                        contarMateriais(e), 0, LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(),
+                        e.getEstado(), null, null, null));
             }
             return resumos;
         }
