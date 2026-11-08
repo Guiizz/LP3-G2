@@ -34,6 +34,7 @@ public class AcessoCartaoBLLTest {
     private static class AcessoCartaoDALFalsa implements IAcessoCartaoDAL {
         private final List<AcessoCartao> registados = new ArrayList<>();
         private final LocalDateTime agora = LocalDateTime.of(2026, 11, 8, 14, 30);
+        private int consultas;
 
         @Override
         public void registar(AcessoCartao acesso) {
@@ -43,7 +44,20 @@ public class AcessoCartaoBLLTest {
         }
 
         @Override
+        public List<AcessoCartao> listarPorQuarto(int quartoNumero) {
+            consultas++;
+            List<AcessoCartao> resultado = new ArrayList<>();
+            for (AcessoCartao acesso : registados) {
+                if (acesso.getQuartoNumero() == quartoNumero) {
+                    resultado.add(acesso);
+                }
+            }
+            return resultado;
+        }
+
+        @Override
         public List<AcessoCartao> listarPorCartao(String cartao) {
+            consultas++;
             List<AcessoCartao> resultado = new ArrayList<>();
             for (AcessoCartao acesso : registados) {
                 if (acesso.getCartao().equals(cartao)) {
@@ -183,6 +197,7 @@ public class AcessoCartaoBLLTest {
         }
     }
 
+    private static final Utilizador GESTOR = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
     private static final Utilizador RECECAO = new Utilizador(2, 7, "rececao", "h", "s", Perfil.RECECIONISTA, true);
     private static final Servico JANTAR = new Servico(3, "Jantar", new BigDecimal("22.00"),
             new Categoria(1, "Refeição"), true);
@@ -388,6 +403,127 @@ public class AcessoCartaoBLLTest {
         } catch (IllegalArgumentException expected) {
             assertEquals(expResult, expected.getMessage());
         }
+    }
+
+    @Test
+    public void testConsultarPorCartao() {
+        System.out.println("consultarPorCartao (locais e horas do cartão)");
+        juntarExtra(PISCINA);
+        AcessoCartao quarto = instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
+        AcessoCartao piscina = instance.registarPassagem(RECECAO, "C201", LocalHotel.PISCINA, 0);
+        List<AcessoCartao> expResult = List.of(quarto, piscina);
+        List<AcessoCartao> result = instance.consultarPorCartao(GESTOR, " c201 ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarPorCartaoVazio() {
+        System.out.println("consultarPorCartao (sem cartão)");
+        String expResult = "Escreva o número do cartão.";
+        try {
+            instance.consultarPorCartao(GESTOR, "  ");
+            fail("Devia ter pedido o cartão");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testConsultarPorCartaoRececionista() {
+        System.out.println("consultarPorCartao (só o gestor)");
+        int expResult = 0;
+        try {
+            instance.consultarPorCartao(RECECAO, "C201");
+            fail("Devia ter recusado a rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, acessoDAL.consultas);
+        }
+    }
+
+    @Test
+    public void testConsultarPorCartaoSemSessao() {
+        System.out.println("consultarPorCartao (sem sessão iniciada)");
+        int expResult = 0;
+        try {
+            instance.consultarPorCartao(null, "C201");
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, acessoDAL.consultas);
+        }
+    }
+
+    @Test
+    public void testConsultarPorQuartoIncluiCartaoMestre() {
+        System.out.println("consultarPorQuarto (cartões que entraram, com o mestre)");
+        AcessoCartao hospede = instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
+        AcessoCartao mestre = instance.registarPassagem(RECECAO, "C000", LocalHotel.QUARTO, 201);
+        List<AcessoCartao> expResult = List.of(hospede, mestre);
+        List<AcessoCartao> result = instance.consultarPorQuarto(GESTOR, " 201 ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarPorQuartoSoDesseQuarto() {
+        System.out.println("consultarPorQuarto (não mostra outros quartos)");
+        instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
+        AcessoCartao mestre = instance.registarPassagem(RECECAO, "C000", LocalHotel.QUARTO, 305);
+        List<AcessoCartao> expResult = List.of(mestre);
+        List<AcessoCartao> result = instance.consultarPorQuarto(GESTOR, "305");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarPorQuartoVazio() {
+        System.out.println("consultarPorQuarto (sem quarto)");
+        String expResult = "Indique o número do quarto.";
+        try {
+            instance.consultarPorQuarto(GESTOR, "");
+            fail("Devia ter pedido o quarto");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testConsultarPorQuartoComLetras() {
+        System.out.println("consultarPorQuarto (com letras)");
+        String expResult = "O número do quarto tem de ser um número inteiro.";
+        try {
+            instance.consultarPorQuarto(GESTOR, "abc");
+            fail("Devia ter recusado letras");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testConsultarPorQuartoRececionista() {
+        System.out.println("consultarPorQuarto (só o gestor)");
+        int expResult = 0;
+        try {
+            instance.consultarPorQuarto(RECECAO, "201");
+            fail("Devia ter recusado a rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, acessoDAL.consultas);
+        }
+    }
+
+    @Test
+    public void testGetReservaTextoDoHospede() {
+        System.out.println("getReservaTexto (hóspede)");
+        AcessoCartao acesso = instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
+        String expResult = "30";
+        String result = acesso.getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetReservaTextoDoMestre() {
+        System.out.println("getReservaTexto (cartão mestre não tem reserva)");
+        AcessoCartao acesso = instance.registarPassagem(RECECAO, "C000", LocalHotel.QUARTO, 201);
+        String expResult = "-";
+        String result = acesso.getReservaTexto();
+        assertEquals(expResult, result);
     }
 
     @Test

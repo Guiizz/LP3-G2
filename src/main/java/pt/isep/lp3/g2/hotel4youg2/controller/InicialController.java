@@ -94,6 +94,7 @@ public class InicialController {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Entregas (XML)", "entregas-view.fxml", false));
         opcoes.add(new OpcaoMenu("Decidir entregas", "decidir-entregas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Saída de materiais", "saida-stock-view.fxml", false));
         Navegador.mostrarArea("Stock", opcoes);
     }
 
@@ -105,6 +106,7 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Criar conta", "criar-conta-view.fxml", true));
         opcoes.add(new OpcaoMenu("Criar fornecedor", "criar-fornecedor-view.fxml", true));
         opcoes.add(new OpcaoMenu("Sugestões e queixas", "consultar-sugestoes-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Registos de acesso", "consultar-acessos-view.fxml", false));
         opcoes.add(new OpcaoMenu("Horas e taxas", "horario-reserva-view.fxml", false));
         Navegador.mostrarArea("Administração", opcoes);
     }

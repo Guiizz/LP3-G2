@@ -15,6 +15,9 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
     private static final String LISTAR_POR_CARTAO =
             "SELECT id, cartao, localAcesso, quartoNumero, reservaId, registadoEm FROM AcessoCartao "
             + "WHERE cartao = ? ORDER BY registadoEm DESC, id DESC";
+    private static final String LISTAR_POR_QUARTO =
+            "SELECT id, cartao, localAcesso, quartoNumero, reservaId, registadoEm FROM AcessoCartao "
+            + "WHERE quartoNumero = ? ORDER BY registadoEm DESC, id DESC";
     private static final String APAGAR = "DELETE FROM AcessoCartao WHERE id = ?";
 
     @Override
@@ -26,6 +29,11 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
     @Override
     public List<AcessoCartao> listarPorCartao(String cartao) {
         return ConexaoBD.select(LISTAR_POR_CARTAO, new AcessoCartaoMapper(), cartao);
+    }
+
+    @Override
+    public List<AcessoCartao> listarPorQuarto(int quartoNumero) {
+        return ConexaoBD.select(LISTAR_POR_QUARTO, new AcessoCartaoMapper(), quartoNumero);
     }
 
     @Override

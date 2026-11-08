@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 /**
  * Quarto do hotel. O preço por noite vem da tarifa associada ao seu tipo e à sua vista.
@@ -99,5 +100,37 @@ public class Quarto {
 
     public String getEstado() {
         return ativo ? "Ativo" : "Desativado";
+    }
+
+    /**
+     * Dois quartos são iguais se tiverem os mesmos dados (incluindo a tarifa e o estado).
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Quarto)) {
+            return false;
+        }
+        Quarto outro = (Quarto) o;
+        return numero == outro.numero
+                && piso == outro.piso
+                && capacidade == outro.capacidade
+                && ativo == outro.ativo
+                && tipo == outro.tipo
+                && vista == outro.vista
+                && Objects.equals(tarifa, outro.tarifa);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(numero, piso, tipo, vista, capacidade, ativo);
+    }
+
+    @Override
+    public String toString() {
+        return "Quarto{" + numero + ", piso " + piso + ", " + tipo + ", " + vista + ", capacidade " + capacidade
+                + ", " + getEstado() + ", " + tarifa + "}";
     }
 }

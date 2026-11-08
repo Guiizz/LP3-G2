@@ -47,8 +47,22 @@ public class AcessoCartaoDALTest {
         criados.clear();
     }
 
+    private List<AcessoCartao> soOsDoTeste(List<AcessoCartao> lista) {
+        List<AcessoCartao> resultado = new ArrayList<>();
+        for (AcessoCartao acesso : lista) {
+            if (criados.contains(acesso)) {
+                resultado.add(acesso);
+            }
+        }
+        return resultado;
+    }
+
     private AcessoCartao registar(LocalHotel local, int numeroQuarto) {
-        AcessoCartao acesso = new AcessoCartao(0, cartao, local, numeroQuarto, 0, null);
+        return registar(cartao, local, numeroQuarto);
+    }
+
+    private AcessoCartao registar(String numero, LocalHotel local, int numeroQuarto) {
+        AcessoCartao acesso = new AcessoCartao(0, numero, local, numeroQuarto, 0, null);
         instance.registar(acesso);
         criados.add(acesso);
         return acesso;
@@ -88,6 +102,25 @@ public class AcessoCartaoDALTest {
         AcessoCartao segundo = registar(LocalHotel.PISCINA, 0);
         List<AcessoCartao> expResult = List.of(segundo, primeiro);
         List<AcessoCartao> result = instance.listarPorCartao(cartao);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorQuartoMostraOsCartoesEOMestre() {
+        System.out.println("listarPorQuarto (cartões que entraram, com o mestre, mais recente primeiro)");
+        AcessoCartao hospede = registar(LocalHotel.QUARTO, quarto);
+        AcessoCartao mestre = registar(AcessoCartao.CARTAO_MESTRE, LocalHotel.QUARTO, quarto);
+        List<AcessoCartao> expResult = List.of(mestre, hospede);
+        List<AcessoCartao> result = soOsDoTeste(instance.listarPorQuarto(quarto));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorQuartoIgnoraOutrosLocais() {
+        System.out.println("listarPorQuarto (a piscina não conta como quarto)");
+        registar(LocalHotel.PISCINA, 0);
+        List<AcessoCartao> expResult = new ArrayList<>();
+        List<AcessoCartao> result = soOsDoTeste(instance.listarPorQuarto(quarto));
         assertEquals(expResult, result);
     }
 
