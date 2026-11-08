@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
 
 import java.math.BigDecimal;
@@ -17,6 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EntregaDALTest {
 
@@ -64,6 +68,8 @@ public class EntregaDALTest {
         if (entregaPendente != null && entregaPendente.getId() > 0) {
             instance.apagar(entregaPendente.getId());
         }
+        ConexaoBD.executar("DELETE FROM Stock WHERE materialId IN (SELECT id FROM Material WHERE fornecedorId IN "
+                + "(SELECT id FROM Fornecedor WHERE codigo = ?))", codigoFornecedor);
         ConexaoBD.executar("DELETE FROM Material WHERE fornecedorId IN (SELECT id FROM Fornecedor WHERE codigo = ?)",
                 codigoFornecedor);
         ConexaoBD.executar("DELETE FROM Fornecedor WHERE codigo = ?", codigoFornecedor);
@@ -197,5 +203,116 @@ public class EntregaDALTest {
         List<ResumoEntrega> expResult = List.of();
         List<ResumoEntrega> result = instance.listarResumosDoFornecedor("NAO-EXISTE");
         assertEquals(expResult, result);
+    }
+
+    // quantidade em stock de um material do fornecedor de teste (0 se ainda não tem linha)
+    private int quantidadeEmStock(String codigoMaterial) {
+        List<Integer> quantidades = ConexaoBD.select("SELECT s.quantidade FROM Stock s "
+                + "JOIN Material m ON m.id = s.materialId JOIN Fornecedor f ON f.id = m.fornecedorId "
+                + "WHERE f.codigo = ? AND m.codigo = ?", new InteiroMapper(), codigoFornecedor, codigoMaterial);
+        if (quantidades.isEmpty()) {
+            return 0;
+        }
+        return quantidades.get(0);
+    }
+
+    // posição de uma entrega na lista do hotel (-1 se não aparecer)
+    private int posicao(List<ResumoEntregaHotel> lista, String numeroEncomenda) {
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i).getNumeroEncomenda().equals(numeroEncomenda)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @Test
+    public void testRegistarSomaAoStock() {
+        System.out.println("registar (soma ao stock)");
+        assertEquals(50, quantidadeEmStock("M-1"));
+        assertEquals(200, quantidadeEmStock("M-2"));
+    }
+
+    @Test
+    public void testAceitar() {
+        System.out.println("aceitar");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        boolean expResult = true;
+        boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.ACEITE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
+        assertEquals(60, quantidadeEmStock("M-1"));
+    }
+
+    @Test
+    public void testAceitarDuasVezes() {
+        System.out.println("aceitar (a segunda vez falha e não soma outra vez)");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        instance.aceitar(entregaPendente.getId(), funcionarioId);
+        boolean expResult = false;
+        boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
+        assertEquals(expResult, result);
+        assertEquals(60, quantidadeEmStock("M-1"));
+    }
+
+    @Test
+    public void testAceitarEntregaJaRecusada() {
+        System.out.println("aceitar (entrega recusada)");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        instance.recusar(entregaPendente.getId(), funcionarioId, null);
+        boolean expResult = false;
+        boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
+        assertEquals(expResult, result);
+        assertEquals(50, quantidadeEmStock("M-1"));
+    }
+
+    @Test
+    public void testRecusar() {
+        System.out.println("recusar");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        boolean expResult = true;
+        boolean result = instance.recusar(entregaPendente.getId(), funcionarioId, "Faltam toalhas");
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.RECUSADA, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
+        assertEquals(50, quantidadeEmStock("M-1"));
+        ResumoEntrega maisRecente = instance.listarResumosDoFornecedor(codigoFornecedor).get(0);
+        assertEquals("Faltam toalhas", maisRecente.getMotivoRecusa());
+    }
+
+    @Test
+    public void testRecusarSemMotivo() {
+        System.out.println("recusar (sem motivo)");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        instance.recusar(entregaPendente.getId(), funcionarioId, null);
+        ResumoEntrega maisRecente = instance.listarResumosDoFornecedor(codigoFornecedor).get(0);
+        assertNull(maisRecente.getMotivoRecusa());
+    }
+
+    @Test
+    public void testRecusarEntregaJaAceite() {
+        System.out.println("recusar (entrega aceite)");
+        boolean expResult = false;
+        boolean result = instance.recusar(entrega.getId(), funcionarioId, "Tarde de mais");
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.ACEITE, instance.procurarPorId(entrega.getId()).orElseThrow().getEstado());
+    }
+
+    @Test
+    public void testListarParaHotel() {
+        System.out.println("listarParaHotel");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        List<ResumoEntregaHotel> lista = instance.listarParaHotel();
+        int posicaoPendente = posicao(lista, "TESTE-PENDENTE");
+        int posicaoAceite = posicao(lista, entrega.getNumeroEncomenda());
+        assertTrue(posicaoPendente >= 0 && posicaoAceite >= 0);
+        assertTrue(posicaoPendente < posicaoAceite);
+        ResumoEntregaHotel pendente = lista.get(posicaoPendente);
+        assertEquals(EstadoEntrega.PENDENTE, pendente.getEstado());
+        assertNull(pendente.getDecididaPor());
+        assertEquals("", pendente.getDecididaEmTexto());
+        ResumoEntregaHotel aceite = lista.get(posicaoAceite);
+        assertEquals(EstadoEntrega.ACEITE, aceite.getEstado());
+        assertNotNull(aceite.getDecididaPor());
+        assertEquals("Fornecedor de teste", aceite.getFornecedor());
     }
 }

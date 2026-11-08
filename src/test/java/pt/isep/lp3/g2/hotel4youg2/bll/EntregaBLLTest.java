@@ -11,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.io.InputStream;
@@ -103,6 +104,21 @@ public class EntregaBLLTest {
                 }
             }
             return resumos;
+        }
+
+        @Override
+        public boolean aceitar(int entregaId, int funcionarioId) {
+            return false;
+        }
+
+        @Override
+        public boolean recusar(int entregaId, int funcionarioId, String motivo) {
+            return false;
+        }
+
+        @Override
+        public List<ResumoEntregaHotel> listarParaHotel() {
+            return new ArrayList<>();
         }
 
         private int contarMateriais(Entrega entrega) {
