@@ -32,11 +32,9 @@ public class CriarFornecedorController {
             campoCodigo.clear();
             campoNome.clear();
             campoPassword.clear();
-            mensagemLabel.setStyle("-fx-text-fill: green;");
-            mensagemLabel.setText("Fornecedor " + criado.getCodigo() + " criado.");
+            Mensagens.sucesso(mensagemLabel, "Fornecedor " + criado.getCodigo() + " criado.");
         } catch (RuntimeException e) {
-            mensagemLabel.setStyle("-fx-text-fill: red;");
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 }

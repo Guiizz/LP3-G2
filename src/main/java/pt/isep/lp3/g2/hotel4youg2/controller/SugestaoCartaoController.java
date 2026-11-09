@@ -33,8 +33,7 @@ public class SugestaoCartaoController {
         try {
             SugestaoQueixa registada = sugestaoBLL.registarPeloCartao(cartaoField.getText(), tipoCombo.getValue(),
                     descricaoArea.getText());
-            mensagemLabel.setStyle("-fx-text-fill: green;");
-            mensagemLabel.setText("Obrigado! A sua " + (registada.getTipo() == TipoSugestao.QUEIXA ? "queixa" : "sugestão")
+            Mensagens.sucesso(mensagemLabel, "Obrigado! A sua " + (registada.getTipo() == TipoSugestao.QUEIXA ? "queixa" : "sugestão")
                     + " foi enviada ao gestor.");
             cartaoField.clear();
             tipoCombo.setValue(null);
@@ -47,7 +46,6 @@ public class SugestaoCartaoController {
     }
 
     private void mostrarErro(String texto) {
-        mensagemLabel.setStyle("-fx-text-fill: red;");
-        mensagemLabel.setText(texto);
+        Mensagens.erro(mensagemLabel, texto);
     }
 }

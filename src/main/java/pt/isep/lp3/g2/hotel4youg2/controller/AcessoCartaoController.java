@@ -46,8 +46,7 @@ public class AcessoCartaoController {
             int quarto = lerQuarto();
             AcessoCartao acesso = acessoBLL.registarPassagem(Sessao.getUtilizador(), cartaoField.getText(),
                     localCombo.getValue(), quarto);
-            mensagemLabel.setStyle("-fx-text-fill: green;");
-            mensagemLabel.setText("Acesso permitido: cartão " + acesso.getCartao() + " em "
+            Mensagens.sucesso(mensagemLabel, "Acesso permitido: cartão " + acesso.getCartao() + " em "
                     + acesso.getLocalTexto() + " às " + acesso.getRegistadoEmTexto() + ".");
             atualizarTabela();
         } catch (ValidacaoException e) {
@@ -94,7 +93,6 @@ public class AcessoCartaoController {
     }
 
     private void mostrarErro(String texto) {
-        mensagemLabel.setStyle("-fx-text-fill: red;");
-        mensagemLabel.setText(texto);
+        Mensagens.erro(mensagemLabel, texto);
     }
 }

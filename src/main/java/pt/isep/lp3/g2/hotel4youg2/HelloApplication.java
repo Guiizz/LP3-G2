@@ -4,6 +4,8 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
+import pt.isep.lp3.g2.hotel4youg2.controller.Navegador;
 
 import java.io.IOException;
 
@@ -20,7 +22,9 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("view/login-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 360, 320);
+        Scene scene = new Scene(fxmlLoader.load(), 360, 420);
+        Navegador.aplicarEstilo(scene);
+        stage.getIcons().add(new Image(HelloApplication.class.getResourceAsStream("images/simbolo.png")));
         stage.setTitle("Hotel4You · Entrar");
         stage.setScene(scene);
         stage.show();

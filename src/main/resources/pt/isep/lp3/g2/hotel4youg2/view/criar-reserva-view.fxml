@@ -22,7 +22,7 @@
         <Insets top="15" right="15" bottom="15" left="15"/>
     </padding>
 
-    <Label text="Criar reserva" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label text="Criar reserva" styleClass="titulo"/>
 
     <Label text="1. Cliente"/>
     <HBox spacing="10.0" alignment="CENTER_LEFT">

@@ -14,7 +14,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Contas de utilizador" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Contas de utilizador" styleClass="titulo"/>
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>

@@ -6,6 +6,8 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 
 <VBox alignment="CENTER" spacing="10.0"
       xmlns="http://javafx.com/javafx/17"
@@ -16,7 +18,9 @@
         <Insets top="20" right="30" bottom="20" left="30"/>
     </padding>
 
-    <Label text="Hotel4You" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <ImageView fitWidth="160" preserveRatio="true" smooth="true">
+        <image><Image url="@../images/logo.png"/></image>
+    </ImageView>
 
     <Label text="Nome de utilizador" maxWidth="Infinity"/>
     <TextField fx:id="nomeUtilizadorField" promptText="ex.: gestor"/>
@@ -27,6 +31,6 @@
     <Button text="Entrar" defaultButton="true" maxWidth="Infinity" onAction="#aoEntrar"/>
     <Button text="Entrar como fornecedor" maxWidth="Infinity" onAction="#aoEntrarComoFornecedor"/>
 
-    <Label fx:id="erroLabel" wrapText="true" maxWidth="300" style="-fx-text-fill: #c0392b;"/>
+    <Label fx:id="erroLabel" wrapText="true" maxWidth="300" styleClass="mensagem-erro"/>
     <Button text="Sugestão ou queixa (cliente)" maxWidth="Infinity" onAction="#aoSugestaoCliente"/>
 </VBox>

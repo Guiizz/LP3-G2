@@ -120,13 +120,11 @@ public class GerirReservasController {
     }
 
     private void mostrarErro(String texto) {
-        mensagemLabel.setStyle("-fx-text-fill: red;");
-        mensagemLabel.setText(texto);
+        Mensagens.erro(mensagemLabel, texto);
     }
 
     private void mostrarSucesso(String texto) {
-        mensagemLabel.setStyle("-fx-text-fill: green;");
-        mensagemLabel.setText(texto);
+        Mensagens.sucesso(mensagemLabel, texto);
     }
 
     @FXML

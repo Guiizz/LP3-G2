@@ -22,7 +22,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Serviços extra · tabela de preços" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Serviços extra · tabela de preços" styleClass="titulo"/>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Mostrar:"/>

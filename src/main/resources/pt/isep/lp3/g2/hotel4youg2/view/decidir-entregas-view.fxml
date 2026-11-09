@@ -19,7 +19,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Decidir entregas dos fornecedores" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Decidir entregas dos fornecedores" styleClass="titulo"/>
     <Label text="Escolha uma entrega pendente. Ao aceitar, as unidades entram no stock; ao recusar, o fornecedor pode voltar a enviá-la."
            wrapText="true"/>
 

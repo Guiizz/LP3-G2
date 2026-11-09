@@ -97,7 +97,6 @@ public class DecidirEntregasController {
     }
 
     private void mostrarMensagem(String texto, String cor) {
-        mensagemLabel.setStyle("-fx-text-fill: " + cor + ";");
-        mensagemLabel.setText(texto);
+        Mensagens.mostrar(mensagemLabel, texto, cor);
     }
 }

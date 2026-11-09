@@ -60,7 +60,9 @@ public class LoginController {
                     passwordField.getText());
             Sessao.iniciarFornecedor(fornecedor);
             Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
-            stage.setScene(new Scene(Navegador.carregar("fornecedor-view.fxml").getRoot(), 1100, 700));
+            Scene cena = new Scene(Navegador.carregar("fornecedor-view.fxml").getRoot(), 1100, 700);
+            Navegador.aplicarEstilo(cena);
+            stage.setScene(cena);
             stage.setTitle("Hotel4You · Fornecedor " + fornecedor.getNome());
         } catch (IllegalArgumentException e) {
             erroLabel.setText(e.getMessage());
@@ -74,7 +76,9 @@ public class LoginController {
 
     private void abrirJanelaPrincipal(Utilizador utilizador) throws IOException {
         Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
-        stage.setScene(new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700));
+        Scene cena = new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700);
+        Navegador.aplicarEstilo(cena);
+        stage.setScene(cena);
         stage.setTitle("Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
     }
 
@@ -83,7 +87,9 @@ public class LoginController {
         try {
             Stage janela = new Stage();
             janela.setTitle("Hotel4You · Sugestão ou queixa");
-            janela.setScene(new Scene(Navegador.carregar("sugestao-cartao-view.fxml").getRoot()));
+            Scene cena = new Scene(Navegador.carregar("sugestao-cartao-view.fxml").getRoot());
+            Navegador.aplicarEstilo(cena);
+            janela.setScene(cena);
             janela.initOwner(nomeUtilizadorField.getScene().getWindow());
             janela.initModality(Modality.WINDOW_MODAL);
             janela.showAndWait();
