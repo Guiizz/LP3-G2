@@ -13,22 +13,42 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Regras de negócio dos serviços extra das reservas (US37): juntar e retirar serviços
+ * com o preço da tabela de preços (US46). Só o rececionista e o gestor o podem fazer,
+ * e só em reservas confirmadas ou em curso.
+ */
 public class ServicoReservaBLL {
 
+    /** A maior quantidade de um serviço que se pode juntar de uma só vez. */
     public static final int QUANTIDADE_MAXIMA = 99;
 
     private final IServicoReservaDAL servicoReservaDAL;
     private final IServicoDAL servicoDAL;
 
+    /**
+     * Cria o BLL ligado à base de dados.
+     */
     public ServicoReservaBLL() {
         this(new ServicoReservaDAL(), new ServicoDAL());
     }
 
+    /**
+     * Cria o BLL com outros DAL (usado nos testes).
+     *
+     * @param servicoReservaDAL onde ficam os serviços das reservas
+     * @param servicoDAL        onde estão os serviços e os seus preços
+     */
     public ServicoReservaBLL(IServicoReservaDAL servicoReservaDAL, IServicoDAL servicoDAL) {
         this.servicoReservaDAL = servicoReservaDAL;
         this.servicoDAL = servicoDAL;
     }
 
+    /**
+     * Lista os serviços que se podem juntar a uma reserva.
+     *
+     * @return só os serviços ativos
+     */
     public List<Servico> listarServicosAtivos() {
         List<Servico> ativos = new ArrayList<>();
         for (Servico servico : servicoDAL.listar()) {
@@ -39,6 +59,13 @@ public class ServicoReservaBLL {
         return ativos;
     }
 
+    /**
+     * Lista os serviços já juntos a uma reserva.
+     *
+     * @param reserva a reserva
+     * @return os serviços da reserva
+     * @throws ValidacaoException se não for escolhida nenhuma reserva
+     */
     public List<ServicoReserva> listarDaReserva(Reserva reserva) {
         if (reserva == null) {
             throw new ValidacaoException("Escolha uma reserva");
@@ -46,6 +73,19 @@ public class ServicoReservaBLL {
         return servicoReservaDAL.listarPorReserva(reserva.getId());
     }
 
+    /**
+     * Junta um serviço à reserva, com o preço que tem agora na tabela de preços,
+     * e atualiza o total dos serviços da reserva.
+     *
+     * @param quemAge    o utilizador com a sessão iniciada (rececionista ou gestor)
+     * @param reserva    a reserva (confirmada ou em curso)
+     * @param servico    o serviço a juntar (tem de estar ativo)
+     * @param quantidade quantas vezes (de 1 a {@value #QUANTIDADE_MAXIMA})
+     * @return o serviço junto, já gravado
+     * @throws IllegalStateException se quem age não for rececionista nem gestor
+     * @throws ValidacaoException    se a reserva já não aceitar serviços, o serviço estiver
+     *                               desativado ou a quantidade não for válida
+     */
     public ServicoReserva adicionar(Utilizador quemAge, Reserva reserva, Servico servico, int quantidade) {
         exigirRececaoOuGestor(quemAge);
         exigirReservaAberta(reserva, "juntar");
@@ -70,6 +110,15 @@ public class ServicoReservaBLL {
         return novo;
     }
 
+    /**
+     * Retira um serviço da reserva e desconta-o do total dos serviços.
+     *
+     * @param quemAge        o utilizador com a sessão iniciada (rececionista ou gestor)
+     * @param reserva        a reserva (confirmada ou em curso)
+     * @param servicoReserva o serviço a retirar
+     * @throws IllegalStateException se quem age não for rececionista nem gestor
+     * @throws ValidacaoException    se a reserva já não aceitar alterações ou o serviço já tiver sido retirado
+     */
     public void retirar(Utilizador quemAge, Reserva reserva, ServicoReserva servicoReserva) {
         exigirRececaoOuGestor(quemAge);
         exigirReservaAberta(reserva, "retirar");
@@ -82,6 +131,12 @@ public class ServicoReservaBLL {
         reserva.setTotalServicos(reserva.getTotalServicos().subtract(servicoReserva.getTotal()));
     }
 
+    /**
+     * Soma o total de uma lista de serviços da reserva.
+     *
+     * @param servicos os serviços
+     * @return a soma de quantidade × preço unitário de todos; zero se a lista estiver vazia
+     */
     public static BigDecimal somar(List<ServicoReserva> servicos) {
         BigDecimal soma = BigDecimal.ZERO;
         for (ServicoReserva servico : servicos) {

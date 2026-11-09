@@ -4,6 +4,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Sugestão ou queixa de um cliente (US23 e US48), registada na receção ou enviada pelo próprio
+ * cliente com o cartão do quarto.
+ */
 public class SugestaoQueixa {
 
     private int id;
@@ -14,6 +18,16 @@ public class SugestaoQueixa {
     private LocalDateTime registadaEm;
     private String nomeCliente;
 
+    /**
+     * Cria uma sugestão ou queixa.
+     *
+     * @param id           o id (0 se ainda não foi gravada)
+     * @param clienteId    o id do cliente
+     * @param tipo         sugestão ou queixa
+     * @param descricao    o texto
+     * @param registadaPor o id do funcionário que a registou; 0 se foi o próprio cliente, com o cartão
+     * @param registadaEm  quando foi registada ({@code null} antes de gravar: é a base de dados que a põe)
+     */
     public SugestaoQueixa(int id, int clienteId, TipoSugestao tipo, String descricao, int registadaPor,
                           LocalDateTime registadaEm) {
         this.id = id;

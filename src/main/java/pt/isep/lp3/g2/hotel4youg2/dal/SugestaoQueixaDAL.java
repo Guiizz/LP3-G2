@@ -8,6 +8,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementação em SQL Server de {@link ISugestaoQueixaDAL}.
+ */
 public class SugestaoQueixaDAL implements ISugestaoQueixaDAL {
 
     // a data não vai no INSERT: é a BD que a põe (DEFAULT SYSDATETIME()) e devolve-a com o id

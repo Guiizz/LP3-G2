@@ -8,6 +8,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Gestão de quartos": o gestor vê todos os quartos e desativa ou reativa cada um.
+ */
 public class GestaoQuartosController {
     private final QuartoBLL quartoService = new QuartoBLL();
 

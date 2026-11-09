@@ -77,11 +77,26 @@ public class QuartoBLL {
         return resultado;
     }
 
+    /**
+     * Lista todos os quartos, ativos e desativados, para o ecrã "Gestão de quartos". Só o gestor.
+     *
+     * @param perfilAtual o perfil do utilizador com a sessão iniciada
+     * @return todos os quartos
+     * @throws IllegalStateException se o perfil não for o de gestor
+     */
     public List<Quarto> listarTodos(Perfil perfilAtual) {
         exigirGestor(perfilAtual);
         return repositorio.listarTodos();
     }
 
+    /**
+     * Desativa um quarto, para deixar de aparecer nas pesquisas e nas reservas novas. Só o gestor.
+     *
+     * @param perfilAtual o perfil do utilizador com a sessão iniciada
+     * @param numero      o número do quarto
+     * @throws IllegalStateException    se o perfil não for o de gestor
+     * @throws IllegalArgumentException se o quarto tiver reservas futuras ou não existir
+     */
     public void desativar(Perfil perfilAtual, int numero) {
         exigirGestor(perfilAtual);
         if (repositorio.temReservasFuturas(numero)) {
@@ -93,6 +108,14 @@ public class QuartoBLL {
         }
     }
 
+    /**
+     * Volta a ativar um quarto desativado. Só o gestor.
+     *
+     * @param perfilAtual o perfil do utilizador com a sessão iniciada
+     * @param numero      o número do quarto
+     * @throws IllegalStateException    se o perfil não for o de gestor
+     * @throws IllegalArgumentException se o quarto não existir
+     */
     public void reativar(Perfil perfilAtual, int numero) {
         exigirGestor(perfilAtual);
         if (!repositorio.atualizarAtivo(numero, true)) {

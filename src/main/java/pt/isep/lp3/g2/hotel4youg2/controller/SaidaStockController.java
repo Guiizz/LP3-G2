@@ -9,6 +9,9 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Saída de materiais" (US42): mostra o stock de cada material e regista as saídas.
+ */
 public class SaidaStockController {
 
     private final StockBLL stockBLL = new StockBLL();

@@ -12,6 +12,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Sugestões e queixas" do gestor: lista as sugestões e queixas dos clientes, com filtro por tipo.
+ */
 public class ConsultarSugestoesController {
 
     private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();

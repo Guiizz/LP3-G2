@@ -10,6 +10,9 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
 
+/**
+ * Controlador do ecrã onde o cliente envia uma sugestão ou queixa com o número do cartão do quarto (US48). Abre a partir do login.
+ */
 public class SugestaoCartaoController {
 
     private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();

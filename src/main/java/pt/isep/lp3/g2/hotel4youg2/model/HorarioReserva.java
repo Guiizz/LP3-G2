@@ -4,6 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.Objects;
 
+/**
+ * Horas e taxas das reservas (US47): as horas standard de check-in e de check-out, as horas de
+ * early check-in e de late check-out, e o que se paga a mais por cada uma.
+ */
 public class HorarioReserva {
 
     private LocalTime horaCheckin;
@@ -13,6 +17,16 @@ public class HorarioReserva {
     private BigDecimal taxaEarlyCheckin;
     private BigDecimal taxaLateCheckout;
 
+    /**
+     * Cria as horas e as taxas das reservas.
+     *
+     * @param horaCheckin      a hora standard de check-in
+     * @param horaCheckout     a hora standard de check-out
+     * @param horaEarlyCheckin a hora a partir da qual se pode fazer o early check-in
+     * @param horaLateCheckout a hora até à qual se pode fazer o late check-out
+     * @param taxaEarlyCheckin o que se paga a mais pelo early check-in
+     * @param taxaLateCheckout o que se paga a mais pelo late check-out
+     */
     public HorarioReserva(LocalTime horaCheckin, LocalTime horaCheckout, LocalTime horaEarlyCheckin,
                           LocalTime horaLateCheckout, BigDecimal taxaEarlyCheckin, BigDecimal taxaLateCheckout) {
         this.horaCheckin = horaCheckin;
@@ -47,10 +61,21 @@ public class HorarioReserva {
         return taxaLateCheckout;
     }
 
+    /**
+     * @param earlyCheckin se a reserva tem early check-in
+     * @return a hora a partir da qual o check-in é permitido
+     */
     public LocalTime horaMinimaCheckin(boolean earlyCheckin) {
         return earlyCheckin ? horaEarlyCheckin : horaCheckin;
     }
 
+    /**
+     * Soma as taxas pedidas.
+     *
+     * @param earlyCheckin se a reserva tem early check-in
+     * @param lateCheckout se a reserva tem late check-out
+     * @return a soma das taxas; zero se não tiver nenhum
+     */
     public BigDecimal calcularTaxa(boolean earlyCheckin, boolean lateCheckout) {
         BigDecimal taxa = BigDecimal.ZERO;
         if (earlyCheckin) {

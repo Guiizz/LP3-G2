@@ -1,5 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+/**
+ * Locais do hotel onde se passa o cartão (US39).
+ */
 public enum LocalHotel {
     QUARTO("Quarto"),
     RESTAURANTE("Restaurante"),

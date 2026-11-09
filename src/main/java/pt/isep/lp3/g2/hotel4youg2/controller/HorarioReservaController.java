@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 
+/**
+ * Controlador do ecrã "Horas e taxas" (US47): o gestor altera as horas de check-in e de check-out, as de early check-in e de late check-out, e as taxas.
+ */
 public class HorarioReservaController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";

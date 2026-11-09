@@ -8,6 +8,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IServicoReservaDAL}. O gravar e o retirar verificam
+ * o estado da reserva na mesma instrução, com {@code UPDLOCK}, para não juntar serviços
+ * a uma reserva que outro funcionário esteja a cancelar ao mesmo tempo.
+ */
 public class ServicoReservaDAL implements IServicoReservaDAL {
 
     private static final String INSERIR_SE_ABERTA =

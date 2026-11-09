@@ -7,6 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IAcessoCartaoDAL}.
+ */
 public class AcessoCartaoDAL implements IAcessoCartaoDAL {
 
     private static final String REGISTAR =
