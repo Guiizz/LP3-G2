@@ -44,7 +44,21 @@ public interface IClienteDAL {
      */
     boolean atualizarCliente(Cliente c);
 
+    /**
+     * Procura um funcionário com este NIF que ainda não seja cliente (US43).
+     *
+     * @param nif o NIF, com 9 algarismos
+     * @return o funcionário com os seus dados pessoais, ou {@code null} se não existir ou já for cliente
+     */
     Cliente procurarFuncionarioNaoCliente(String nif);
 
+    /**
+     * Regista um funcionário como cliente, sem criar outra pessoa (US43). Os dados vazios do formulário
+     * não apagam os que o funcionário já tem, e o nome não muda. Só regista se ainda não for cliente,
+     * mesmo que outro rececionista o faça ao mesmo tempo.
+     *
+     * @param c o funcionário, com o id da pessoa e os dados do formulário
+     * @return {@code true} se passou a cliente; {@code false} se já era cliente
+     */
     boolean tornarCliente(Cliente c);
 }

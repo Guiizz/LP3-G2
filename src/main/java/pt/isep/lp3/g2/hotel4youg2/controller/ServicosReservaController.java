@@ -24,6 +24,10 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controlador do ecrã "Serviços da reserva" (US37): mostra os serviços juntos a uma reserva
+ * e o total (quarto + serviços), e deixa juntar e retirar serviços. Abre em pop-up.
+ */
 public class ServicosReservaController {
 
     private final ServicoReservaBLL servicoReservaBLL = new ServicoReservaBLL();
@@ -52,6 +56,13 @@ public class ServicosReservaController {
     @FXML
     private Label mensagemLabel;
 
+    /**
+     * Abre o ecrã dos serviços da reserva em pop-up, por cima da janela principal,
+     * e só volta quando for fechado, para quem o abriu atualizar a sua lista.
+     *
+     * @param reserva a reserva
+     * @throws IOException se não for possível carregar o ecrã
+     */
     public static void abrir(Reserva reserva) throws IOException {
         FXMLLoader loader = Navegador.carregar("servicos-reserva-view.fxml");
         ServicosReservaController controller = loader.getController();
@@ -68,6 +79,11 @@ public class ServicosReservaController {
         }
     }
 
+    /**
+     * Mostra os serviços da reserva. Se a reserva já não aceitar serviços, os botões ficam desativados.
+     *
+     * @param reserva a reserva
+     */
     public void mostrar(Reserva reserva) {
         this.reserva = reserva;
         tituloLabel.setText("Serviços da reserva n.º " + reserva.getId());

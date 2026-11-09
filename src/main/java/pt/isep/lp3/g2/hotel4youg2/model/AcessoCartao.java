@@ -4,8 +4,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Passagem de um cartão num local do hotel (US39): que cartão, onde, de que reserva e quando.
+ * Só ficam registadas as passagens permitidas.
+ */
 public class AcessoCartao {
 
+    /** O cartão do gestor, que abre todos os locais e não pertence a nenhuma reserva. */
     public static final String CARTAO_MESTRE = "C000";
 
     private int id;
@@ -15,6 +20,16 @@ public class AcessoCartao {
     private int reservaId;
     private LocalDateTime registadoEm;
 
+    /**
+     * Cria uma passagem de cartão.
+     *
+     * @param id           o id (0 se ainda não foi gravada)
+     * @param cartao       o número do cartão
+     * @param local        o local onde o cartão foi passado
+     * @param quartoNumero o número do quarto, se o local for o quarto; 0 nos outros locais
+     * @param reservaId    o id da reserva do cartão; 0 para o cartão mestre
+     * @param registadoEm  quando foi registada ({@code null} antes de gravar: é a base de dados que a põe)
+     */
     public AcessoCartao(int id, String cartao, LocalHotel local, int quartoNumero, int reservaId,
                         LocalDateTime registadoEm) {
         this.id = id;
@@ -57,6 +72,9 @@ public class AcessoCartao {
         this.registadoEm = registadoEm;
     }
 
+    /**
+     * @return o local para mostrar no ecrã, por exemplo {@code "Quarto 201"} ou {@code "Piscina"}
+     */
     public String getLocalTexto() {
         if (local == LocalHotel.QUARTO) {
             return "Quarto " + quartoNumero;

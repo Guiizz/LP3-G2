@@ -78,6 +78,14 @@ public class ClienteBLL {
         return cliente;
     }
 
+    /**
+     * Procura um funcionário com este NIF que ainda não seja cliente (US43), para o formulário
+     * "Registar cliente" o preencher com os dados que o hotel já tem.
+     *
+     * @param nif o NIF escrito no formulário
+     * @return o funcionário, com os seus dados, ou {@code null} se o NIF não tiver 9 algarismos,
+     *         não for de um funcionário ou ele já for cliente
+     */
     public Cliente funcionarioComNif(String nif) {
         nif = limpar(nif);
         if (nif == null || !nif.matches("\\d{9}")) {

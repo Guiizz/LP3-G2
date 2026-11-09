@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controlador do menu principal (US34 e US44): mostra as áreas no menu lateral e as opções de cada uma. As áreas Serviços e Administração só aparecem ao gestor.
+ */
 public class InicialController {
 
     private final LigacaoBLL ligacaoService = new LigacaoBLL();

@@ -11,6 +11,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Registos de acesso" (US41): o gestor vê onde e quando um cartão foi usado, ou que cartões entraram num quarto.
+ */
 public class ConsultarAcessosController {
 
     private final AcessoCartaoBLL acessoBLL = new AcessoCartaoBLL();

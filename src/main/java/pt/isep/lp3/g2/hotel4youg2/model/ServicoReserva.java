@@ -6,6 +6,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Serviço extra junto a uma reserva (US37): que serviço, quantas vezes e a que preço.
+ * O preço unitário fica guardado como estava na tabela de preços no momento em que foi junto,
+ * por isso mudar a tabela depois não altera as reservas antigas.
+ */
 public class ServicoReserva {
 
     private int id;
@@ -15,6 +20,16 @@ public class ServicoReserva {
     private BigDecimal precoUnitario;
     private LocalDateTime adicionadoEm;
 
+    /**
+     * Cria um serviço da reserva.
+     *
+     * @param id            o id (0 se ainda não foi gravado)
+     * @param reservaId     o id da reserva a que pertence
+     * @param servico       o serviço extra
+     * @param quantidade    quantas vezes foi pedido
+     * @param precoUnitario o preço de cada unidade, tirado da tabela de preços
+     * @param adicionadoEm  quando foi junto à reserva ({@code null} antes de gravar)
+     */
     public ServicoReserva(int id, int reservaId, Servico servico, int quantidade, BigDecimal precoUnitario,
                           LocalDateTime adicionadoEm) {
         this.id = id;
@@ -57,6 +72,9 @@ public class ServicoReserva {
         this.adicionadoEm = adicionadoEm;
     }
 
+    /**
+     * @return a quantidade vezes o preço unitário
+     */
     public BigDecimal getTotal() {
         return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
     }

@@ -12,6 +12,10 @@ import javafx.scene.layout.HBox;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Controlador de uma área do menu (US44): mostra o título, os botões do submenu no topo e o ecrã
+ * da opção escolhida por baixo. A opção aberta fica destacada.
+ */
 public class AreaController {
 
     @FXML
@@ -25,6 +29,12 @@ public class AreaController {
 
     private List<OpcaoMenu> opcoesAbertas;
 
+    /**
+     * Prepara a área com o título e os botões das opções, e abre a primeira opção se não for um formulário.
+     *
+     * @param titulo o nome da área
+     * @param opcoes as opções do submenu, pela ordem em que aparecem
+     */
     public void configurar(String titulo, List<OpcaoMenu> opcoes) {
         this.opcoesAbertas = opcoes;
         tituloLabel.setText(titulo);

@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IHorarioReservaDAL}: lê e altera a única linha da tabela {@code HorarioReserva}.
+ */
 public class HorarioReservaDAL implements IHorarioReservaDAL {
 
     private static final String OBTER =

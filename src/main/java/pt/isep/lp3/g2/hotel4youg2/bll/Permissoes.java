@@ -31,6 +31,10 @@ public final class Permissoes {
         }
     }
 
+    /**
+     * @param utilizador o utilizador com a sessão iniciada
+     * @return {@code true} se o utilizador for rececionista ou gestor
+     */
     public static boolean podeGerirReservas(Utilizador utilizador) {
         return utilizador != null
                 && (utilizador.getPerfil() == Perfil.RECECIONISTA || utilizador.getPerfil() == Perfil.GESTOR);

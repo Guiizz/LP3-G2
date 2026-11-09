@@ -12,6 +12,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
 import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Acesso com cartão" (US39): regista a passagem de um cartão num local do hotel e mostra as passagens desse cartão.
+ */
 public class AcessoCartaoController {
 
     private final AcessoCartaoBLL acessoBLL = new AcessoCartaoBLL();

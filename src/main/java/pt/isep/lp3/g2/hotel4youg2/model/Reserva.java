@@ -137,10 +137,18 @@ public class Reserva {
         this.checkoutEm = checkoutEm;
     }
 
+    /**
+     * @return {@code true} se a reserva estiver confirmada e ainda sem check-in
+     */
     public boolean podeSerCancelada(){
        return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    /**
+     * Cancela a reserva.
+     *
+     * @throws IllegalStateException se a reserva já não estiver confirmada ou já tiver check-in
+     */
     public void cancelar() {
         if (!podeSerCancelada()) {
             throw new IllegalStateException("Só é possível cancelar reservas confirmadas e sem check-in");
@@ -148,10 +156,17 @@ public class Reserva {
         estado = EstadoReserva.CANCELADA;
     }
 
+    /**
+     * @return {@code true} se a reserva estiver confirmada e ainda sem check-in (US30)
+     */
     public boolean podeSerAlterada() {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    /**
+     * @return {@code true} se ainda se puderem juntar ou retirar serviços extra: reserva confirmada
+     *         ou em curso (US37)
+     */
     public boolean aceitaServicos() {
         return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
     }
@@ -188,6 +203,10 @@ public class Reserva {
         this.taxaHorario = taxaHorario == null ? BigDecimal.ZERO : taxaHorario;
     }
 
+    /**
+     * @return o total da reserva: o alojamento, os serviços extra e a taxa de early check-in
+     *         e de late check-out
+     */
     public BigDecimal getTotal() {
         return (precoTotal == null ? BigDecimal.ZERO : precoTotal).add(totalServicos).add(taxaHorario);
     }
@@ -200,6 +219,15 @@ public class Reserva {
         this.cartao = cartao;
     }
 
+    /**
+     * Faz o check-in (US35): a reserva passa a em curso, guarda a hora e o cliente recebe o cartão
+     * {@code "C" + número do quarto}.
+     *
+     * @param agora      a data e hora do check-in
+     * @param horaMinima a hora a partir da qual o check-in é permitido (a standard ou a de early check-in)
+     * @throws IllegalStateException se a reserva estiver cancelada, já tiver check-in, não for o dia
+     *                               de entrada ou ainda for cedo demais
+     */
     public void fazerCheckin(LocalDateTime agora, LocalTime horaMinima) {
         if (estado == EstadoReserva.CANCELADA) {
             throw new IllegalStateException("A reserva " + id + " foi cancelada e não pode fazer check-in");
@@ -219,10 +247,18 @@ public class Reserva {
         cartao = "C" + quartoNumero;
     }
 
+    /**
+     * @return {@code true} se o cartão da reserva ainda abrir o quarto, ou seja, se a reserva estiver em curso
+     */
     public boolean cartaoDaAcesso() {
         return estado == EstadoReserva.EM_CURSO;
     }
 
+    /**
+     * Garante que a reserva pode fazer check-out (US36).
+     *
+     * @throws IllegalStateException se a reserva não estiver em curso
+     */
     public void exigirPodeFazerCheckout() {
         if (estado != EstadoReserva.EM_CURSO) {
             throw new IllegalStateException("Só é possível fazer check-out de uma reserva em curso (a reserva "
@@ -230,6 +266,12 @@ public class Reserva {
         }
     }
 
+    /**
+     * Faz o check-out (US36): a reserva passa a concluída e guarda a hora. O cartão deixa de dar acesso.
+     *
+     * @param agora a data e hora do check-out
+     * @throws IllegalStateException se a reserva não estiver em curso
+     */
     public void fazerCheckout(LocalDateTime agora) {
         exigirPodeFazerCheckout();
         estado = EstadoReserva.CONCLUIDA;
@@ -240,6 +282,13 @@ public class Reserva {
         return ChronoUnit.DAYS.between(dataEntrada, dataSaida);
     }
 
+    /**
+     * Muda as datas da reserva e recalcula o preço com o mesmo valor por noite (US30).
+     *
+     * @param novaEntrada a data de entrada nova
+     * @param novaSaida   a data de saída nova
+     * @throws IllegalStateException se a reserva já não estiver confirmada ou já tiver check-in
+     */
     public void alterarDatas(LocalDate novaEntrada, LocalDate novaSaida) {
         if (!podeSerAlterada()) {
             throw new IllegalStateException("Só é possível alterar reservas confirmadas e sem check-in");

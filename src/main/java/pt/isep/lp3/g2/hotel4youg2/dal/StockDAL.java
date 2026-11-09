@@ -8,6 +8,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IStockDAL}. A saída só tira do stock se houver quantidade
+ * suficiente, e o movimento fica registado na mesma transação.
+ */
 public class StockDAL implements IStockDAL {
 
     private static final String LISTAR =
