@@ -16,8 +16,8 @@
         <mxCell id="C" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Cliente" vertex="1">
           <mxGeometry height="60" width="30" x="1070" y="560" as="geometry" />
         </mxCell>
-        <mxCell id="FRest" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Funcionário de Restauração" vertex="1">
-          <mxGeometry height="60" width="30" x="1070" y="720" as="geometry" />
+        <mxCell id="FORN" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Fornecedor" vertex="1">
+          <mxGeometry height="60" width="30" x="1070" y="880" as="geometry" />
         </mxCell>
         <mxCell id="UC1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Registar cliente" vertex="1">
           <mxGeometry height="60" width="180" x="230" y="30" as="geometry" />
@@ -150,9 +150,6 @@
         <mxCell id="a18" edge="1" parent="1" source="C" style="endArrow=none;" target="UC21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="a20" edge="1" parent="1" source="FRest" style="endArrow=none;" target="UC19">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="i1" edge="1" parent="1" source="UC2" style="endArrow=open;endFill=0;dashed=1;" target="UC3" value="&lt;&lt;include&gt;&gt;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
@@ -183,6 +180,38 @@
             <mxPoint x="480" y="530" as="sourcePoint" />
             <mxPoint x="600" y="530" as="targetPoint" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="UC22" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Carregar ficheiro de entrega (XML)" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="890" as="geometry" />
+        </mxCell>
+        <mxCell id="UC23" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Consultar histórico de entregas" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="UC24" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Aceitar ou recusar entrega" vertex="1">
+          <mxGeometry height="60" width="180" x="560" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="a23" edge="1" parent="1" source="FORN" style="endArrow=none;" target="UC22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a24" edge="1" parent="1" source="FORN" style="endArrow=none;" target="UC23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a25" edge="1" parent="1" source="FORN" style="endArrow=none;" target="UC0">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1000" y="605" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="a26" edge="1" parent="1" source="FR" style="endArrow=none;" target="UC24">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="235" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i5" edge="1" parent="1" source="UC24" style="endArrow=open;endFill=0;dashed=1;" target="UC11" value="&lt;&lt;include&gt;&gt;">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
