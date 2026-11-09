@@ -15,11 +15,13 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
- * Controlador do ecrã "Gerir reservas": lista as reservas, deixa alterar as datas (US30)
- * e deixa o gestor cancelá-las (US29).
+ * Controlador do ecrã "Gerir reservas": lista as reservas, deixa alterar as datas (US30),
+ * deixa o gestor cancelá-las (US29) e abre os serviços de cada reserva (US37).
  */
 public class GerirReservasController {
 
@@ -55,7 +57,7 @@ public class GerirReservasController {
     private void aoCancelar() {
         Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
         if (escolhida == null) {
-            mensagemLabel.setText("Escolha uma reserva na tabela.");
+            mostrarErro("Escolha uma reserva na tabela.");
             return;
         }
         if (!confirmarCancelar(escolhida)) {
@@ -63,31 +65,99 @@ public class GerirReservasController {
         }
         try {
             reservaService.cancelar(Sessao.getUtilizador(), escolhida);
-            mensagemLabel.setText("Reserva " + escolhida.getId() + " cancelada.");
+            mostrarSucesso("Reserva " + escolhida.getId() + " cancelada.");
         } catch (DataAccessException e) {
-            mensagemLabel.setText(ERRO_BD);
+            mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            mostrarErro(e.getMessage());
         }
         carregar();
+    }
+
+    @FXML
+    private void aoFazerCheckin() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        if (!confirmarCheckin(escolhida)) {
+            return;
+        }
+        try {
+            String cartao = reservaService.fazerCheckin(Sessao.getUtilizador(), escolhida);
+            mostrarSucesso("Check-in da reserva " + escolhida.getId() + " feito. Entregue o cartão "
+                    + cartao + " (quarto " + escolhida.getQuartoNumero() + ").");
+        } catch (DataAccessException e) {
+            mostrarErro(ERRO_BD);
+        } catch (RuntimeException e) {
+            mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
+    @FXML
+    private void aoFazerCheckout() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            BigDecimal total = reservaService.totalAPagar(Sessao.getUtilizador(), escolhida);
+            if (!confirmarCheckout(escolhida, total)) {
+                return;
+            }
+            reservaService.fazerCheckout(Sessao.getUtilizador(), escolhida);
+            mostrarSucesso("Check-out da reserva " + escolhida.getId() + " feito. Total pago: " + total
+                    + " €. Recolha o cartão " + escolhida.getCartao() + ".");
+        } catch (DataAccessException e) {
+            mostrarErro(ERRO_BD);
+        } catch (RuntimeException e) {
+            mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
+    private void mostrarErro(String texto) {
+        Mensagens.erro(mensagemLabel, texto);
+    }
+
+    private void mostrarSucesso(String texto) {
+        Mensagens.sucesso(mensagemLabel, texto);
     }
 
     @FXML
     private void aoAlterarDatas() {
         Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
         if (escolhida == null) {
-            mensagemLabel.setText("Escolha uma reserva na tabela.");
+            mostrarErro("Escolha uma reserva na tabela.");
             return;
         }
         try {
             reservaService.alterarDatas(Sessao.getUtilizador(), escolhida,
                     novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
-            mensagemLabel.setText("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
+            mostrarSucesso("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
                     + escolhida.getPrecoTotal() + " €");
         } catch (DataAccessException e) {
-            mensagemLabel.setText(ERRO_BD);
+            mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
+    @FXML
+    private void aoServicos() {
+        Reserva escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            ServicosReservaController.abrir(escolhida);
+        } catch (IOException e) {
+            mostrarErro("Não foi possível abrir os serviços da reserva.");
         }
         carregar();
     }
@@ -105,12 +175,39 @@ public class GerirReservasController {
         return resposta.isPresent() && resposta.get() == ButtonType.YES;
     }
 
+    private boolean confirmarCheckin(Reserva reserva) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Confirma o check-in da reserva " + reserva.getId() + " (quarto "
+                        + reserva.getQuartoNumero() + ", " + reserva.getDataEntrada() + " a "
+                        + reserva.getDataSaida() + ")?\n"
+                        + "O cliente recebe o cartão C" + reserva.getQuartoNumero() + ".",
+                ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Fazer check-in");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    }
+
+    private boolean confirmarCheckout(Reserva reserva, BigDecimal total) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Check-out da reserva " + reserva.getId() + " (quarto " + reserva.getQuartoNumero() + ", "
+                        + reserva.getDataEntrada() + " a " + reserva.getDataSaida() + ", "
+                        + reserva.getNoites() + " noite(s)).\n"
+                        + "Total a pagar: " + total + " €\n"
+                        + "Confirma o pagamento e o check-out?",
+                ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Fazer check-out");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    }
+
     private void carregar() {
         try {
             tabela.getItems().setAll(reservaService.listar());
         } catch (DataAccessException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText(ERRO_BD);
+            mostrarErro(ERRO_BD);
         }
     }
 

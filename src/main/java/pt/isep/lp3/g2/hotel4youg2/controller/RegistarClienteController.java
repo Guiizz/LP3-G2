@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
@@ -14,7 +16,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import java.util.List;
 
 /**
- * Controlador do ecrã de clientes: registar (US13), pesquisar (US14) e editar (US19).
+ * Controlador do ecrã de clientes: registar (US13), incluindo funcionários (US43), pesquisar (US14) e editar (US19).
  */
 public class RegistarClienteController {
 
@@ -50,9 +52,12 @@ public class RegistarClienteController {
     /** O cliente que está a ser editado, ou {@code null} quando o ecrã está em modo de registo. */
     private Cliente clienteEmEdicao;
 
+    private String nifDoFuncionario;
+
     /** Mostra logo todos os clientes quando o ecrã abre. */
     @FXML
     private void initialize() {
+        nifField.focusedProperty().addListener(new AoSairDoNif());
         atualizarLista();
     }
 
@@ -63,6 +68,9 @@ public class RegistarClienteController {
             return;
         }
         try {
+            if (preencherSeForFuncionario()) {
+                return;
+            }
             Cliente cliente = clienteService.registar(
                     nomeField.getText(),
                     nifField.getText(),
@@ -78,6 +86,56 @@ public class RegistarClienteController {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível guardar o cliente. Tente novamente.", "red");
+        }
+    }
+
+    private boolean preencherSeForFuncionario() {
+        String nif = nifField.getText() == null ? "" : nifField.getText().trim();
+        if (nif.equals(nifDoFuncionario)) {
+            return false;
+        }
+        if (nifDoFuncionario != null) {
+            largarFuncionario();
+        }
+        Cliente funcionario = clienteService.funcionarioComNif(nif);
+        if (funcionario == null) {
+            return false;
+        }
+        nifDoFuncionario = funcionario.getNif();
+        nomeField.setText(funcionario.getNome());
+        nomeField.setDisable(true);
+        dataNascimentoPicker.setValue(funcionario.getDataNascimento());
+        telemovelField.setText(funcionario.getTelemovel());
+        emailField.setText(funcionario.getEmail());
+        ccField.setText(funcionario.getCc());
+        moradaField.setText(funcionario.getMorada());
+        mostrarMensagem("Este NIF é do funcionário " + funcionario.getNome()
+                + ". Confirme os dados, complete o que falta e carregue em Registar.", "darkorange");
+        return true;
+    }
+
+    private void largarFuncionario() {
+        nifDoFuncionario = null;
+        nomeField.setDisable(false);
+        nomeField.clear();
+        dataNascimentoPicker.setValue(null);
+        telemovelField.clear();
+        emailField.clear();
+        ccField.clear();
+        moradaField.clear();
+    }
+
+    private class AoSairDoNif implements ChangeListener<Boolean> {
+        @Override
+        public void changed(ObservableValue<? extends Boolean> observavel, Boolean antes, Boolean temFoco) {
+            if (temFoco || clienteEmEdicao != null) {
+                return;
+            }
+            try {
+                preencherSeForFuncionario();
+            } catch (DataAccessException e) {
+                mostrarMensagem("Não foi possível verificar o NIF. Tente novamente.", "red");
+            }
         }
     }
 
@@ -106,6 +164,8 @@ public class RegistarClienteController {
             return;
         }
         clienteEmEdicao = cliente;
+        nifDoFuncionario = null;
+        nomeField.setDisable(false);
         nomeField.setText(cliente.getNome());
         nifField.setText(cliente.getNif());
         nifField.setDisable(true);
@@ -171,11 +231,12 @@ public class RegistarClienteController {
     }
 
     private void mostrarMensagem(String texto, String cor) {
-        mensagemLabel.setStyle("-fx-text-fill: " + cor + ";");
-        mensagemLabel.setText(texto);
+        Mensagens.mostrar(mensagemLabel, texto, cor);
     }
 
     private void limparCampos() {
+        nifDoFuncionario = null;
+        nomeField.setDisable(false);
         nomeField.clear();
         nifField.clear();
         dataNascimentoPicker.setValue(null);

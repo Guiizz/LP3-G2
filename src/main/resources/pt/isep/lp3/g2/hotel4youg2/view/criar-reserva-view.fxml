@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
@@ -21,7 +22,7 @@
         <Insets top="15" right="15" bottom="15" left="15"/>
     </padding>
 
-    <Label text="Criar reserva" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label text="Criar reserva" styleClass="titulo"/>
 
     <Label text="1. Cliente"/>
     <HBox spacing="10.0" alignment="CENTER_LEFT">
@@ -40,18 +41,16 @@
         <DatePicker fx:id="saidaPicker" prefWidth="130"/>
         <Label text="Hóspedes:"/>
         <Spinner fx:id="hospedesSpinner" min="1" max="4" initialValue="1" prefWidth="70"/>
+    </HBox>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <CheckBox fx:id="earlyCheckBox" text="Early check-in"/>
+        <CheckBox fx:id="lateCheckBox" text="Late check-out"/>
         <Button text="Pesquisar quartos" onAction="#aoPesquisarQuartos"/>
     </HBox>
 
-    <Label text="3. Escolha um quarto livre"/>
+    <Label text="3. Escolha o tipo de quarto (o número é atribuído pela aplicação)"/>
     <TableView fx:id="quartosTabela" onMouseClicked="#aoEscolherQuarto" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Número">
-                <cellValueFactory><PropertyValueFactory property="numero"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Piso">
-                <cellValueFactory><PropertyValueFactory property="piso"/></cellValueFactory>
-            </TableColumn>
             <TableColumn text="Tipo">
                 <cellValueFactory><PropertyValueFactory property="tipo"/></cellValueFactory>
             </TableColumn>
@@ -71,6 +70,9 @@
     </TableView>
 
     <Label fx:id="precoLabel" style="-fx-font-size: 14; -fx-font-weight: bold;"/>
-    <Button fx:id="confirmarButton" text="Confirmar reserva" onAction="#aoConfirmar" disable="true"/>
+    <HBox spacing="10.0">
+        <Button fx:id="confirmarButton" text="Confirmar reserva" onAction="#aoConfirmar" disable="true"/>
+        <Button fx:id="servicosButton" text="Juntar serviços à reserva criada" onAction="#aoJuntarServicos" disable="true"/>
+    </HBox>
     <Label fx:id="mensagemLabel" wrapText="true"/>
 </VBox>

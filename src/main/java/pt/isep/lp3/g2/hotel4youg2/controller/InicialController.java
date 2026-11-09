@@ -1,12 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.stage.Stage;
-import javafx.stage.Window;
+import javafx.scene.layout.BorderPane;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
@@ -14,38 +11,41 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Controlador do menu principal: abre os ecrãs conforme o perfil de quem entrou (US12)
- * e termina a sessão.
+ * Controlador do menu principal (US34 e US44): mostra as áreas no menu lateral e as opções de cada uma. As áreas Serviços e Administração só aparecem ao gestor.
  */
 public class InicialController {
 
-    private final LigacaoBLL ligacaoService = new  LigacaoBLL();
+    private final LigacaoBLL ligacaoService = new LigacaoBLL();
+
+    @FXML
+    private BorderPane raiz;
 
     @FXML
     private Label estadoLabel;
 
     @FXML
-    private Button terminarSessaoButton;
-
-    @FXML
     private Label utilizadorLabel;
-
-    @FXML
-    private Button tarifasButton;
-
-    @FXML
-    private Button contasButton;
-
-    @FXML
-    private Button criarContaButton;
 
     @FXML
     private Button servicosButton;
 
     @FXML
-    private Button consultarSugestoesButton;
+    private Button administracaoButton;
+
+    @FXML
+    private void initialize() {
+        Navegador.iniciar(raiz);
+        Utilizador utilizador = Sessao.getUtilizador();
+        if (utilizador != null) {
+            utilizadorLabel.setText(utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
+        }
+        boolean gestor = Permissoes.eGestor(utilizador);
+        mostrar(servicosButton, gestor);
+        mostrar(administracaoButton, gestor);
+    }
 
     @FXML
     private void aoTestarLigacao() {
@@ -53,183 +53,70 @@ public class InicialController {
     }
 
     @FXML
-    private void aoAbrirQuartos() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/quartos-menu-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Quartos");
-        stage.setScene(new Scene(loader.load(), 320, 300));
-        stage.show();
-    }
-
-    @FXML
-    private void aoAbrirTarifas() throws IOException {
-        if (!podeAbrirEcraDeGestor()) {
-            return;
-        }
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/tarifas-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Tarifas");
-        stage.setScene(new Scene(loader.load(), 520, 460));
-        stage.show();
-    }
-
-    @FXML
-    private void aoAbrirContas() throws IOException {
-        if (!podeAbrirEcraDeGestor()) {
-            return;
-        }
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/utilizadores-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Contas");
-        stage.setScene(new Scene(loader.load(), 460, 400));
-        stage.show();
-    }
-
-    @FXML
-    private void aoCriarConta() throws IOException {
-        if (!podeAbrirEcraDeGestor()) {
-            return;
-        }
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/criar-conta-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Criar conta");
-        stage.setScene(new Scene(loader.load(), 480, 560));
-        stage.show();
-    }
-
-    @FXML
-    private void aoAbrirServicos() throws IOException {
-        if (!podeAbrirEcraDeGestor()) {
-            return;
-        }
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/servicos-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Serviços");
-        stage.setScene(new Scene(loader.load(), 560, 600));
-        stage.show();
+    private void aoAbrirClientes() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Pesquisar cliente", "pesquisar-cliente-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Registar cliente", "registar-cliente-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Registar sugestão ou queixa", "sugestoes-view.fxml", true));
+        Navegador.mostrarArea("Clientes", opcoes);
     }
 
     @FXML
     private void aoAbrirReservas() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/reservas-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Reservas");
-        stage.setScene(new Scene(loader.load(), 320, 290));
-        stage.show();
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Gerir reservas", "gerir-reservas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Criar reserva", "criar-reserva-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Reservas de um cliente", "consultar-reservas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Acesso com cartão", "acesso-cartao-view.fxml", false));
+        Navegador.mostrarArea("Reservas", opcoes);
     }
 
     @FXML
-    private void aoAbrirEntregas() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/entregas-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Entregas");
-        stage.setScene(new Scene(loader.load(), 760, 560));
-        stage.show();
-    }
-
-    @FXML
-    private void aoAbrirSugestoes() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/sugestoes-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Sugestões e queixas");
-        stage.setScene(new Scene(loader.load(), 500, 480));
-        stage.show();
-    }
-
-    @FXML
-    private void aoConsultarSugestoes() throws IOException {
-        if (!podeAbrirEcraDeGestor()) {
-            return;
+    private void aoAbrirQuartos() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Consultar quartos", "quartos-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
+        if (Permissoes.eGestor(Sessao.getUtilizador())) {
+            opcoes.add(new OpcaoMenu("Gestão de quartos", "gestao-quartos-view.fxml", false));
+            opcoes.add(new OpcaoMenu("Tarifas", "tarifas-view.fxml", false));
         }
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/consultar-sugestoes-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Consultar sugestões e queixas");
-        stage.setScene(new Scene(loader.load(), 720, 480));
-        stage.show();
+        Navegador.mostrarArea("Quartos", opcoes);
     }
 
     @FXML
-    private void aoRegistarCliente() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/registar-cliente-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Registar cliente");
-        stage.setScene(new Scene(loader.load()));
-        stage.show();
+    private void aoAbrirServicos() throws IOException {
+        Permissoes.exigirGestor(Sessao.getUtilizador());
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Tabela de preços", "servicos-view.fxml", false));
+        Navegador.mostrarArea("Serviços", opcoes);
     }
 
     @FXML
-    private void aoPesquisarCliente() throws IOException {
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/pesquisar-cliente-view.fxml"));
-        Stage stage = new Stage();
-        stage.setTitle("Hotel4You - Pesquisar cliente");
-        stage.setScene(new Scene(loader.load()));
-        stage.show();
+    private void aoAbrirStock() throws IOException {
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Entregas (XML)", "entregas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Decidir entregas", "decidir-entregas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Saída de materiais", "saida-stock-view.fxml", false));
+        Navegador.mostrarArea("Stock", opcoes);
     }
 
-    /**
-     * Termina a sessão do utilizador: fecha as outras janelas abertas
-     * e volta ao ecrã de login, onde é preciso entrar outra vez.
-     */
+    @FXML
+    private void aoAbrirAdministracao() throws IOException {
+        Permissoes.exigirGestor(Sessao.getUtilizador());
+        List<OpcaoMenu> opcoes = new ArrayList<>();
+        opcoes.add(new OpcaoMenu("Contas", "utilizadores-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Criar conta", "criar-conta-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Criar fornecedor", "criar-fornecedor-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Sugestões e queixas", "consultar-sugestoes-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Registos de acesso", "consultar-acessos-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Horas e taxas", "horario-reserva-view.fxml", false));
+        Navegador.mostrarArea("Administração", opcoes);
+    }
+
     @FXML
     private void aoTerminarSessao() throws IOException {
-        Sessao.terminar();
-
-        Stage janelaPrincipal = (Stage) terminarSessaoButton.getScene().getWindow();
-        for (Window janela : new ArrayList<>(Window.getWindows())) {
-            if (janela != janelaPrincipal && janela instanceof Stage outraJanela) {
-                outraJanela.close();
-            }
-        }
-
-        FXMLLoader loader = new FXMLLoader(
-                InicialController.class.getResource("/pt/isep/lp3/g2/hotel4youg2/view/login-view.fxml"));
-        janelaPrincipal.setScene(new Scene(loader.load(), 360, 320));
-        janelaPrincipal.setTitle("Hotel4You · Entrar");
-    }
-
-    /**
-     * Prepara o menu para quem entrou: mostra o nome e o perfil
-     * e esconde as opções do gestor ao rececionista (US12).
-     */
-    @FXML
-    private void initialize() {
-        Utilizador utilizador = Sessao.getUtilizador();
-        if (utilizador != null) {
-            utilizadorLabel.setText(utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
-        }
-
-        boolean gestor = Permissoes.eGestor(utilizador);
-        mostrar(tarifasButton, gestor);
-        mostrar(contasButton, gestor);
-        mostrar(criarContaButton, gestor);
-        mostrar(servicosButton, gestor);
-        mostrar(consultarSugestoesButton, gestor);
-    }
-
-    /**
-     * Confirma que quem está na sessão é gestor antes de abrir um ecrã de gestor.
-     *
-     * @return {@code true} se pode abrir; senão mostra o motivo e devolve {@code false}
-     */
-    private boolean podeAbrirEcraDeGestor() {
-        try {
-            Permissoes.exigirGestor(Sessao.getUtilizador());
-            return true;
-        } catch (IllegalStateException e) {
-            estadoLabel.setText(e.getMessage());
-            return false;
-        }
+        Navegador.terminarSessao();
     }
 
     private void mostrar(Button botao, boolean visivel) {

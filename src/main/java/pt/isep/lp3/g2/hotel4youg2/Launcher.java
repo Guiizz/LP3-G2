@@ -6,7 +6,10 @@ import javafx.application.Application;
  * Ponto de entrada da aplicação: arranca o JavaFX com a {@link HelloApplication}.
  */
 public class Launcher {
+
     /**
+     * Arranca a aplicação Hotel4You.
+     *
      * @param args os argumentos da linha de comandos (não são usados)
      */
     public static void main(String[] args) {

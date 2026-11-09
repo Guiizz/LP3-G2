@@ -4,7 +4,11 @@ import pt.isep.lp3.g2.hotel4youg2.dal.EntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
+import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import java.io.File;
@@ -13,12 +17,21 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Regras de negócio das entregas de fornecedores: ler e validar o ficheiro XML,
  * conferir as contas e registar a entrega (US26).
  */
 public class EntregaBLL {
+
+    /** Quantas entregas pendentes cada fornecedor pode ter ao mesmo tempo (US38). */
+    public static final int MAX_PENDENTES = 5;
+
+    /** Tamanho máximo do motivo da recusa, igual ao da coluna na base de dados (US49). */
+    public static final int TAMANHO_MAXIMO_MOTIVO = 200;
+
+    private static final String ENTREGA_JA_DECIDIDA = "Esta entrega já foi decidida.";
 
     private final LeitorXmlEntrega leitor;
     private final IEntregaDAL entregaDAL;
@@ -135,7 +148,144 @@ public class EntregaBLL {
         return entregaDAL.registar(entrega, quemAge.getFuncionarioId());
     }
 
+    /**
+     * Grava a entrega carregada pelo fornecedor como pendente, à espera da decisão do hotel.
+     * Não altera o stock. O ficheiro tem de ser do fornecedor que tem a sessão iniciada.
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @param entrega    a entrega lida do ficheiro XML
+     * @return o id da entrega gravada
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se não houver entrega, se o ficheiro for de outro fornecedor,
+     *                                  se a entrega já foi carregada ou se o fornecedor já tem
+     *                                  {@value #MAX_PENDENTES} entregas pendentes
+     */
+    public int carregar(Fornecedor fornecedor, Entrega entrega) {
+        if (fornecedor == null) {
+            throw new IllegalStateException("Entre na aplicação para carregar entregas.");
+        }
+        if (entrega == null) {
+            throw new IllegalArgumentException("Carregue primeiro um ficheiro XML válido.");
+        }
+        String codigo = entrega.getFornecedor().getCodigo();
+        if (!codigo.equals(fornecedor.getCodigo())) {
+            throw new IllegalArgumentException("O ficheiro é do fornecedor " + codigo
+                    + ". Só pode carregar entregas do seu fornecedor.");
+        }
+        if (entregaDAL.existeEntrega(codigo, entrega.getNumeroEncomenda())) {
+            throw new IllegalArgumentException("A entrega " + entrega.getNumeroEncomenda() + " já foi carregada.");
+        }
+        if (entregaDAL.contarPendentes(codigo) >= MAX_PENDENTES) {
+            throw new IllegalArgumentException("Tem " + MAX_PENDENTES
+                    + " entregas por aprovar. Aguarde a decisão do hotel.");
+        }
+        return entregaDAL.carregar(entrega);
+    }
+
+    /**
+     * Aceita uma entrega pendente: passa a aceite, fica registado quem a aceitou e quando, e a
+     * quantidade de cada material entra no stock.
+     *
+     * @param quemAge   o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @param entregaId o id da entrega
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se a entrega não existir ou se já tiver sido decidida
+     */
+    public void aceitar(Utilizador quemAge, int entregaId) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para decidir entregas.");
+        }
+        exigirPendente(entregaId);
+        if (!entregaDAL.aceitar(entregaId, quemAge.getFuncionarioId())) {
+            throw new IllegalArgumentException(ENTREGA_JA_DECIDIDA);
+        }
+    }
+
+    /**
+     * Recusa uma entrega pendente. O motivo é opcional; o fornecedor pode voltar a enviar a entrega.
+     * O stock não é alterado.
+     *
+     * @param quemAge   o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @param entregaId o id da entrega
+     * @param motivo    o motivo da recusa (pode estar vazio ou ser {@code null})
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se a entrega não existir, se já tiver sido decidida ou se o motivo
+     *                                  tiver mais de {@value #TAMANHO_MAXIMO_MOTIVO} caracteres
+     */
+    public void recusar(Utilizador quemAge, int entregaId, String motivo) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para decidir entregas.");
+        }
+        String motivoLimpo = limparMotivo(motivo);
+        if (motivoLimpo != null && motivoLimpo.length() > TAMANHO_MAXIMO_MOTIVO) {
+            throw new IllegalArgumentException(
+                    "O motivo pode ter no máximo " + TAMANHO_MAXIMO_MOTIVO + " caracteres.");
+        }
+        exigirPendente(entregaId);
+        if (!entregaDAL.recusar(entregaId, quemAge.getFuncionarioId(), motivoLimpo)) {
+            throw new IllegalArgumentException(ENTREGA_JA_DECIDIDA);
+        }
+    }
+
+    /**
+     * Devolve todas as entregas para o pessoal do hotel, com as pendentes primeiro e, nas já decididas,
+     * quem decidiu, quando e o motivo da recusa.
+     *
+     * @param quemAge o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @return o resumo das entregas de todos os fornecedores
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<ResumoEntregaHotel> listarParaHotel(Utilizador quemAge) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as entregas.");
+        }
+        return entregaDAL.listarParaHotel();
+    }
+
+    // sem texto, só com espaços ou só com símbolos (por exemplo "...") o motivo fica vazio
+    private static String limparMotivo(String motivo) {
+        if (motivo == null || !temLetraOuDigito(motivo)) {
+            return null;
+        }
+        return motivo.trim();
+    }
+
+    private static boolean temLetraOuDigito(String texto) {
+        for (int i = 0; i < texto.length(); i++) {
+            if (Character.isLetterOrDigit(texto.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // confirma que a entrega existe e ainda está pendente, para dar uma mensagem clara antes de decidir
+    private void exigirPendente(int entregaId) {
+        Optional<Entrega> entrega = entregaDAL.procurarPorId(entregaId);
+        if (entrega.isEmpty()) {
+            throw new IllegalArgumentException("A entrega não existe.");
+        }
+        if (entrega.get().getEstado() != EstadoEntrega.PENDENTE) {
+            throw new IllegalArgumentException(ENTREGA_JA_DECIDIDA);
+        }
+    }
+
     private static String euros(BigDecimal valor) {
         return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
+    }
+
+    /**
+     * Devolve o histórico das entregas do fornecedor, com o estado de cada uma.
+     * Cada fornecedor só vê as suas.
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @return o resumo das entregas do fornecedor, da mais recente para a mais antiga
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<ResumoEntrega> historico(Fornecedor fornecedor) {
+        if (fornecedor == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
+        }
+        return entregaDAL.listarResumosDoFornecedor(fornecedor.getCodigo());
     }
 }

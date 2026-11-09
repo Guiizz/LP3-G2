@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.AcessoCartaoController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Registar acesso com cartão" styleClass="titulo"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Cartão:"/>
+        <TextField fx:id="cartaoField" promptText="ex.: C201 ou C000" prefWidth="140.0"/>
+        <Label text="Local:"/>
+        <ComboBox fx:id="localCombo" promptText="Escolha o local" onAction="#aoEscolherLocal" prefWidth="150.0"/>
+        <Label fx:id="quartoLabel" text="Quarto:"/>
+        <TextField fx:id="quartoField" promptText="ex.: 201" prefWidth="80.0"/>
+        <Button text="Registar passagem" defaultButton="true" onAction="#aoRegistarPassagem"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true" maxWidth="700"/>
+
+    <Label text="Passagens deste cartão"/>
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Data e hora" prefWidth="150.0">
+                <cellValueFactory><PropertyValueFactory property="registadoEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Cartão" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="cartao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Local" prefWidth="200.0">
+                <cellValueFactory><PropertyValueFactory property="localTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <placeholder>
+            <Label text="Ainda não há passagens registadas para este cartão."/>
+        </placeholder>
+    </TableView>
+</VBox>

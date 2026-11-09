@@ -18,7 +18,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Registar sugestão ou queixa" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Registar sugestão ou queixa" styleClass="titulo"/>
 
     <Label text="NIF do cliente"/>
     <HBox spacing="10.0" alignment="CENTER_LEFT">

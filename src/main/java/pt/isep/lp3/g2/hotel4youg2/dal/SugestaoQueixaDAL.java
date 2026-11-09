@@ -8,12 +8,18 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementação em SQL Server de {@link ISugestaoQueixaDAL}.
+ */
 public class SugestaoQueixaDAL implements ISugestaoQueixaDAL {
 
     // a data não vai no INSERT: é a BD que a põe (DEFAULT SYSDATETIME()) e devolve-a com o id
     private static final String INSERIR =
             "INSERT INTO SugestaoQueixa (clienteId, tipo, descricao, registadaPor) "
             + "OUTPUT INSERTED.id, INSERTED.registadaEm VALUES (?, ?, ?, ?)";
+    private static final String INSERIR_PELO_CLIENTE =
+            "INSERT INTO SugestaoQueixa (clienteId, tipo, descricao) "
+            + "OUTPUT INSERTED.id, INSERTED.registadaEm VALUES (?, ?, ?)";
     private static final String PROCURAR_POR_ID =
             "SELECT id, clienteId, tipo, descricao, registadaPor, registadaEm FROM SugestaoQueixa WHERE id = ?";
     private static final String APAGAR = "DELETE FROM SugestaoQueixa WHERE id = ?";
@@ -29,17 +35,20 @@ public class SugestaoQueixaDAL implements ISugestaoQueixaDAL {
 
     @Override
     public int inserir(SugestaoQueixa sugestao) {
-        ConexaoBD.select(INSERIR, rs -> {
-            sugestao.setId(rs.getInt("id"));
-            sugestao.setRegistadaEm(rs.getTimestamp("registadaEm").toLocalDateTime());
-            return sugestao;
-        }, sugestao.getClienteId(), sugestao.getTipo().name(), sugestao.getDescricao(), sugestao.getRegistadaPor());
+        if (sugestao.getRegistadaPor() == 0) {
+            ConexaoBD.select(INSERIR_PELO_CLIENTE, new DadosGeradosMapper(sugestao), sugestao.getClienteId(),
+                    sugestao.getTipo().name(), sugestao.getDescricao());
+            return sugestao.getId();
+        }
+        ConexaoBD.select(INSERIR, new DadosGeradosMapper(sugestao), sugestao.getClienteId(), sugestao.getTipo().name(),
+                sugestao.getDescricao(), sugestao.getRegistadaPor());
         return sugestao.getId();
     }
 
     @Override
     public Optional<SugestaoQueixa> procurarPorId(int id) {
-        return ConexaoBD.select(PROCURAR_POR_ID, this::mapear, id).stream().findFirst();
+        List<SugestaoQueixa> encontradas = ConexaoBD.select(PROCURAR_POR_ID, new SugestaoMapper(), id);
+        return encontradas.isEmpty() ? Optional.empty() : Optional.of(encontradas.get(0));
     }
 
     @Override
@@ -66,8 +75,26 @@ public class SugestaoQueixaDAL implements ISugestaoQueixaDAL {
         }
     }
 
-    private SugestaoQueixa mapear(ResultSet rs) throws SQLException {
-        return new SugestaoQueixa(rs.getInt("id"), rs.getInt("clienteId"), TipoSugestao.valueOf(rs.getString("tipo")),
-                rs.getString("descricao"), rs.getInt("registadaPor"), rs.getTimestamp("registadaEm").toLocalDateTime());
+    private static class SugestaoMapper implements RowMapper<SugestaoQueixa> {
+        @Override
+        public SugestaoQueixa map(ResultSet rs) throws SQLException {
+            return new SugestaoQueixa(rs.getInt("id"), rs.getInt("clienteId"), TipoSugestao.valueOf(rs.getString("tipo")),
+                    rs.getString("descricao"), rs.getInt("registadaPor"), rs.getTimestamp("registadaEm").toLocalDateTime());
+        }
+    }
+
+    private static class DadosGeradosMapper implements RowMapper<SugestaoQueixa> {
+        private final SugestaoQueixa sugestao;
+
+        DadosGeradosMapper(SugestaoQueixa sugestao) {
+            this.sugestao = sugestao;
+        }
+
+        @Override
+        public SugestaoQueixa map(ResultSet rs) throws SQLException {
+            sugestao.setId(rs.getInt("id"));
+            sugestao.setRegistadaEm(rs.getTimestamp("registadaEm").toLocalDateTime());
+            return sugestao;
+        }
     }
 }

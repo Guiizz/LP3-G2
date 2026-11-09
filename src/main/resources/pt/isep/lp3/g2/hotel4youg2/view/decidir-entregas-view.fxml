@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.DecidirEntregasController">
+
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Decidir entregas dos fornecedores" styleClass="titulo"/>
+    <Label text="Escolha uma entrega pendente. Ao aceitar, as unidades entram no stock; ao recusar, o fornecedor pode voltar a enviá-la."
+           wrapText="true"/>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS" prefHeight="360.0">
+        <columns>
+            <TableColumn text="Estado" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Fornecedor" prefWidth="140.0">
+                <cellValueFactory><PropertyValueFactory property="fornecedor"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Encomenda" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="numeroEncomenda"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipos" prefWidth="55.0">
+                <cellValueFactory><PropertyValueFactory property="tiposDeMaterial"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Unidades" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="totalUnidades"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total (€)" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Carregada em" prefWidth="210.0">
+                <cellValueFactory><PropertyValueFactory property="carregadaEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Decidida por" prefWidth="120.0">
+                <cellValueFactory><PropertyValueFactory property="decididaPor"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Decidida em" prefWidth="210.0">
+                <cellValueFactory><PropertyValueFactory property="decididaEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Motivo da recusa" prefWidth="220.0">
+                <cellValueFactory><PropertyValueFactory property="motivoRecusa"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Motivo (opcional):"/>
+        <TextField fx:id="motivoField" promptText="até 200 caracteres, só para recusar" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="Aceitar" onAction="#aoAceitar"/>
+        <Button text="Recusar" onAction="#aoRecusar"/>
+        <Button text="Atualizar a lista" onAction="#aoAtualizar"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>

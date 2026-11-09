@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="area" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.AreaController">
+    <top>
+        <VBox spacing="10.0" styleClass="cabecalho-area">
+            <padding>
+                <Insets top="16.0" right="20.0" bottom="12.0" left="20.0"/>
+            </padding>
+            <Label fx:id="tituloLabel" styleClass="titulo"/>
+            <HBox fx:id="submenu" spacing="8.0"/>
+        </VBox>
+    </top>
+</BorderPane>

@@ -18,6 +18,7 @@ public class SugestaoQueixaDALTest {
 
     private SugestaoQueixaDAL instance;
     private SugestaoQueixa sugestao;
+    private SugestaoQueixa doCliente;
 
     // Prepara o contexto: uma queixa de teste de um cliente e de um funcionário que já existam na BD
     @BeforeEach
@@ -26,10 +27,10 @@ public class SugestaoQueixaDALTest {
         int funcionarioId = 0;
         try {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('SugestaoQueixa') IS NOT NULL "
-                    + "THEN 1 ELSE 0 END", rs -> rs.getInt(1));
+                    + "THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 06_sugestoes.sql");
-            List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Cliente", rs -> rs.getInt(1));
-            List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", rs -> rs.getInt(1));
+            List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Cliente", new InteiroMapper());
+            List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", new InteiroMapper());
             Assumptions.assumeTrue(!clientes.isEmpty() && !funcionarios.isEmpty(), "Faltam clientes ou funcionários na BD");
             clienteId = clientes.get(0);
             funcionarioId = funcionarios.get(0);
@@ -45,6 +46,9 @@ public class SugestaoQueixaDALTest {
     // Desfaz o que o setUp fez: apaga a queixa de teste
     @AfterEach
     public void tearDown() {
+        if (doCliente != null && doCliente.getId() > 0) {
+            instance.apagar(doCliente.getId());
+        }
         if (sugestao != null && sugestao.getId() > 0) {
             instance.apagar(sugestao.getId());
         }
@@ -133,5 +137,16 @@ public class SugestaoQueixaDALTest {
         }
         boolean expResult = true;
         assertEquals(expResult, result != null && !result.isEmpty());
+    }
+
+    @Test
+    public void testInserirPeloCliente() {
+        System.out.println("inserir (pelo cliente, sem funcionário)");
+        doCliente = new SugestaoQueixa(0, sugestao.getClienteId(), TipoSugestao.SUGESTAO,
+                "Teste " + System.nanoTime(), 0, null);
+        instance.inserir(doCliente);
+        SugestaoQueixa expResult = doCliente;
+        SugestaoQueixa result = instance.procurarPorId(doCliente.getId()).orElseThrow();
+        assertEquals(expResult, result);
     }
 }

@@ -1,57 +1,137 @@
 package pt.isep.lp3.g2.hotel4youg2.util;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SessaoTest {
+/**
+ * Testes unitários da classe Sessao.
+ */
+public class SessaoTest {
 
-    private final Utilizador gestor = new Utilizador(1, 1, "gestor", "hash", "salt", Perfil.GESTOR, true);
+    private Utilizador gestor;
+    private Utilizador rececionista;
+    private Fornecedor fornecedor;
+
+    @BeforeEach
+    public void setUp() {
+        Sessao.terminar();
+        gestor = new Utilizador(1, 1, "gestor", "hash", "salt", Perfil.GESTOR, true);
+        rececionista = new Utilizador(2, 2, "rececao", "hash", "salt", Perfil.RECECIONISTA, true);
+        fornecedor = new Fornecedor(1, "F-1", "Fornecedor", null, null, null, null, null, null);
+    }
 
     @AfterEach
-    void limpar() {
+    public void tearDown() {
         Sessao.terminar();
+        gestor = null;
+        rececionista = null;
+        fornecedor = null;
     }
 
     @Test
-    void semLoginNaoHaSessao() {
-        assertFalse(Sessao.estaIniciada());
-        assertNull(Sessao.getUtilizador());
+    public void testEstaIniciadaSemLogin() {
+        System.out.println("estaIniciada (sem login)");
+        boolean expResult = false;
+        boolean result = Sessao.estaIniciada();
+        assertEquals(expResult, result);
     }
 
     @Test
-    void depoisDoLoginGuardaOUtilizador() {
+    public void testGetUtilizadorSemLogin() {
+        System.out.println("getUtilizador (sem login)");
+        Utilizador expResult = null;
+        Utilizador result = Sessao.getUtilizador();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIniciar() {
+        System.out.println("iniciar");
         Sessao.iniciar(gestor);
-        assertTrue(Sessao.estaIniciada());
-        assertEquals("gestor", Sessao.getUtilizador().getNomeUtilizador());
+        Utilizador expResult = gestor;
+        Utilizador result = Sessao.getUtilizador();
+        assertEquals(expResult, result);
     }
 
     @Test
-    void terminarSessaoEsqueceOUtilizador() {
+    public void testEstaIniciadaDepoisDoLogin() {
+        System.out.println("estaIniciada (depois do login)");
+        Sessao.iniciar(gestor);
+        boolean expResult = true;
+        boolean result = Sessao.estaIniciada();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTerminar() {
+        System.out.println("terminar (esquece o utilizador)");
         Sessao.iniciar(gestor);
         Sessao.terminar();
-        assertFalse(Sessao.estaIniciada());
-        assertNull(Sessao.getUtilizador());
+        Utilizador expResult = null;
+        Utilizador result = Sessao.getUtilizador();
+        assertEquals(expResult, result);
+        assertEquals(false, Sessao.estaIniciada());
     }
 
     @Test
-    void terminarSemSessaoIniciadaNaoDaErro() {
+    public void testTerminarSemSessaoIniciada() {
+        System.out.println("terminar (sem sessão iniciada não dá erro)");
         Sessao.terminar();
-        assertFalse(Sessao.estaIniciada());
+        boolean expResult = false;
+        boolean result = Sessao.estaIniciada();
+        assertEquals(expResult, result);
     }
 
     @Test
-    void depoisDeTerminarOutroUtilizadorPodeEntrar() {
-        Utilizador rececao = new Utilizador(2, 2, "rececao", "hash", "salt", Perfil.RECECIONISTA, true);
+    public void testIniciarDepoisDeTerminar() {
+        System.out.println("iniciar (outro utilizador pode entrar depois de terminar)");
         Sessao.iniciar(gestor);
         Sessao.terminar();
-        Sessao.iniciar(rececao);
-        assertEquals("rececao", Sessao.getUtilizador().getNomeUtilizador());
+        Sessao.iniciar(rececionista);
+        Utilizador expResult = rececionista;
+        Utilizador result = Sessao.getUtilizador();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetFornecedorSemLogin() {
+        System.out.println("getFornecedor (sem login)");
+        Fornecedor expResult = null;
+        Fornecedor result = Sessao.getFornecedor();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIniciarFornecedor() {
+        System.out.println("iniciarFornecedor");
+        Sessao.iniciarFornecedor(fornecedor);
+        Fornecedor expResult = fornecedor;
+        Fornecedor result = Sessao.getFornecedor();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIniciarFornecedorNaoIniciaSessaoDeUtilizador() {
+        System.out.println("iniciarFornecedor (não conta como utilizador com sessão)");
+        Sessao.iniciarFornecedor(fornecedor);
+        boolean expResult = false;
+        boolean result = Sessao.estaIniciada();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTerminarEsqueceOFornecedor() {
+        System.out.println("terminar (esquece o fornecedor)");
+        Sessao.iniciarFornecedor(fornecedor);
+        Sessao.terminar();
+        Fornecedor expResult = null;
+        Fornecedor result = Sessao.getFornecedor();
+        assertEquals(expResult, result);
     }
 }

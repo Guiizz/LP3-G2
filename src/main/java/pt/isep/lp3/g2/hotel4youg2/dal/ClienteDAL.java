@@ -110,6 +110,58 @@ public class ClienteDAL implements IClienteDAL {
         }
     }
 
+    @Override
+    public Cliente procurarFuncionarioNaoCliente(String nif) {
+        List<Cliente> encontrados = ConexaoBD.select(
+                "SELECT p.id, p.nome, p.cc, p.nif, p.morada, p.telemovel, p.dataNascimento, p.email "
+                + "FROM Funcionario f JOIN Pessoa p ON p.id = f.pessoaId "
+                + "WHERE p.nif = ? AND NOT EXISTS (SELECT 1 FROM Cliente c WHERE c.pessoaId = p.id)",
+                new ClienteMapper(), nif);
+        return encontrados.isEmpty() ? null : encontrados.get(0);
+    }
+
+    @Override
+    public boolean tornarCliente(Cliente c) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement psCliente = conn.prepareStatement(
+                         "INSERT Cliente (pessoaId) SELECT ? WHERE NOT EXISTS "
+                         + "(SELECT 1 FROM Cliente WITH (UPDLOCK, HOLDLOCK) WHERE pessoaId = ?)");
+                 PreparedStatement psPessoa = conn.prepareStatement(
+                         "UPDATE Pessoa SET dataNascimento = COALESCE(?, dataNascimento), "
+                         + "telemovel = COALESCE(?, telemovel), email = COALESCE(?, email), "
+                         + "cc = COALESCE(?, cc), morada = COALESCE(?, morada) WHERE id = ?")) {
+                psCliente.setInt(1, c.getId());
+                psCliente.setInt(2, c.getId());
+                if (psCliente.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                psPessoa.setObject(1, c.getDataNascimento());
+                psPessoa.setString(2, c.getTelemovel());
+                psPessoa.setString(3, c.getEmail());
+                psPessoa.setString(4, c.getCc());
+                psPessoa.setString(5, c.getMorada());
+                psPessoa.setInt(6, c.getId());
+                psPessoa.executeUpdate();
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao registar o funcionário como cliente!", e);
+        }
+    }
+
+    private class ClienteMapper implements RowMapper<Cliente> {
+        @Override
+        public Cliente map(ResultSet rs) throws SQLException {
+            return criarCliente(rs);
+        }
+    }
+
     private Cliente criarCliente(ResultSet rs) throws SQLException {
         return new Cliente(
                 rs.getInt("id"),

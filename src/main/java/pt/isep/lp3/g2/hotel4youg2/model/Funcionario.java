@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * Funcionário do hotel. Pode ter uma conta ({@link Utilizador}) para entrar na aplicação.
@@ -45,5 +46,23 @@ public class Funcionario extends Pessoa {
         super(id, nome, cc, nif, morada, telemovel, dataNascimento, email);
         this.numeroFuncionario = numeroFuncionario;
         this.dataAdmissao = dataAdmissao;
+    }
+
+    /**
+     * Dois funcionários são iguais se tiverem os mesmos dados de pessoa, o mesmo número e a mesma data de admissão.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (!super.equals(o)) {
+            return false;
+        }
+        Funcionario outro = (Funcionario) o;
+        return numeroFuncionario == outro.numeroFuncionario
+                && Objects.equals(dataAdmissao, outro.dataAdmissao);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), numeroFuncionario, dataAdmissao);
     }
 }

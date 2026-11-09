@@ -15,8 +15,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Gestão de quartos" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
-
+    <Label text="Gestão de quartos" styleClass="titulo"/>
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn text="Número" prefWidth="80.0">

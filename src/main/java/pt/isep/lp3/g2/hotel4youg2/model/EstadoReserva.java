@@ -5,11 +5,21 @@ package pt.isep.lp3.g2.hotel4youg2.model;
  */
 public enum EstadoReserva {
     /** Reserva feita, o cliente ainda não chegou. */
-    CONFIRMADA,
+    CONFIRMADA("Confirmada"),
     /** O cliente fez check-in e está no hotel. */
-    EM_CURSO,
+    EM_CURSO("Em curso"),
     /** O cliente fez check-out. */
-    CONCLUIDA,
+    CONCLUIDA("Concluída"),
     /** A reserva foi cancelada e o quarto fica livre para essas datas. */
-    CANCELADA
+    CANCELADA("Cancelada");
+
+    private final String descricao;
+
+    EstadoReserva(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
 }

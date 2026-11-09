@@ -12,6 +12,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Sugestões e queixas" do gestor: lista as sugestões e queixas dos clientes, com filtro por tipo.
+ */
 public class ConsultarSugestoesController {
 
     private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
@@ -45,13 +48,13 @@ public class ConsultarSugestoesController {
         try {
             List<SugestaoQueixa> lista = sugestaoBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
             tabela.getItems().setAll(lista);
-            mensagemLabel.setText(lista.size() + " registo(s)");
+            Mensagens.info(mensagemLabel, lista.size() + " registo(s)");
         } catch (DataAccessException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText("Não foi possível comunicar com a base de dados. Tente novamente.");
+            Mensagens.erro(mensagemLabel, "Não foi possível comunicar com a base de dados. Tente novamente.");
         } catch (RuntimeException e) {
             tabela.getItems().clear();
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 }

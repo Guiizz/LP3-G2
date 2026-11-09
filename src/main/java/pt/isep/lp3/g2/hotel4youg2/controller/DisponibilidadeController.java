@@ -43,23 +43,23 @@ public class DisponibilidadeController {
        vistaCombo.getItems().setAll(Vista.values());
    }
 
-   @FXML
+    @FXML
     private void aoPesquisar() {
-       quartosTabela.getItems().clear();
-       try {
-           List<Quarto> quartos = quartoService.pesquisarDisponiveis(entradaPicker.getValue(), saidaPicker.getValue(), hospedesSpinner.getValue(), tipoCombo.getValue(), vistaCombo.getValue());
-           if (quartos.isEmpty()) {
-               mensagemLabel.setText("Sem disponibilidade para estas datas");
-           } else {
-               quartosTabela.getItems().setAll(quartos);
-               mensagemLabel.setText(quartos.size() + " quarto(s) disponível(eis)");
-           }
-       } catch (IllegalArgumentException e) {
-           mensagemLabel.setText(e.getMessage());
-       } catch (DataAccessException e) {
-           mensagemLabel.setText("Não foi possível pesquisar: " + e.getMessage());
-       }
-   }
+        quartosTabela.getItems().clear();
+        try {
+            List<Quarto> quartos = quartoService.pesquisarDisponiveis(entradaPicker.getValue(), saidaPicker.getValue(), hospedesSpinner.getValue(), tipoCombo.getValue(), vistaCombo.getValue());
+            if (quartos.isEmpty()) {
+                Mensagens.info(mensagemLabel, "Sem disponibilidade para estas datas");
+            } else {
+                quartosTabela.getItems().setAll(quartos);
+                Mensagens.info(mensagemLabel, quartos.size() + " quarto(s) disponível(eis)");
+            }
+        } catch (IllegalArgumentException e) {
+            Mensagens.erro(mensagemLabel, e.getMessage());
+        } catch (DataAccessException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível pesquisar: " + e.getMessage());
+        }
+    }
 
    @FXML
     private void aoLimparFiltros() {

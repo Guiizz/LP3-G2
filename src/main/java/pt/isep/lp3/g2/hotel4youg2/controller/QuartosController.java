@@ -53,10 +53,10 @@ public class QuartosController {
         try {
             List<Quarto> quartos = quartoService.listar(tipoCombo.getValue(), pisoCombo.getValue());
             quartosTabela.getItems().setAll(quartos);
-            mensagemLabel.setText(quartos.size() + " quarto(s)");
+            Mensagens.info(mensagemLabel, quartos.size() + " quarto(s)");
         } catch (DataAccessException e) {
             quartosTabela.getItems().clear();
-            mensagemLabel.setText("Não foi possível carregar os quartos: " + e.getMessage());
+            Mensagens.erro(mensagemLabel, "Não foi possível carregar os quartos: " + e.getMessage());
         }
     }
 }

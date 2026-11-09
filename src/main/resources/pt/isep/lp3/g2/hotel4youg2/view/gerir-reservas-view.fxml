@@ -16,7 +16,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Reservas" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Reservas" styleClass="titulo"/>
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
@@ -35,8 +35,14 @@
             <TableColumn text="Saída" prefWidth="100.0">
                 <cellValueFactory><PropertyValueFactory property="dataSaida"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Preço" prefWidth="80.0">
+            <TableColumn text="Quarto (€)" prefWidth="80.0">
                 <cellValueFactory><PropertyValueFactory property="precoTotal"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Serviços (€)" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="totalServicos"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total (€)" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
             </TableColumn>
             <TableColumn text="Estado" prefWidth="100.0">
                 <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
@@ -50,7 +56,10 @@
         <Label text="Nova saída:"/>
         <DatePicker fx:id="novaSaidaPicker" prefWidth="130.0"/>
         <Button text="Alterar datas" onAction="#aoAlterarDatas"/>
+        <Button text="Serviços…" onAction="#aoServicos"/>
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
+        <Button text="Fazer check-in" onAction="#aoFazerCheckin"/>
+        <Button text="Fazer check-out" onAction="#aoFazerCheckout"/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>

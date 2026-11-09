@@ -18,7 +18,7 @@
         <Insets top="15" right="15" bottom="15" left="15"/>
     </padding>
 
-    <Label text="Reservas de um cliente" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+    <Label text="Reservas de um cliente" styleClass="titulo"/>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <TextField fx:id="nifField" promptText="NIF do cliente" prefWidth="140"/>
@@ -40,8 +40,14 @@
             <TableColumn text="Estado">
                 <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Preço total (€)">
+            <TableColumn text="Quarto (€)">
                 <cellValueFactory><PropertyValueFactory property="precoTotal"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Serviços (€)">
+                <cellValueFactory><PropertyValueFactory property="totalServicos"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total (€)">
+                <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
             </TableColumn>
         </columns>
         <columnResizePolicy>
@@ -49,5 +55,6 @@
         </columnResizePolicy>
     </TableView>
 
+    <Button text="Ver serviços da reserva escolhida" onAction="#aoVerServicos"/>
     <Label fx:id="mensagemLabel" wrapText="true"/>
 </VBox>

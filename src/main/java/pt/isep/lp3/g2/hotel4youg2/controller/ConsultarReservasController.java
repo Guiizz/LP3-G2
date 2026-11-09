@@ -11,8 +11,12 @@ import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
+import java.io.IOException;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Reservas de um cliente" (US33): procura o cliente pelo NIF, mostra as suas reservas e abre os serviços de cada uma.
+ */
 public class ConsultarReservasController {
 
     private final ClienteBLL clienteService = new ClienteBLL();
@@ -53,8 +57,22 @@ public class ConsultarReservasController {
         }
     }
 
+    @FXML
+    private void aoVerServicos() {
+        Reserva escolhida = reservasTabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarMensagem("Escolha uma reserva na tabela.", "red");
+            return;
+        }
+        try {
+            ServicosReservaController.abrir(escolhida);
+            aoProcurar();
+        } catch (IOException e) {
+            mostrarMensagem("Não foi possível abrir os serviços da reserva.", "red");
+        }
+    }
+
     private void mostrarMensagem(String texto, String cor) {
-        mensagemLabel.setStyle("-fx-text-fill: " + cor + ";");
-        mensagemLabel.setText(texto);
+        Mensagens.mostrar(mensagemLabel, texto, cor);
     }
 }

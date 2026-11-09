@@ -16,6 +16,8 @@ public class Fornecedor {
     private String codigoPostal;
     private String pais;
     private String codigoPais;
+    private String passwordHash;
+    private String passwordSalt;
 
     /**
      * Cria um fornecedor.
@@ -81,6 +83,31 @@ public class Fornecedor {
 
     public String getCodigoPais() {
         return codigoPais;
+    }
+
+    /**
+     * @return o hash da password do fornecedor, ou {@code null} se ainda não tem conta
+     */
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    /**
+     * @return o salt da password do fornecedor, ou {@code null} se ainda não tem conta
+     */
+    public String getPasswordSalt() {
+        return passwordSalt;
+    }
+
+    /**
+     * Guarda a password do fornecedor (nunca em claro: só o hash e o salt).
+     *
+     * @param passwordHash o hash da password, em hexadecimal
+     * @param passwordSalt o salt usado, em hexadecimal
+     */
+    public void definirPassword(String passwordHash, String passwordSalt) {
+        this.passwordHash = passwordHash;
+        this.passwordSalt = passwordSalt;
     }
 
     /**

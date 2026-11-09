@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -19,7 +20,7 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Entregas de fornecedores (XML)" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+    <Label text="Entregas de fornecedores (XML)" styleClass="titulo"/>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Button text="Escolher ficheiro XML…" onAction="#aoEscolherFicheiro"/>
@@ -43,13 +44,27 @@
 
     <TableView fx:id="tabela" prefHeight="230.0">
         <columns>
-            <TableColumn fx:id="colunaLinha" text="Linha" prefWidth="50.0"/>
-            <TableColumn fx:id="colunaCodigo" text="Código" prefWidth="80.0"/>
-            <TableColumn fx:id="colunaDescricao" text="Material" prefWidth="230.0"/>
-            <TableColumn fx:id="colunaQuantidade" text="Quantidade" prefWidth="90.0"/>
-            <TableColumn fx:id="colunaPreco" text="Preço" prefWidth="80.0"/>
-            <TableColumn fx:id="colunaIva" text="IVA" prefWidth="80.0"/>
-            <TableColumn fx:id="colunaTotal" text="Total" prefWidth="90.0"/>
+            <TableColumn text="Linha" prefWidth="50.0">
+                <cellValueFactory><PropertyValueFactory property="numero"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Código" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="codigoProduto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Material" prefWidth="230.0">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="quantidadeTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Preço" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="precoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="IVA" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="ivaTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="totalTexto"/></cellValueFactory>
+            </TableColumn>
         </columns>
     </TableView>
 

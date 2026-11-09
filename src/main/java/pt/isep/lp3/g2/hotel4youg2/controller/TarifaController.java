@@ -47,7 +47,7 @@ public class TarifaController {
         try {
             tabela.setItems(FXCollections.observableArrayList(tarifaService.listar()));
         } catch (RuntimeException e) {
-            mensagemLabel.setText("Não foi possível ler as tarifas: " + e.getMessage());
+            Mensagens.erro(mensagemLabel, "Não foi possível ler as tarifas: " + e.getMessage());
         }
     }
 
@@ -55,19 +55,19 @@ public class TarifaController {
     private void aoGuardar() {
         Tarifa selecionada = tabela.getSelectionModel().getSelectedItem();
         if (selecionada == null) {
-            mensagemLabel.setText("Escolha uma tarifa na tabela");
+            Mensagens.erro(mensagemLabel, "Escolha uma tarifa na tabela");
             return;
         }
         try {
             BigDecimal novoValor = new BigDecimal(campoPreco.getText().trim().replace(',', '.'));
             tarifaService.alterarPreco(perfilAtual(), selecionada.getTipo(), selecionada.getVista(), novoValor);
-            mensagemLabel.setText("Preço atualizado");
+            Mensagens.sucesso(mensagemLabel, "Preço atualizado");
             campoPreco.clear();
             carregar();
         } catch (NumberFormatException e) {
-            mensagemLabel.setText("Escreva um preço válido (por exemplo, 120.50)");
+            Mensagens.erro(mensagemLabel, "Escreva um preço válido (por exemplo, 120.50)");
         } catch (RuntimeException e) {
-            mensagemLabel.setText(e.getMessage());
+            Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
 

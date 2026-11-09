@@ -2,6 +2,8 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -16,17 +18,17 @@ public class CategoriaDAL implements ICategoriaDAL {
 
     @Override
     public List<Categoria> listar() {
-        return ConexaoBD.select(SELECT_TODAS, rs -> new Categoria(rs.getInt("id"), rs.getString("nome")));
+        return ConexaoBD.select(SELECT_TODAS, new CategoriaMapper());
     }
 
     @Override
     public boolean existeNome(String nome) {
-        return !ConexaoBD.select(EXISTE_NOME, rs -> rs.getInt(1), nome).isEmpty();
+        return !ConexaoBD.select(EXISTE_NOME, new InteiroMapper(), nome).isEmpty();
     }
 
     @Override
     public int inserir(Categoria categoria) {
-        int id = ConexaoBD.select(INSERIR, rs -> rs.getInt(1), categoria.getNome()).get(0);
+        int id = ConexaoBD.select(INSERIR, new InteiroMapper(), categoria.getNome()).get(0);
         categoria.setId(id);
         return id;
     }
@@ -34,5 +36,12 @@ public class CategoriaDAL implements ICategoriaDAL {
     @Override
     public boolean apagar(int id) {
         return ConexaoBD.executar(APAGAR, id) > 0;
+    }
+
+    private static class CategoriaMapper implements RowMapper<Categoria> {
+        @Override
+        public Categoria map(ResultSet rs) throws SQLException {
+            return new Categoria(rs.getInt("id"), rs.getString("nome"));
+        }
     }
 }
