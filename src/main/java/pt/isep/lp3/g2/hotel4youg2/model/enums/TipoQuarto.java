@@ -1,7 +1,5 @@
 package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
-import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
-
 /**
  * Tipos de quarto que o hotel tem.
  */
