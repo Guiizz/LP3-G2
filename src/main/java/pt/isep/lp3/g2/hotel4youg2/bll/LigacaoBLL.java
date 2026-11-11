@@ -1,12 +1,23 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.ConexaoBD;
+import pt.isep.lp3.g2.hotel4youg2.dal.LigacaoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ILigacaoDAL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 
 /**
  * Verifica se a aplicação consegue ligar-se à base de dados.
  */
 public class LigacaoBLL {
+
+    private final ILigacaoDAL ligacaoDAL;
+
+    public LigacaoBLL() {
+        this(new LigacaoDAL());
+    }
+
+    public LigacaoBLL(ILigacaoDAL ligacaoDAL) {
+        this.ligacaoDAL = ligacaoDAL;
+    }
 
     /**
      * Faz uma consulta simples para testar a ligação.
@@ -15,7 +26,7 @@ public class LigacaoBLL {
      */
     public String testarLigacao() {
         try {
-            ConexaoBD.select("SELECT 1", rs -> rs.getInt(1));
+            ligacaoDAL.testar();
             return "Ligação à base de dados estabelecida";
         } catch (DataAccessException e) {
             String causa = e.getCause() != null ? e.getCause().getMessage() : "sem detalhe";
