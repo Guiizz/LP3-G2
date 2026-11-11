@@ -1,10 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.TarifaBLL;
@@ -25,21 +23,12 @@ public class TarifasController {
     @FXML
     private TableView<Tarifa> tabela;
     @FXML
-    private TableColumn<Tarifa, String> colunaTipo;
-    @FXML
-    private TableColumn<Tarifa, String> colunaVista;
-    @FXML
-    private TableColumn<Tarifa, String> colunaPreco;
-    @FXML
     private TextField campoPreco;
     @FXML
     private Label mensagemLabel;
 
     @FXML
     private void initialize() {
-        colunaTipo.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getTipo().name()));
-        colunaVista.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getVista().name()));
-        colunaPreco.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getValorNoite().toPlainString()));
         carregar();
     }
 

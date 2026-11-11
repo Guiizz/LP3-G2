@@ -31,6 +31,18 @@ public class Tarifa {
         this.vista = vista;
     }
 
+    public String getTipoTexto() {
+        return tipo.name();
+    }
+
+    public String getVistaTexto() {
+        return vista.name();
+    }
+
+    public String getValorNoiteTexto() {
+        return valorNoite.toPlainString();
+    }
+
     public BigDecimal getValorNoite() {
         return valorNoite;
     }

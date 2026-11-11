@@ -65,6 +65,14 @@ public class Utilizador {
         this.perfil = perfil;
     }
 
+    public String getPerfilTexto() {
+        return perfil.name();
+    }
+
+    public String getEstadoTexto() {
+        return ativo ? "Ativa" : "Desativada";
+    }
+
     public boolean isAtivo() {
         return ativo;
     }
