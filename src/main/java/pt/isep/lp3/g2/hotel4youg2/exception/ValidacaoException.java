@@ -1,4 +1,4 @@
-package pt.isep.lp3.g2.hotel4youg2.bll;
+package pt.isep.lp3.g2.hotel4youg2.exception;
 
 /**
  * Erro de validação dos dados de um cliente (por exemplo, NIF repetido ou menor de 18 anos).

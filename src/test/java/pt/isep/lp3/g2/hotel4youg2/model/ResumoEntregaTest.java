@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

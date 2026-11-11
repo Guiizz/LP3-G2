@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.sql.Connection;

@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.FornecedorDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IFornecedorDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFornecedorDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 

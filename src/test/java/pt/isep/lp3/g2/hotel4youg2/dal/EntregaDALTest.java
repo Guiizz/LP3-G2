@@ -1,16 +1,17 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
-import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

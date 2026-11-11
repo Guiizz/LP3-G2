@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IStockDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.StockDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IStockDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 

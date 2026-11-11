@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
-import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
 
 import java.io.InputStream;
 import java.math.BigDecimal;

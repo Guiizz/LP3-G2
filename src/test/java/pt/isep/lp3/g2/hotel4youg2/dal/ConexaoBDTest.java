@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import java.sql.Connection;
