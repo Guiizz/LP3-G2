@@ -12,7 +12,7 @@
 <VBox spacing="12.0"
       xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.TarifaController">
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.TarifasController">
 
     <padding>
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
