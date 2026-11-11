@@ -1,7 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -10,7 +9,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoFornecedorBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;

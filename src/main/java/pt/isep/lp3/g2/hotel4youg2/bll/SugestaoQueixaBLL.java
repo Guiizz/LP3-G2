@@ -1,14 +1,14 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.ISugestaoQueixaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.SugestaoQueixaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ISugestaoQueixaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 
 import java.util.List;
 
@@ -94,7 +94,7 @@ public class SugestaoQueixaBLL {
             throw new IllegalArgumentException("Escreva o número do cartão.");
         }
         Reserva reserva = reservaDAL.procurarEmCursoPorCartao(numero);
-        if (reserva == null) {
+        if (reserva == null || !reserva.cartaoDaAcesso()) {
             throw new IllegalArgumentException("O cartão " + numero
                     + " não é válido ou é de uma reserva que já não está em curso.");
         }

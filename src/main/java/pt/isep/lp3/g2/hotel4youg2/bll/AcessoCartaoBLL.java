@@ -1,20 +1,21 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.AcessoCartaoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IAcessoCartaoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.QuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IAcessoCartaoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
-import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
 import java.util.List;
 
@@ -96,7 +97,7 @@ public class AcessoCartaoBLL {
         int reservaId = 0;
         if (!numero.equals(AcessoCartao.CARTAO_MESTRE)) {
             Reserva reserva = reservaDAL.procurarEmCursoPorCartao(numero);
-            if (reserva == null) {
+            if (reserva == null || !reserva.cartaoDaAcesso()) {
                 throw new ValidacaoException("Acesso recusado: o cartão " + numero
                         + " não é válido ou é de uma reserva que já não está em curso.");
             }
