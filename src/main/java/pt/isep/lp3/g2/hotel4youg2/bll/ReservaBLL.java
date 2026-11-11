@@ -43,8 +43,8 @@ public class ReservaBLL {
     /**
      * Cria o BLL com outros DAL (usado nos testes).
      *
-     * @param reservaDAL onde ficam as reservas
-     * @param quartoDAL   onde procurar os quartos disponíveis
+     * @param reservaDAL        onde ficam as reservas
+     * @param quartoDAL         onde procurar os quartos disponíveis
      * @param horarioReservaDAL onde estão as horas e as taxas das reservas
      */
     public ReservaBLL(IReservaDAL reservaDAL, IQuartoDAL quartoDAL, IHorarioReservaDAL horarioReservaDAL) {

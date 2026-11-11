@@ -48,7 +48,7 @@ public class AcessoCartaoBLL {
     /**
      * Cria o BLL com outros DAL (usado nos testes).
      *
-     * @param acessoCartaoDAL         onde ficam as passagens dos cartões
+     * @param acessoCartaoDAL   onde ficam as passagens dos cartões
      * @param reservaDAL        onde procurar a reserva em curso de cada cartão
      * @param servicoReservaDAL onde estão os serviços extra de cada reserva
      * @param quartoDAL         onde confirmar que o quarto existe

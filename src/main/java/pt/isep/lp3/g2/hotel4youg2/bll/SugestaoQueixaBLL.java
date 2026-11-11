@@ -44,7 +44,7 @@ public class SugestaoQueixaBLL {
      * Cria o BLL com outros DAL (usado nos testes).
      *
      * @param sugestaoQueixaDAL onde ficam as sugestões e queixas
-     * @param reservaDAL  onde procurar a reserva em curso de um cartão
+     * @param reservaDAL        onde procurar a reserva em curso de um cartão
      */
     public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoQueixaDAL, IReservaDAL reservaDAL) {
         this.sugestaoQueixaDAL = sugestaoQueixaDAL;

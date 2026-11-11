@@ -11,10 +11,18 @@ public class LigacaoBLL {
 
     private final ILigacaoDAL ligacaoDAL;
 
+    /**
+     * Cria o BLL ligado ao SQL Server.
+     */
     public LigacaoBLL() {
         this(new LigacaoDAL());
     }
 
+    /**
+     * Cria o BLL com outro DAL (usado nos testes).
+     *
+     * @param ligacaoDAL onde testar a ligação
+     */
     public LigacaoBLL(ILigacaoDAL ligacaoDAL) {
         this.ligacaoDAL = ligacaoDAL;
     }
