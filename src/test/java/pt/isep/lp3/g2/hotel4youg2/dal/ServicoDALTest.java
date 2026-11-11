@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;

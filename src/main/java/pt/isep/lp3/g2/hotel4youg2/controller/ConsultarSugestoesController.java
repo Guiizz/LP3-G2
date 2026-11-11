@@ -5,9 +5,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.SugestaoQueixaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class ConsultarSugestoesController {
 
-    private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
+    private final SugestaoQueixaBLL sugestaoQueixaBLL = new SugestaoQueixaBLL();
 
     @FXML
     private ComboBox<TipoSugestao> tipoCombo;
@@ -46,7 +46,7 @@ public class ConsultarSugestoesController {
 
     private void carregar() {
         try {
-            List<SugestaoQueixa> lista = sugestaoBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
+            List<SugestaoQueixa> lista = sugestaoQueixaBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
             tabela.getItems().setAll(lista);
             Mensagens.info(mensagemLabel, lista.size() + " registo(s)");
         } catch (DataAccessException e) {

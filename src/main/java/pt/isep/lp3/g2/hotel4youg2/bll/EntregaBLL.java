@@ -1,15 +1,15 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.EntregaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 
 import java.io.File;
 import java.io.InputStream;

@@ -12,7 +12,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import pt.isep.lp3.g2.hotel4youg2.bll.ServicoBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;

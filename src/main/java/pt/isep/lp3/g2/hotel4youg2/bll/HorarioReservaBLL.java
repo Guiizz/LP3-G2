@@ -1,7 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.HorarioReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IHorarioReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IHorarioReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
@@ -11,7 +12,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
  */
 public class HorarioReservaBLL {
 
-    private final IHorarioReservaDAL repositorio;
+    private final IHorarioReservaDAL horarioReservaDAL;
 
     /**
      * Cria o BLL ligado à base de dados.
@@ -23,10 +24,10 @@ public class HorarioReservaBLL {
     /**
      * Cria o BLL com outro DAL (usado nos testes).
      *
-     * @param repositorio onde estão as horas e as taxas
+     * @param horarioReservaDAL onde estão as horas e as taxas
      */
-    public HorarioReservaBLL(IHorarioReservaDAL repositorio) {
-        this.repositorio = repositorio;
+    public HorarioReservaBLL(IHorarioReservaDAL horarioReservaDAL) {
+        this.horarioReservaDAL = horarioReservaDAL;
     }
 
     /**
@@ -35,7 +36,7 @@ public class HorarioReservaBLL {
      * @return as horas e as taxas das reservas
      */
     public HorarioReserva obter() {
-        return repositorio.obter();
+        return horarioReservaDAL.obter();
     }
 
     /**
@@ -69,7 +70,7 @@ public class HorarioReservaBLL {
         if (novo.getTaxaEarlyCheckin().signum() < 0 || novo.getTaxaLateCheckout().signum() < 0) {
             throw new ValidacaoException("As taxas não podem ser negativas");
         }
-        if (!repositorio.atualizar(novo)) {
+        if (!horarioReservaDAL.atualizar(novo)) {
             throw new ValidacaoException("Faltam as horas e as taxas das reservas na base de dados");
         }
     }

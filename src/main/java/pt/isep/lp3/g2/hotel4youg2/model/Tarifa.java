@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -27,6 +29,18 @@ public class Tarifa {
 
     public void setVista(Vista vista) {
         this.vista = vista;
+    }
+
+    public String getTipoTexto() {
+        return tipo.name();
+    }
+
+    public String getVistaTexto() {
+        return vista.name();
+    }
+
+    public String getValorNoiteTexto() {
+        return valorNoite.toPlainString();
     }
 
     public BigDecimal getValorNoite() {

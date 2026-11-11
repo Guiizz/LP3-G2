@@ -1,11 +1,11 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.ITarifaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.TarifaDAL;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ITarifaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
-import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class TarifaBLL {
 
-    private final ITarifaDAL repositorio;
+    private final ITarifaDAL tarifaDAL;
 
     /**
      * Cria o serviço ligado à base de dados.
@@ -27,17 +27,17 @@ public class TarifaBLL {
     /**
      * Cria o serviço com outro repositório (usado nos testes).
      *
-     * @param repositorio de onde vêm as tarifas
+     * @param tarifaDAL de onde vêm as tarifas
      */
-    public TarifaBLL(ITarifaDAL repositorio) {
-        this.repositorio = repositorio;
+    public TarifaBLL(ITarifaDAL tarifaDAL) {
+        this.tarifaDAL = tarifaDAL;
     }
 
     /**
      * @return todas as tarifas
      */
     public List<Tarifa> listar() {
-        return repositorio.listar();
+        return tarifaDAL.listar();
     }
 
     /**
@@ -60,7 +60,7 @@ public class TarifaBLL {
         if (novoValor.signum() <= 0) {
             throw new IllegalArgumentException("O preço tem de ser maior que zero");
         }
-        if (!repositorio.atualizarValor(tipo, vista, novoValor)) {
+        if (!tarifaDAL.atualizarValor(tipo, vista, novoValor)) {
             throw new IllegalArgumentException("A tarifa não existe");
         }
     }

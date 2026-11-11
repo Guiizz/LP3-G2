@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,9 +11,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.ResultSet;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Testa que as restrições das tabelas (US09 e US10) rejeitam dados inválidos. */
 class EsquemaBDTest {
@@ -47,8 +47,12 @@ class EsquemaBDTest {
     }
 
     private void esperaErro(int codigo, String sql) {
-        SQLException e = assertThrows(SQLException.class, () -> exec(sql));
-        assertEquals(codigo, e.getErrorCode());
+        try {
+            exec(sql);
+            fail("A base de dados devia ter recusado: " + sql);
+        } catch (SQLException expected) {
+            assertEquals(codigo, expected.getErrorCode());
+        }
     }
 
     private void tarifa() throws SQLException {
@@ -149,7 +153,7 @@ class EsquemaBDTest {
         quarto(9001);
         pessoa("999999993");
         exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999993'");
-        assertDoesNotThrow(() -> exec(reserva("2026-11-05", "2026-11-06")));
+        exec(reserva("2026-11-05", "2026-11-06"));
     }
 
 
@@ -215,7 +219,7 @@ class EsquemaBDTest {
     @Test
     void funcionarioPodeSerTambemCliente() throws Exception {
         funcionario("999999991", 9001);
-        assertDoesNotThrow(() -> exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'"));
+        exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'");
     }
 
     @Test

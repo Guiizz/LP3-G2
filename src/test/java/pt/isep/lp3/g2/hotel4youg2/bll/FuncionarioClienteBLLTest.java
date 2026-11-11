@@ -1,9 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.IClienteDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;

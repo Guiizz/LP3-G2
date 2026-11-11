@@ -1,4 +1,4 @@
-package pt.isep.lp3.g2.hotel4youg2.dal;
+package pt.isep.lp3.g2.hotel4youg2.exception;
 
 /**
  * Erro ao aceder à base de dados (sem ligação, SQL errado, etc.).

@@ -5,9 +5,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.EntregaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 /**

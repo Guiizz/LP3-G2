@@ -12,7 +12,7 @@ import java.io.IOException;
 /**
  * Arranque do JavaFX: abre a janela no ecrã de login.
  */
-public class HelloApplication extends Application {
+public class Hotel4YouApplication extends Application {
     /**
      * Mostra o ecrã de login na janela principal.
      *
@@ -21,10 +21,10 @@ public class HelloApplication extends Application {
      */
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("view/login-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Hotel4YouApplication.class.getResource("view/login-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 360, 420);
         Navegador.aplicarEstilo(scene);
-        stage.getIcons().add(new Image(HelloApplication.class.getResourceAsStream("images/simbolo.png")));
+        stage.getIcons().add(new Image(Hotel4YouApplication.class.getResourceAsStream("images/simbolo.png")));
         stage.setTitle("Hotel4You · Entrar");
         stage.setScene(scene);
         stage.show();

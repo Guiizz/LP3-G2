@@ -1,5 +1,6 @@
-package pt.isep.lp3.g2.hotel4youg2.dal;
+package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.ConexaoBD;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

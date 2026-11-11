@@ -1,4 +1,4 @@
-package pt.isep.lp3.g2.hotel4youg2.model;
+package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
 /**
  * Tipos de quarto que o hotel tem.

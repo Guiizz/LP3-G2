@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.HorarioReservaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
@@ -19,7 +19,7 @@ public class HorarioReservaController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
 
-    private final HorarioReservaBLL horarioService = new HorarioReservaBLL();
+    private final HorarioReservaBLL horarioReservaBLL = new HorarioReservaBLL();
 
     @FXML
     private TextField horaCheckinField;
@@ -48,7 +48,7 @@ public class HorarioReservaController {
                     hora(horaCheckinField), hora(horaCheckoutField),
                     hora(horaEarlyField), hora(horaLateField),
                     valor(taxaEarlyField), valor(taxaLateField));
-            horarioService.alterar(Sessao.getUtilizador(), novo);
+            horarioReservaBLL.alterar(Sessao.getUtilizador(), novo);
             mostrarSucesso("Horas e taxas guardadas.");
             carregar();
         } catch (DateTimeParseException e) {
@@ -64,7 +64,7 @@ public class HorarioReservaController {
 
     private void carregar() {
         try {
-            HorarioReserva horario = horarioService.obter();
+            HorarioReserva horario = horarioReservaBLL.obter();
             horaCheckinField.setText(horario.getHoraCheckin().toString());
             horaCheckoutField.setText(horario.getHoraCheckout().toString());
             horaEarlyField.setText(horario.getHoraEarlyCheckin().toString());

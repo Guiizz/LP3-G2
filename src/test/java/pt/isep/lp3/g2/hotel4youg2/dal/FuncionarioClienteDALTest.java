@@ -1,13 +1,15 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;

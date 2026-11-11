@@ -1,9 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;

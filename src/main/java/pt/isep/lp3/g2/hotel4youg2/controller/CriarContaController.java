@@ -8,7 +8,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.FuncionarioBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 /**

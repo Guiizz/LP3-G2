@@ -3,8 +3,8 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

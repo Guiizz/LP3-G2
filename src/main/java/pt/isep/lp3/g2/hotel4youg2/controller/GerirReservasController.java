@@ -11,7 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
@@ -27,7 +27,7 @@ public class GerirReservasController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
 
-    private final ReservaBLL reservaService = new ReservaBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
 
     @FXML
     private TableView<Reserva> tabela;
@@ -64,7 +64,7 @@ public class GerirReservasController {
             return;
         }
         try {
-            reservaService.cancelar(Sessao.getUtilizador(), escolhida);
+            reservaBLL.cancelar(Sessao.getUtilizador(), escolhida);
             mostrarSucesso("Reserva " + escolhida.getId() + " cancelada.");
         } catch (DataAccessException e) {
             mostrarErro(ERRO_BD);
@@ -85,7 +85,7 @@ public class GerirReservasController {
             return;
         }
         try {
-            String cartao = reservaService.fazerCheckin(Sessao.getUtilizador(), escolhida);
+            String cartao = reservaBLL.fazerCheckin(Sessao.getUtilizador(), escolhida);
             mostrarSucesso("Check-in da reserva " + escolhida.getId() + " feito. Entregue o cartão "
                     + cartao + " (quarto " + escolhida.getQuartoNumero() + ").");
         } catch (DataAccessException e) {
@@ -104,11 +104,11 @@ public class GerirReservasController {
             return;
         }
         try {
-            BigDecimal total = reservaService.totalAPagar(Sessao.getUtilizador(), escolhida);
+            BigDecimal total = reservaBLL.totalAPagar(Sessao.getUtilizador(), escolhida);
             if (!confirmarCheckout(escolhida, total)) {
                 return;
             }
-            reservaService.fazerCheckout(Sessao.getUtilizador(), escolhida);
+            reservaBLL.fazerCheckout(Sessao.getUtilizador(), escolhida);
             mostrarSucesso("Check-out da reserva " + escolhida.getId() + " feito. Total pago: " + total
                     + " €. Recolha o cartão " + escolhida.getCartao() + ".");
         } catch (DataAccessException e) {
@@ -135,7 +135,7 @@ public class GerirReservasController {
             return;
         }
         try {
-            reservaService.alterarDatas(Sessao.getUtilizador(), escolhida,
+            reservaBLL.alterarDatas(Sessao.getUtilizador(), escolhida,
                     novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
             mostrarSucesso("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
                     + escolhida.getPrecoTotal() + " €");
@@ -204,7 +204,7 @@ public class GerirReservasController {
 
     private void carregar() {
         try {
-            tabela.getItems().setAll(reservaService.listar());
+            tabela.getItems().setAll(reservaBLL.listar());
         } catch (DataAccessException e) {
             tabela.getItems().clear();
             mostrarErro(ERRO_BD);

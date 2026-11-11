@@ -1,7 +1,7 @@
-package pt.isep.lp3.g2.hotel4youg2.dal;
+package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 
 import java.util.List;
 import java.util.Optional;

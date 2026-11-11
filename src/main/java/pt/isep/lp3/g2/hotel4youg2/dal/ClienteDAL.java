@@ -1,5 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.sql.*;

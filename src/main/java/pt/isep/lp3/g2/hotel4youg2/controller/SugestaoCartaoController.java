@@ -6,16 +6,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.SugestaoQueixaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 
 /**
  * Controlador do ecrã onde o cliente envia uma sugestão ou queixa com o número do cartão do quarto (US48). Abre a partir do login.
  */
 public class SugestaoCartaoController {
 
-    private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
+    private final SugestaoQueixaBLL sugestaoQueixaBLL = new SugestaoQueixaBLL();
 
     @FXML
     private TextField cartaoField;
@@ -34,7 +34,7 @@ public class SugestaoCartaoController {
     @FXML
     private void aoEnviar() {
         try {
-            SugestaoQueixa registada = sugestaoBLL.registarPeloCartao(cartaoField.getText(), tipoCombo.getValue(),
+            SugestaoQueixa registada = sugestaoQueixaBLL.registarPeloCartao(cartaoField.getText(), tipoCombo.getValue(),
                     descricaoArea.getText());
             Mensagens.sucesso(mensagemLabel, "Obrigado! A sua " + (registada.getTipo() == TipoSugestao.QUEIXA ? "queixa" : "sugestão")
                     + " foi enviada ao gestor.");

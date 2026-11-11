@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;

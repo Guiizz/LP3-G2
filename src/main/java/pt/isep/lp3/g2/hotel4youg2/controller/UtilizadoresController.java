@@ -1,9 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.UtilizadorBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
@@ -19,19 +17,10 @@ public class UtilizadoresController {
     @FXML
     private TableView<Utilizador> tabela;
     @FXML
-    private TableColumn<Utilizador, String> colunaNome;
-    @FXML
-    private TableColumn<Utilizador, String> colunaPerfil;
-    @FXML
-    private TableColumn<Utilizador, String> colunaEstado;
-    @FXML
     private Label mensagemLabel;
 
     @FXML
     private void initialize() {
-        colunaNome.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getNomeUtilizador()));
-        colunaPerfil.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getPerfil().name()));
-        colunaEstado.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().isAtivo() ? "Ativa" : "Desativada"));
         carregar();
     }
     @FXML

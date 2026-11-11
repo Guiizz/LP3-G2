@@ -10,8 +10,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
@@ -28,8 +28,8 @@ import java.util.List;
  */
 public class CriarReservaController {
 
-    private final ClienteBLL clienteService = new ClienteBLL();
-    private final ReservaBLL reservaService = new ReservaBLL();
+    private final ClienteBLL clienteBLL = new ClienteBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
 
     @FXML
     private TextField nifField;
@@ -70,7 +70,7 @@ public class CriarReservaController {
         cliente = null;
         clienteLabel.setText("");
         try {
-            cliente = clienteService.pesquisarPorNif(nifField.getText());
+            cliente = clienteBLL.pesquisarPorNif(nifField.getText());
             if (cliente == null) {
                 mostrarMensagem("Cliente não encontrado. Registe-o primeiro em Clientes.", "red");
             } else {
@@ -95,12 +95,12 @@ public class CriarReservaController {
             int hospedes = hospedesSpinner.getValue();
             boolean early = earlyCheckBox.isSelected();
             boolean late = lateCheckBox.isSelected();
-            List<Quarto> opcoes = reservaService.opcoesDisponiveis(entrada, saida, hospedes, early, late);
+            List<Quarto> opcoes = reservaBLL.opcoesDisponiveis(entrada, saida, hospedes, early, late);
             String aviso = null;
             if (opcoes.isEmpty() && (early || late)) {
-                List<Quarto> standard = reservaService.opcoesDisponiveis(entrada, saida, hospedes, false, false);
+                List<Quarto> standard = reservaBLL.opcoesDisponiveis(entrada, saida, hospedes, false, false);
                 if (!standard.isEmpty()) {
-                    HorarioReserva horario = reservaService.horario();
+                    HorarioReserva horario = reservaBLL.horario();
                     aviso = "Nenhum quarto permite o early check-in ou o late check-out nestas datas. "
                             + "Pode fazer a reserva nas horas standard (check-in às " + horario.getHoraCheckin()
                             + " e check-out às " + horario.getHoraCheckout() + ").";
@@ -140,8 +140,8 @@ public class CriarReservaController {
             return;
         }
         try {
-            BigDecimal preco = reservaService.calcularPreco(quarto, entradaPesquisada, saidaPesquisada);
-            BigDecimal taxa = reservaService.calcularTaxa(earlyPesquisado, latePesquisado);
+            BigDecimal preco = reservaBLL.calcularPreco(quarto, entradaPesquisada, saidaPesquisada);
+            BigDecimal taxa = reservaBLL.calcularTaxa(earlyPesquisado, latePesquisado);
             quartoEscolhido = quarto;
             precoLabel.setText(quarto.getTipo() + " com vista " + quarto.getVista() + ": " + preco + " € ("
                     + quarto.getValorNoite() + " € por noite) + taxa de horário " + taxa + " € = "
@@ -160,7 +160,7 @@ public class CriarReservaController {
     @FXML
     private void aoConfirmar() {
         try {
-            Reserva reserva = reservaService.criar(cliente, quartoEscolhido.getTipo(), quartoEscolhido.getVista(),
+            Reserva reserva = reservaBLL.criar(cliente, quartoEscolhido.getTipo(), quartoEscolhido.getVista(),
                     entradaPesquisada, saidaPesquisada, hospedesPesquisados, earlyPesquisado, latePesquisado);
             mostrarMensagem("Reserva n.º " + reserva.getId() + " criada para " + cliente.getNome()
                     + ": foi atribuído o quarto " + reserva.getQuartoNumero() + " (" + reserva.getTotal() + " €)",

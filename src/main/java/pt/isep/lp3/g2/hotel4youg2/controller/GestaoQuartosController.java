@@ -4,15 +4,15 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 /**
  * Controlador do ecrã "Gestão de quartos": o gestor vê todos os quartos e desativa ou reativa cada um.
  */
 public class GestaoQuartosController {
-    private final QuartoBLL quartoService = new QuartoBLL();
+    private final QuartoBLL quartoBLL = new QuartoBLL();
 
     @FXML
     private TableView<Quarto> tabela;
@@ -44,9 +44,9 @@ public class GestaoQuartosController {
         try {
             Perfil perfil = Sessao.getUtilizador().getPerfil();
             if (ativar) {
-                quartoService.reativar(perfil, escolhido.getNumero());
+                quartoBLL.reativar(perfil, escolhido.getNumero());
             } else {
-                quartoService.desativar(perfil, escolhido.getNumero());
+                quartoBLL.desativar(perfil, escolhido.getNumero());
             }
             Mensagens.sucesso(mensagemLabel, ativar ? "Quarto reativado." : "Quarto desativado.");
             carregar();
@@ -57,7 +57,7 @@ public class GestaoQuartosController {
 
     private void carregar() {
         try {
-            tabela.getItems().setAll(quartoService.listarTodos(Sessao.getUtilizador().getPerfil()));
+            tabela.getItems().setAll(quartoBLL.listarTodos(Sessao.getUtilizador().getPerfil()));
         } catch (RuntimeException e) {
             tabela.getItems().clear();
             Mensagens.erro(mensagemLabel, "Não foi possível carregar os quartos: " + e.getMessage());

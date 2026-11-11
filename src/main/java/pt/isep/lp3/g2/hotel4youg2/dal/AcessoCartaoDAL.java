@@ -1,7 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IAcessoCartaoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
-import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

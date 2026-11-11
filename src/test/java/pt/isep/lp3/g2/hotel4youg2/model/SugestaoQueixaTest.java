@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
