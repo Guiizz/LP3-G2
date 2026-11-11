@@ -35,14 +35,6 @@ public class SessaoTest {
     }
 
     @Test
-    public void testSemLogin() {
-        System.out.println("getUtilizador (sem login)");
-        boolean expResult = false;
-        boolean result = Sessao.getUtilizador() != null;
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testGetUtilizadorSemLogin() {
         System.out.println("getUtilizador (sem login)");
         Utilizador expResult = null;
@@ -60,15 +52,6 @@ public class SessaoTest {
     }
 
     @Test
-    public void testDepoisDoLogin() {
-        System.out.println("getUtilizador (depois do login)");
-        Sessao.iniciar(gestor);
-        boolean expResult = true;
-        boolean result = Sessao.getUtilizador() != null;
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testTerminar() {
         System.out.println("terminar (esquece o utilizador)");
         Sessao.iniciar(gestor);
@@ -76,7 +59,6 @@ public class SessaoTest {
         Utilizador expResult = null;
         Utilizador result = Sessao.getUtilizador();
         assertEquals(expResult, result);
-        assertEquals(false, Sessao.getUtilizador() != null);
     }
 
     @Test
