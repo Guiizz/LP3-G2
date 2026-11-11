@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class InicialController {
 
-    private final LigacaoBLL ligacaoService = new LigacaoBLL();
+    private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
 
     @FXML
     private BorderPane raiz;
@@ -49,7 +49,7 @@ public class InicialController {
 
     @FXML
     private void aoTestarLigacao() {
-        estadoLabel.setText(ligacaoService.testarLigacao());
+        estadoLabel.setText(ligacaoBLL.testarLigacao());
     }
 
     @FXML

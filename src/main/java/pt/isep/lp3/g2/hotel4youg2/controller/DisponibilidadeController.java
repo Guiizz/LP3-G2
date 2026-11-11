@@ -3,10 +3,10 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
-import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * Controlador do ecrã "Pesquisar disponibilidade": procura quartos livres entre duas datas.
  */
 public class DisponibilidadeController {
-   private final QuartoBLL quartoService = new QuartoBLL();
+   private final QuartoBLL quartoBLL = new QuartoBLL();
 
    @FXML
     private DatePicker entradaPicker;
@@ -47,7 +47,7 @@ public class DisponibilidadeController {
     private void aoPesquisar() {
         quartosTabela.getItems().clear();
         try {
-            List<Quarto> quartos = quartoService.pesquisarDisponiveis(entradaPicker.getValue(), saidaPicker.getValue(), hospedesSpinner.getValue(), tipoCombo.getValue(), vistaCombo.getValue());
+            List<Quarto> quartos = quartoBLL.pesquisarDisponiveis(entradaPicker.getValue(), saidaPicker.getValue(), hospedesSpinner.getValue(), tipoCombo.getValue(), vistaCombo.getValue());
             if (quartos.isEmpty()) {
                 Mensagens.info(mensagemLabel, "Sem disponibilidade para estas datas");
             } else {

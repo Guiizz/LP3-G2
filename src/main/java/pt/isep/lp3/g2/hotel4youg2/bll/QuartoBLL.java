@@ -1,11 +1,11 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.QuartoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
-import pt.isep.lp3.g2.hotel4youg2.model.Vista;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.List;
  * Regras de negócio dos quartos: consultar a lista e pesquisar os que estão disponíveis.
  */
 public class QuartoBLL {
-    private final IQuartoDAL repositorio;
+    private final IQuartoDAL quartoDAL;
 
     /**
      * Cria o serviço ligado à base de dados.
@@ -27,10 +27,10 @@ public class QuartoBLL {
     /**
      * Cria o serviço com outro repositório (usado nos testes).
      *
-     * @param repositorio de onde vêm os quartos
+     * @param quartoDAL de onde vêm os quartos
      */
-    public QuartoBLL(IQuartoDAL repositorio) {
-        this.repositorio = repositorio;
+    public QuartoBLL(IQuartoDAL quartoDAL) {
+        this.quartoDAL = quartoDAL;
     }
 
     /**
@@ -42,7 +42,7 @@ public class QuartoBLL {
      */
     public List<Quarto> listar(TipoQuarto tipo, Integer piso) {
         List<Quarto> resultado = new ArrayList<>();
-        for (Quarto quarto : repositorio.listarComTarifa()) {
+        for (Quarto quarto : quartoDAL.listarComTarifa()) {
             boolean tipoCerto = tipo == null || quarto.getTipo() == tipo;
             boolean pisoCerto = piso == null || quarto.getPiso() == piso;
             if (tipoCerto && pisoCerto) {
@@ -66,7 +66,7 @@ public class QuartoBLL {
     public List<Quarto> pesquisarDisponiveis(LocalDate entrada, LocalDate saida, int hospedes, TipoQuarto tipo, Vista vista) {
         validarPesquisa(entrada, saida, hospedes);
         List<Quarto> resultado = new ArrayList<>();
-        for (Quarto quarto : repositorio.listarDisponiveis(entrada, saida)) {
+        for (Quarto quarto : quartoDAL.listarDisponiveis(entrada, saida)) {
             boolean cabem = quarto.getCapacidade() >= hospedes;
             boolean tipoCerto = tipo == null || quarto.getTipo() == tipo;
             boolean vistaCerta = vista == null || quarto.getVista() == vista;
@@ -86,7 +86,7 @@ public class QuartoBLL {
      */
     public List<Quarto> listarTodos(Perfil perfilAtual) {
         exigirGestor(perfilAtual);
-        return repositorio.listarTodos();
+        return quartoDAL.listarTodos();
     }
 
     /**
@@ -99,11 +99,11 @@ public class QuartoBLL {
      */
     public void desativar(Perfil perfilAtual, int numero) {
         exigirGestor(perfilAtual);
-        if (repositorio.temReservasFuturas(numero)) {
+        if (quartoDAL.temReservasFuturas(numero)) {
             throw new IllegalArgumentException("Não é possível desativar o quarto " + numero +
                     ": tem reservas futuras");
         }
-        if (!repositorio.atualizarAtivo(numero, false)) {
+        if (!quartoDAL.atualizarAtivo(numero, false)) {
             throw new IllegalArgumentException("O quarto " + numero + " não existe");
         }
     }
@@ -118,7 +118,7 @@ public class QuartoBLL {
      */
     public void reativar(Perfil perfilAtual, int numero) {
         exigirGestor(perfilAtual);
-        if (!repositorio.atualizarAtivo(numero, true)) {
+        if (!quartoDAL.atualizarAtivo(numero, true)) {
             throw new IllegalArgumentException("O quarto " + numero + " não existe");
         }
     }

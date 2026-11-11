@@ -11,11 +11,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.SugestaoQueixaBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.time.format.DateTimeFormatter;
@@ -29,7 +29,7 @@ public class SugestoesController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm");
 
-    private final ClienteBLL clienteService = new ClienteBLL();
+    private final ClienteBLL clienteBLL = new ClienteBLL();
     private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
     private Cliente cliente;
 
@@ -75,7 +75,7 @@ public class SugestoesController {
         cliente = null;
         clienteLabel.setText("");
         try {
-            cliente = clienteService.pesquisarPorNif(nifField.getText());
+            cliente = clienteBLL.pesquisarPorNif(nifField.getText());
             if (cliente == null) {
                 mostrarMensagem("Cliente não encontrado. Registe-o primeiro em Registar cliente.", "red");
             } else {

@@ -8,8 +8,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class PesquisarClienteController {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    private final ClienteBLL clienteService = new ClienteBLL();
+    private final ClienteBLL clienteBLL = new ClienteBLL();
 
     @FXML
     private TextField nifField;
@@ -54,7 +54,7 @@ public class PesquisarClienteController {
     private void aoPesquisar() {
         esconderResultado();
         try {
-            Cliente cliente = clienteService.pesquisarPorNif(nifField.getText());
+            Cliente cliente = clienteBLL.pesquisarPorNif(nifField.getText());
             if (cliente == null) {
                 mostrarMensagem("Cliente não encontrado", "black");
                 nifNaoEncontrado = nifField.getText().trim();

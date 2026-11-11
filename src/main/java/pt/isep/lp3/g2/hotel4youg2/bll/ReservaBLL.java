@@ -1,19 +1,20 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.HorarioReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IHorarioReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.QuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IHorarioReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
-import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,9 +29,9 @@ import java.util.List;
  */
 public class ReservaBLL {
 
-    private final IReservaDAL repositorio;
-    private final IQuartoDAL quartos;
-    private final IHorarioReservaDAL horarios;
+    private final IReservaDAL reservaDAL;
+    private final IQuartoDAL quartoDAL;
+    private final IHorarioReservaDAL horarioReservaDAL;
 
     /**
      * Cria o BLL ligado à base de dados.
@@ -42,14 +43,14 @@ public class ReservaBLL {
     /**
      * Cria o BLL com outros DAL (usado nos testes).
      *
-     * @param repositorio onde ficam as reservas
-     * @param quartos     onde procurar os quartos disponíveis
-     * @param horarios    onde estão as horas e as taxas das reservas
+     * @param reservaDAL onde ficam as reservas
+     * @param quartoDAL   onde procurar os quartos disponíveis
+     * @param horarioReservaDAL onde estão as horas e as taxas das reservas
      */
-    public ReservaBLL(IReservaDAL repositorio, IQuartoDAL quartos, IHorarioReservaDAL horarios) {
-        this.repositorio = repositorio;
-        this.quartos = quartos;
-        this.horarios = horarios;
+    public ReservaBLL(IReservaDAL reservaDAL, IQuartoDAL quartoDAL, IHorarioReservaDAL horarioReservaDAL) {
+        this.reservaDAL = reservaDAL;
+        this.quartoDAL = quartoDAL;
+        this.horarioReservaDAL = horarioReservaDAL;
     }
 
     /**
@@ -58,7 +59,7 @@ public class ReservaBLL {
      * @return as horas e as taxas das reservas
      */
     public HorarioReserva horario() {
-        return horarios.obter();
+        return horarioReservaDAL.obter();
     }
 
     /**
@@ -69,7 +70,7 @@ public class ReservaBLL {
      * @return a soma das taxas pedidas; zero se não pedir nenhum
      */
     public BigDecimal calcularTaxa(boolean earlyCheckin, boolean lateCheckout) {
-        return horarios.obter().calcularTaxa(earlyCheckin, lateCheckout);
+        return horarioReservaDAL.obter().calcularTaxa(earlyCheckin, lateCheckout);
     }
 
     /**
@@ -91,7 +92,7 @@ public class ReservaBLL {
         validarHospedes(hospedes);
         List<Quarto> opcoes = new ArrayList<>();
         List<String> tiposJaVistos = new ArrayList<>();
-        for (Quarto quarto : quartos.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
+        for (Quarto quarto : quartoDAL.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
             String tipoEVista = quarto.getTipo() + "/" + quarto.getVista();
             if (quarto.getCapacidade() >= hospedes && !tiposJaVistos.contains(tipoEVista)) {
                 tiposJaVistos.add(tipoEVista);
@@ -129,14 +130,14 @@ public class ReservaBLL {
         validarDatas(entrada, saida);
         validarHospedes(hospedes);
         BigDecimal taxa = calcularTaxa(earlyCheckin, lateCheckout);
-        for (Quarto quarto : quartos.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
+        for (Quarto quarto : quartoDAL.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
             if (quarto.getTipo() == tipo && quarto.getVista() == vista && quarto.getCapacidade() >= hospedes) {
                 Reserva reserva = new Reserva(0, cliente.getId(), quarto.getNumero(), entrada, saida, hospedes,
                         EstadoReserva.CONFIRMADA, calcularPreco(quarto, entrada, saida), null, null);
                 reserva.setEarlyCheckin(earlyCheckin);
                 reserva.setLateCheckout(lateCheckout);
                 reserva.setTaxaHorario(taxa);
-                if (repositorio.inserirSeLivre(reserva)) {
+                if (reservaDAL.inserirSeLivre(reserva)) {
                     return reserva;
                 }
             }
@@ -205,7 +206,7 @@ public class ReservaBLL {
         BigDecimal preco = calcularPreco(quarto, entrada, saida);
         Reserva reserva = new Reserva(0, cliente.getId(), quarto.getNumero(), entrada, saida, hospedes,
                 EstadoReserva.CONFIRMADA, preco, null, null);
-        if (!repositorio.inserirSeLivre(reserva)) {
+        if (!reservaDAL.inserirSeLivre(reserva)) {
             throw new ValidacaoException("O quarto " + quarto.getNumero()
                     + " já está reservado nessas datas. Pesquise outra vez os quartos disponíveis.");
         }
@@ -218,7 +219,7 @@ public class ReservaBLL {
      * @return todas as reservas, da entrada mais recente para a mais antiga
      */
     public List<Reserva> listar() {
-        return repositorio.listar();
+        return reservaDAL.listar();
     }
 
     /**
@@ -232,7 +233,7 @@ public class ReservaBLL {
         if (cliente == null) {
             throw new ValidacaoException("Escolha o cliente pelo NIF");
         }
-        List<Reserva> reservas = repositorio.listarPorCliente(cliente.getId());
+        List<Reserva> reservas = reservaDAL.listarPorCliente(cliente.getId());
         reservas.sort(new MaisRecentePrimeiro());
         return reservas;
     }
@@ -266,7 +267,7 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         reserva.cancelar();
-        if (!repositorio.cancelar(reserva.getId())) {
+        if (!reservaDAL.cancelar(reserva.getId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode ser cancelada: não existe ou já teve check-in");
         }
@@ -293,7 +294,7 @@ public class ReservaBLL {
         }
         validarDatas(novaEntrada, novaSaida);
         reserva.alterarDatas(novaEntrada, novaSaida);
-        if (!repositorio.alterarDatasSeLivre(reserva)) {
+        if (!reservaDAL.alterarDatasSeLivre(reserva)) {
             throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
                     + " não está livre nessas datas, ou a reserva já não pode ser alterada");
         }
@@ -331,8 +332,8 @@ public class ReservaBLL {
         if (reserva == null) {
             throw new ValidacaoException("Escolha uma reserva");
         }
-        reserva.fazerCheckin(agora, horarios.obter().horaMinimaCheckin(reserva.isEarlyCheckin()));
-        if (!repositorio.registarCheckin(reserva)) {
+        reserva.fazerCheckin(agora, horarioReservaDAL.obter().horaMinimaCheckin(reserva.isEarlyCheckin()));
+        if (!reservaDAL.registarCheckin(reserva)) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-in: foi cancelada ou já tem o check-in feito");
         }
@@ -387,7 +388,7 @@ public class ReservaBLL {
     public BigDecimal fazerCheckout(Utilizador quemAge, Reserva reserva, LocalDateTime agora) {
         BigDecimal total = totalAPagar(quemAge, reserva);
         reserva.fazerCheckout(agora);
-        if (!repositorio.registarCheckout(reserva)) {
+        if (!reservaDAL.registarCheckout(reserva)) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-out: já não está em curso");
         }

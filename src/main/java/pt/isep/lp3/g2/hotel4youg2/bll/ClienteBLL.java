@@ -1,7 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ClienteDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ import java.util.List;
  * e registar como cliente um funcionário do hotel (US43).
  */
 public class ClienteBLL {
-    private final IClienteDAL repositorio;
+    private final IClienteDAL clienteDAL;
 
     /**
      * Cria o serviço ligado à base de dados.
@@ -25,10 +26,10 @@ public class ClienteBLL {
     /**
      * Cria o serviço com outro repositório (usado nos testes).
      *
-     * @param repositorio de onde vêm e para onde vão os clientes
+     * @param clienteDAL de onde vêm e para onde vão os clientes
      */
-    public ClienteBLL(IClienteDAL repositorio) {
-        this.repositorio = repositorio;
+    public ClienteBLL(IClienteDAL clienteDAL) {
+        this.clienteDAL = clienteDAL;
     }
 
     /**
@@ -58,23 +59,23 @@ public class ClienteBLL {
         validarNif(nif);
         validarDados(nome, dataNascimento, telemovel, email, cc, morada);
 
-        Cliente funcionario = repositorio.procurarFuncionarioNaoCliente(nif);
+        Cliente funcionario = clienteDAL.procurarFuncionarioNaoCliente(nif);
         if (funcionario != null) {
             Cliente cliente = new Cliente(funcionario.getId(), funcionario.getNome(), primeiroPreenchido(cc, funcionario.getCc()),
                     nif, primeiroPreenchido(morada, funcionario.getMorada()),
                     primeiroPreenchido(telemovel, funcionario.getTelemovel()), dataNascimento,
                     primeiroPreenchido(email, funcionario.getEmail()));
-            if (!repositorio.tornarCliente(cliente)) {
+            if (!clienteDAL.tornarCliente(cliente)) {
                 throw new ValidacaoException("Este funcionário já foi registado como cliente");
             }
             return cliente;
         }
-        if (repositorio.existeNif(nif)) {
+        if (clienteDAL.existeNif(nif)) {
             throw new ValidacaoException("Já existe uma pessoa registada com o NIF " + nif);
         }
 
         Cliente cliente = new Cliente(0, nome, cc, nif, morada, telemovel, dataNascimento, email);
-        repositorio.inserirCliente(cliente);
+        clienteDAL.inserirCliente(cliente);
         return cliente;
     }
 
@@ -91,7 +92,7 @@ public class ClienteBLL {
         if (nif == null || !nif.matches("\\d{9}")) {
             return null;
         }
-        return repositorio.procurarFuncionarioNaoCliente(nif);
+        return clienteDAL.procurarFuncionarioNaoCliente(nif);
     }
 
     private static String primeiroPreenchido(String doFormulario, String jaGuardado) {
@@ -128,7 +129,7 @@ public class ClienteBLL {
 
         Cliente alterado = new Cliente(cliente.getId(), nome, cc, cliente.getNif(), morada, telemovel,
                 dataNascimento, email);
-        if (!repositorio.atualizarCliente(alterado)) {
+        if (!clienteDAL.atualizarCliente(alterado)) {
             throw new ValidacaoException("O cliente já não existe");
         }
 
@@ -184,7 +185,7 @@ public class ClienteBLL {
         if (termo == null) {
             termo = "";
         }
-        return repositorio.pesquisarClientes(termo);
+        return clienteDAL.pesquisarClientes(termo);
     }
 
     /**
@@ -198,7 +199,7 @@ public class ClienteBLL {
     public Cliente pesquisarPorNif(String nif) {
         nif = limpar(nif);
         validarNif(nif);
-        return repositorio.procurarPorNif(nif);
+        return clienteDAL.procurarPorNif(nif);
     }
 
     private void validarNif(String nif) {

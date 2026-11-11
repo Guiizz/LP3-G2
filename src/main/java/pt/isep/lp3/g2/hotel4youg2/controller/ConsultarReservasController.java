@@ -6,8 +6,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 
@@ -19,8 +19,8 @@ import java.util.List;
  */
 public class ConsultarReservasController {
 
-    private final ClienteBLL clienteService = new ClienteBLL();
-    private final ReservaBLL reservaService = new ReservaBLL();
+    private final ClienteBLL clienteBLL = new ClienteBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
 
     @FXML
     private TextField nifField;
@@ -36,14 +36,14 @@ public class ConsultarReservasController {
         clienteLabel.setText("");
         reservasTabela.getItems().clear();
         try {
-            Cliente cliente = clienteService.pesquisarPorNif(nifField.getText());
+            Cliente cliente = clienteBLL.pesquisarPorNif(nifField.getText());
             if (cliente == null) {
                 mostrarMensagem("Não existe nenhum cliente com o NIF " + nifField.getText().trim(), "red");
                 return;
             }
             clienteLabel.setText(cliente.getNome());
 
-            List<Reserva> reservas = reservaService.consultarDoCliente(cliente);
+            List<Reserva> reservas = reservaBLL.consultarDoCliente(cliente);
             if (reservas.isEmpty()) {
                 mostrarMensagem(cliente.getNome() + " ainda não tem reservas", "black");
             } else {
