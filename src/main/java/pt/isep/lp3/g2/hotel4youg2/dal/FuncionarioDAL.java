@@ -25,12 +25,12 @@ public class FuncionarioDAL implements IFuncionarioDAL {
 
     @Override
     public boolean existeNif(String nif) {
-        return !ConexaoBD.select(EXISTE_NIF, rs -> rs.getInt(1), nif).isEmpty();
+        return !ConexaoBD.select(EXISTE_NIF, new InteiroMapper(), nif).isEmpty();
     }
 
     @Override
     public boolean existeNomeUtilizador(String nomeUtilizador) {
-        return !ConexaoBD.select(EXISTE_NOME_UTILIZADOR, rs -> rs.getInt(1), nomeUtilizador).isEmpty();
+        return !ConexaoBD.select(EXISTE_NOME_UTILIZADOR, new InteiroMapper(), nomeUtilizador).isEmpty();
     }
 
     @Override
