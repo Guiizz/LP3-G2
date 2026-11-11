@@ -15,7 +15,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
  */
 public class SugestaoCartaoController {
 
-    private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
+    private final SugestaoQueixaBLL sugestaoQueixaBLL = new SugestaoQueixaBLL();
 
     @FXML
     private TextField cartaoField;
@@ -34,7 +34,7 @@ public class SugestaoCartaoController {
     @FXML
     private void aoEnviar() {
         try {
-            SugestaoQueixa registada = sugestaoBLL.registarPeloCartao(cartaoField.getText(), tipoCombo.getValue(),
+            SugestaoQueixa registada = sugestaoQueixaBLL.registarPeloCartao(cartaoField.getText(), tipoCombo.getValue(),
                     descricaoArea.getText());
             Mensagens.sucesso(mensagemLabel, "Obrigado! A sua " + (registada.getTipo() == TipoSugestao.QUEIXA ? "queixa" : "sugestão")
                     + " foi enviada ao gestor.");

@@ -21,7 +21,7 @@ public class SugestaoQueixaBLL {
     /** O maior número de caracteres da descrição, igual ao da coluna na base de dados. */
     public static final int MAXIMO_DESCRICAO = 1000;
 
-    private final ISugestaoQueixaDAL sugestaoDAL;
+    private final ISugestaoQueixaDAL sugestaoQueixaDAL;
     private final IReservaDAL reservaDAL;
 
     /**
@@ -34,20 +34,20 @@ public class SugestaoQueixaBLL {
     /**
      * Cria o BLL com outro DAL das sugestões (usado nos testes); as reservas vêm da base de dados.
      *
-     * @param sugestaoDAL onde ficam as sugestões e queixas
+     * @param sugestaoQueixaDAL onde ficam as sugestões e queixas
      */
-    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoDAL) {
-        this(sugestaoDAL, new ReservaDAL());
+    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoQueixaDAL) {
+        this(sugestaoQueixaDAL, new ReservaDAL());
     }
 
     /**
      * Cria o BLL com outros DAL (usado nos testes).
      *
-     * @param sugestaoDAL onde ficam as sugestões e queixas
+     * @param sugestaoQueixaDAL onde ficam as sugestões e queixas
      * @param reservaDAL  onde procurar a reserva em curso de um cartão
      */
-    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoDAL, IReservaDAL reservaDAL) {
-        this.sugestaoDAL = sugestaoDAL;
+    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoQueixaDAL, IReservaDAL reservaDAL) {
+        this.sugestaoQueixaDAL = sugestaoQueixaDAL;
         this.reservaDAL = reservaDAL;
     }
 
@@ -73,7 +73,7 @@ public class SugestaoQueixaBLL {
         String texto = textoValidado(tipo, descricao);
         // a data fica a null: é a BD que a regista no momento em que grava
         SugestaoQueixa sugestao = new SugestaoQueixa(0, cliente.getId(), tipo, texto, quemAge.getFuncionarioId(), null);
-        sugestaoDAL.inserir(sugestao);
+        sugestaoQueixaDAL.inserir(sugestao);
         return sugestao;
     }
 
@@ -100,7 +100,7 @@ public class SugestaoQueixaBLL {
         }
         String texto = textoValidado(tipo, descricao);
         SugestaoQueixa sugestao = new SugestaoQueixa(0, reserva.getClienteId(), tipo, texto, 0, null);
-        sugestaoDAL.inserir(sugestao);
+        sugestaoQueixaDAL.inserir(sugestao);
         return sugestao;
     }
 
@@ -130,6 +130,6 @@ public class SugestaoQueixaBLL {
         if (!Permissoes.eGestor(quemAge)) {
             throw new IllegalStateException("Só o gestor pode consultar as sugestões e queixas.");
         }
-        return sugestaoDAL.listar(tipo);
+        return sugestaoQueixaDAL.listar(tipo);
     }
 }

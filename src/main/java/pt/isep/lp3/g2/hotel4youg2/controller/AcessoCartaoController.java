@@ -17,7 +17,7 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
  */
 public class AcessoCartaoController {
 
-    private final AcessoCartaoBLL acessoBLL = new AcessoCartaoBLL();
+    private final AcessoCartaoBLL acessoCartaoBLL = new AcessoCartaoBLL();
 
     @FXML
     private TextField cartaoField;
@@ -47,7 +47,7 @@ public class AcessoCartaoController {
     private void aoRegistarPassagem() {
         try {
             int quarto = lerQuarto();
-            AcessoCartao acesso = acessoBLL.registarPassagem(Sessao.getUtilizador(), cartaoField.getText(),
+            AcessoCartao acesso = acessoCartaoBLL.registarPassagem(Sessao.getUtilizador(), cartaoField.getText(),
                     localCombo.getValue(), quarto);
             Mensagens.sucesso(mensagemLabel, "Acesso permitido: cartão " + acesso.getCartao() + " em "
                     + acesso.getLocalTexto() + " às " + acesso.getRegistadoEmTexto() + ".");
@@ -79,7 +79,7 @@ public class AcessoCartaoController {
 
     private void atualizarTabela() {
         try {
-            tabela.getItems().setAll(acessoBLL.listarPorCartao(cartaoField.getText()));
+            tabela.getItems().setAll(acessoCartaoBLL.listarPorCartao(cartaoField.getText()));
         } catch (DataAccessException e) {
             tabela.getItems().clear();
         }

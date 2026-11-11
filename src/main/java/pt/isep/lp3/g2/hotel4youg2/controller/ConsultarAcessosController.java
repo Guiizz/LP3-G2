@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class ConsultarAcessosController {
 
-    private final AcessoCartaoBLL acessoBLL = new AcessoCartaoBLL();
+    private final AcessoCartaoBLL acessoCartaoBLL = new AcessoCartaoBLL();
 
     @FXML
     private TextField cartaoField;
@@ -31,7 +31,7 @@ public class ConsultarAcessosController {
     private void aoProcurarCartao() {
         tabela.getItems().clear();
         try {
-            mostrar(acessoBLL.consultarPorCartao(Sessao.getUtilizador(), cartaoField.getText()));
+            mostrar(acessoCartaoBLL.consultarPorCartao(Sessao.getUtilizador(), cartaoField.getText()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
@@ -43,7 +43,7 @@ public class ConsultarAcessosController {
     private void aoProcurarQuarto() {
         tabela.getItems().clear();
         try {
-            mostrar(acessoBLL.consultarPorQuarto(Sessao.getUtilizador(), quartoField.getText()));
+            mostrar(acessoCartaoBLL.consultarPorQuarto(Sessao.getUtilizador(), quartoField.getText()));
         } catch (IllegalArgumentException | IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {

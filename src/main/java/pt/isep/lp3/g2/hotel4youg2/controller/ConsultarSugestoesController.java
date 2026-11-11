@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class ConsultarSugestoesController {
 
-    private final SugestaoQueixaBLL sugestaoBLL = new SugestaoQueixaBLL();
+    private final SugestaoQueixaBLL sugestaoQueixaBLL = new SugestaoQueixaBLL();
 
     @FXML
     private ComboBox<TipoSugestao> tipoCombo;
@@ -46,7 +46,7 @@ public class ConsultarSugestoesController {
 
     private void carregar() {
         try {
-            List<SugestaoQueixa> lista = sugestaoBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
+            List<SugestaoQueixa> lista = sugestaoQueixaBLL.listar(Sessao.getUtilizador(), tipoCombo.getValue());
             tabela.getItems().setAll(lista);
             Mensagens.info(mensagemLabel, lista.size() + " registo(s)");
         } catch (DataAccessException e) {

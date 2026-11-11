@@ -33,7 +33,7 @@ public class AcessoCartaoBLL {
     /** Início da designação do serviço extra que dá acesso à piscina. */
     public static final String SERVICO_PISCINA = "Piscina";
 
-    private final IAcessoCartaoDAL acessoDAL;
+    private final IAcessoCartaoDAL acessoCartaoDAL;
     private final IReservaDAL reservaDAL;
     private final IServicoReservaDAL servicoReservaDAL;
     private final IQuartoDAL quartoDAL;
@@ -48,14 +48,14 @@ public class AcessoCartaoBLL {
     /**
      * Cria o BLL com outros DAL (usado nos testes).
      *
-     * @param acessoDAL         onde ficam as passagens dos cartões
+     * @param acessoCartaoDAL         onde ficam as passagens dos cartões
      * @param reservaDAL        onde procurar a reserva em curso de cada cartão
      * @param servicoReservaDAL onde estão os serviços extra de cada reserva
      * @param quartoDAL         onde confirmar que o quarto existe
      */
-    public AcessoCartaoBLL(IAcessoCartaoDAL acessoDAL, IReservaDAL reservaDAL, IServicoReservaDAL servicoReservaDAL,
+    public AcessoCartaoBLL(IAcessoCartaoDAL acessoCartaoDAL, IReservaDAL reservaDAL, IServicoReservaDAL servicoReservaDAL,
                            IQuartoDAL quartoDAL) {
-        this.acessoDAL = acessoDAL;
+        this.acessoCartaoDAL = acessoCartaoDAL;
         this.reservaDAL = reservaDAL;
         this.servicoReservaDAL = servicoReservaDAL;
         this.quartoDAL = quartoDAL;
@@ -105,7 +105,7 @@ public class AcessoCartaoBLL {
             reservaId = reserva.getId();
         }
         AcessoCartao acesso = new AcessoCartao(0, numero, local, quarto, reservaId, null);
-        acessoDAL.registar(acesso);
+        acessoCartaoDAL.registar(acesso);
         return acesso;
     }
 
@@ -116,7 +116,7 @@ public class AcessoCartaoBLL {
      * @return as passagens do cartão, da mais recente para a mais antiga
      */
     public List<AcessoCartao> listarPorCartao(String cartao) {
-        return acessoDAL.listarPorCartao(normalizar(cartao));
+        return acessoCartaoDAL.listarPorCartao(normalizar(cartao));
     }
 
     /**
@@ -134,7 +134,7 @@ public class AcessoCartaoBLL {
         if (numero.isEmpty()) {
             throw new IllegalArgumentException("Escreva o número do cartão.");
         }
-        return acessoDAL.listarPorCartao(numero);
+        return acessoCartaoDAL.listarPorCartao(numero);
     }
 
     /**
@@ -155,7 +155,7 @@ public class AcessoCartaoBLL {
         if (!numero.matches("\\d{1,9}")) {
             throw new IllegalArgumentException("O número do quarto tem de ser um número inteiro.");
         }
-        return acessoDAL.listarPorQuarto(Integer.parseInt(numero));
+        return acessoCartaoDAL.listarPorQuarto(Integer.parseInt(numero));
     }
 
     private void exigirAcesso(String cartao, Reserva reserva, LocalHotel local, int quarto) {
