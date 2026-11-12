@@ -15,6 +15,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -220,6 +221,48 @@ public class ReservaBLL {
      */
     public List<Reserva> listar() {
         return reservaDAL.listar();
+    }
+
+    public List<Reserva> listar(SeparadorReserva separador, String pesquisa) {
+        return filtrar(reservaDAL.listar(), separador, pesquisa);
+    }
+
+    public static List<Reserva> filtrar(List<Reserva> reservas, SeparadorReserva separador, String pesquisa) {
+        if (separador == null) {
+            throw new ValidacaoException("Escolha o separador das reservas");
+        }
+        String termo = pesquisa == null ? "" : pesquisa.trim().toLowerCase();
+        List<Reserva> resultado = new ArrayList<>();
+        for (Reserva reserva : reservas) {
+            if (separador.inclui(reserva.getEstado()) && corresponde(reserva, termo)) {
+                resultado.add(reserva);
+            }
+        }
+        if (separador == SeparadorReserva.POR_FAZER) {
+            resultado.sort(new EntradaMaisProximaPrimeiro());
+        }
+        return resultado;
+    }
+
+    private static boolean corresponde(Reserva reserva, String termo) {
+        if (termo.isEmpty()) {
+            return true;
+        }
+        String nome = reserva.getNomeCliente() == null ? "" : reserva.getNomeCliente().toLowerCase();
+        String nif = reserva.getNifCliente() == null ? "" : reserva.getNifCliente();
+        String quarto = String.valueOf(reserva.getQuartoNumero());
+        return nome.contains(termo) || nif.startsWith(termo) || quarto.equals(termo);
+    }
+
+    private static class EntradaMaisProximaPrimeiro implements Comparator<Reserva> {
+        @Override
+        public int compare(Reserva a, Reserva b) {
+            int porData = a.getDataEntrada().compareTo(b.getDataEntrada());
+            if (porData != 0) {
+                return porData;
+            }
+            return Integer.compare(a.getId(), b.getId());
+        }
     }
 
     /**
