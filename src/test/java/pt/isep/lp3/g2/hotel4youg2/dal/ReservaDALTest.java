@@ -74,6 +74,15 @@ public class ReservaDALTest {
     }
 
     @Test
+    public void testProcurarPorIdComNomeENifDoCliente() {
+        System.out.println("procurarPorId (com o nome e o NIF do cliente)");
+        String expResult = cliente.getNome() + " / " + cliente.getNif();
+        Reserva lida = instance.procurarPorId(reserva.getId());
+        String result = lida.getNomeCliente() + " / " + lida.getNifCliente();
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testListar() {
         System.out.println("listar");
         boolean expResult = true;

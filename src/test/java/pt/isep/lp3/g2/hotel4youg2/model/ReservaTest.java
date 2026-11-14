@@ -258,4 +258,30 @@ class ReservaTest {
         BigDecimal result = instance.getTotal();
         assertEquals(expResult, result);
     }
+
+    @Test
+    void getCheckinEmTexto() {
+        System.out.println("getCheckinEmTexto");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 13), 2,
+                EstadoReserva.EM_CURSO, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 10, 15, 20), null);
+        String expResult = "10/11 15:20";
+        String result = reserva.getCheckinEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getCheckinEmTextoSemCheckin() {
+        System.out.println("getCheckinEmTexto (sem check-in)");
+        String expResult = "";
+        String result = novaReserva().getCheckinEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getEstadoTexto() {
+        System.out.println("getEstadoTexto");
+        String expResult = "Confirmada";
+        String result = novaReserva().getEstadoTexto();
+        assertEquals(expResult, result);
+    }
 }

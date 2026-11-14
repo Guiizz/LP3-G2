@@ -2,13 +2,16 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.DatePicker?>
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.GerirReservasController">
@@ -18,48 +21,112 @@
 
     <Label text="Reservas" styleClass="titulo"/>
 
-    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn text="Nº" prefWidth="50.0">
-                <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Cliente" prefWidth="70.0">
-                <cellValueFactory><PropertyValueFactory property="clienteId"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Quarto" prefWidth="70.0">
-                <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Entrada" prefWidth="100.0">
-                <cellValueFactory><PropertyValueFactory property="dataEntrada"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Saída" prefWidth="100.0">
-                <cellValueFactory><PropertyValueFactory property="dataSaida"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Quarto (€)" prefWidth="80.0">
-                <cellValueFactory><PropertyValueFactory property="precoTotal"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Serviços (€)" prefWidth="80.0">
-                <cellValueFactory><PropertyValueFactory property="totalServicos"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Total (€)" prefWidth="80.0">
-                <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
-            </TableColumn>
-            <TableColumn text="Estado" prefWidth="100.0">
-                <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
-            </TableColumn>
-        </columns>
-    </TableView>
+    <HBox spacing="8.0" alignment="CENTER_LEFT">
+        <Label text="Pesquisar:"/>
+        <TextField fx:id="pesquisaField" promptText="Nome ou NIF do cliente, ou número do quarto" HBox.hgrow="ALWAYS"/>
+    </HBox>
 
-    <HBox spacing="10.0" alignment="CENTER_LEFT">
+    <TabPane fx:id="separadores" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <Tab text="Por fazer">
+            <TableView fx:id="tabelaPorFazer">
+                <columns>
+                    <TableColumn text="Nº" prefWidth="50.0">
+                        <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Cliente" prefWidth="170.0">
+                        <cellValueFactory><PropertyValueFactory property="nomeCliente"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="NIF" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="nifCliente"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Quarto" prefWidth="70.0">
+                        <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Entrada" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="dataEntrada"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Saída" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="dataSaida"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Total (€)" prefWidth="90.0">
+                        <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
+                    </TableColumn>
+                </columns>
+                <placeholder><Label text="Não há reservas por fazer."/></placeholder>
+            </TableView>
+        </Tab>
+        <Tab text="Em curso">
+            <TableView fx:id="tabelaEmCurso">
+                <columns>
+                    <TableColumn text="Nº" prefWidth="50.0">
+                        <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Cliente" prefWidth="170.0">
+                        <cellValueFactory><PropertyValueFactory property="nomeCliente"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Quarto" prefWidth="70.0">
+                        <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Cartão" prefWidth="80.0">
+                        <cellValueFactory><PropertyValueFactory property="cartao"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Check-in" prefWidth="110.0">
+                        <cellValueFactory><PropertyValueFactory property="checkinEmTexto"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Saída" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="dataSaida"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Total (€)" prefWidth="90.0">
+                        <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
+                    </TableColumn>
+                </columns>
+                <placeholder><Label text="Não há reservas em curso."/></placeholder>
+            </TableView>
+        </Tab>
+        <Tab text="Histórico">
+            <TableView fx:id="tabelaHistorico">
+                <columns>
+                    <TableColumn text="Nº" prefWidth="50.0">
+                        <cellValueFactory><PropertyValueFactory property="id"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Cliente" prefWidth="170.0">
+                        <cellValueFactory><PropertyValueFactory property="nomeCliente"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Quarto" prefWidth="70.0">
+                        <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Entrada" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="dataEntrada"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Saída" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="dataSaida"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Estado" prefWidth="100.0">
+                        <cellValueFactory><PropertyValueFactory property="estadoTexto"/></cellValueFactory>
+                    </TableColumn>
+                    <TableColumn text="Total (€)" prefWidth="90.0">
+                        <cellValueFactory><PropertyValueFactory property="total"/></cellValueFactory>
+                    </TableColumn>
+                </columns>
+                <placeholder><Label text="Ainda não há reservas no histórico."/></placeholder>
+            </TableView>
+        </Tab>
+    </TabPane>
+
+    <HBox fx:id="datasBox" spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Nova entrada:"/>
         <DatePicker fx:id="novaEntradaPicker" prefWidth="130.0"/>
         <Label text="Nova saída:"/>
         <DatePicker fx:id="novaSaidaPicker" prefWidth="130.0"/>
         <Button text="Alterar datas" onAction="#aoAlterarDatas"/>
-        <Button text="Serviços…" onAction="#aoServicos"/>
+    </HBox>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button fx:id="servicosButton" text="Serviços…" onAction="#aoServicos"/>
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
-        <Button text="Fazer check-in" onAction="#aoFazerCheckin"/>
-        <Button text="Fazer check-out" onAction="#aoFazerCheckout"/>
+        <Button fx:id="checkinButton" text="Fazer check-in" onAction="#aoFazerCheckin"/>
+        <Button fx:id="checkoutButton" text="Fazer check-out" onAction="#aoFazerCheckout"/>
+        <Label fx:id="historicoLabel" text="Só consulta: as reservas do histórico já não mudam."/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>
