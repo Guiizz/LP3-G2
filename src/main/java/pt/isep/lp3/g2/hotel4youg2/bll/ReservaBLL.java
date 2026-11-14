@@ -336,8 +336,14 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         validarDatas(novaEntrada, novaSaida);
+        LocalDate entradaAntes = reserva.getDataEntrada();
+        LocalDate saidaAntes = reserva.getDataSaida();
+        BigDecimal precoAntes = reserva.getPrecoTotal();
         reserva.alterarDatas(novaEntrada, novaSaida);
         if (!reservaDAL.alterarDatasSeLivre(reserva)) {
+            reserva.setDataEntrada(entradaAntes);
+            reserva.setDataSaida(saidaAntes);
+            reserva.setPrecoTotal(precoAntes);
             throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
                     + " não está livre nessas datas, ou a reserva já não pode ser alterada");
         }

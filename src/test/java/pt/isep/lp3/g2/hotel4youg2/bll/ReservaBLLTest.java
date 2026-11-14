@@ -505,6 +505,21 @@ public class ReservaBLLTest {
         }
     }
 
+    @Test
+    public void testAlterarDatasQuartoOcupadoFicaComoEstava() {
+        System.out.println("alterarDatas (quarto ocupado, a reserva fica com as datas e o preço de antes)");
+        repositorio.quartoLivreNasNovasDatas = false;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter recusado o quarto ocupado");
+        } catch (ValidacaoException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
+        }
+    }
+
     private Reserva reservaDaAna(int id, LocalDate entradaReserva, EstadoReserva estado) {
         return new Reserva(id, 7, 201, entradaReserva, entradaReserva.plusDays(2), 1,
                 estado, new BigDecimal("200.00"), null, null);
