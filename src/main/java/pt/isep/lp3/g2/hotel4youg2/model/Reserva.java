@@ -30,6 +30,8 @@ public class Reserva {
     private boolean earlyCheckin;
     private boolean lateCheckout;
     private BigDecimal taxaHorario = BigDecimal.ZERO;
+    private String nomeCliente;
+    private String nifCliente;
 
     public int getId() {
         return id;
@@ -110,6 +112,8 @@ public class Reserva {
     public void setCheckoutEm(LocalDateTime checkoutEm) {
         this.checkoutEm = checkoutEm;
     }
+
+
 
     /**
      * Cria uma reserva.
@@ -214,6 +218,30 @@ public class Reserva {
 
     public String getCartao() {
         return cartao;
+    }
+
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
+    }
+
+    public String getNifCliente() {
+        return nifCliente;
+    }
+
+    public void setNifCliente(String nifCliente) {
+        this.nifCliente = nifCliente;
+    }
+
+    public String getCheckinEmTexto() {
+        return checkinEm == null ? "" : checkinEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+    }
+
+    public String getEstadoTexto() {
+        return estado == null ? "" : estado.getDescricao();
     }
 
     public void setCartao(String cartao) {

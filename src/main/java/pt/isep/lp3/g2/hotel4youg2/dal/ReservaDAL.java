@@ -39,7 +39,9 @@ public class ReservaDAL implements IReservaDAL {
             "SELECT id, clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, "
             + "precoTotal, checkinEm, checkoutEm, cartao, earlyCheckin, lateCheckout, taxaHorario, "
             + "(SELECT COALESCE(SUM(rs.quantidade * rs.precoUnitario), 0) FROM ReservaServico rs "
-            + "WHERE rs.reservaId = Reserva.id) AS totalServicos FROM Reserva ";
+            + "WHERE rs.reservaId = Reserva.id) AS totalServicos, "
+            + "(SELECT p.nome FROM Pessoa p WHERE p.id = Reserva.clienteId) AS nomeCliente, "
+            + "(SELECT p.nif FROM Pessoa p WHERE p.id = Reserva.clienteId) AS nifCliente FROM Reserva ";
 
     private static final String PROCURAR_POR_ID = SELECT_RESERVA + "WHERE id = ?";
 
@@ -155,6 +157,8 @@ public class ReservaDAL implements IReservaDAL {
             reserva.setEarlyCheckin(rs.getBoolean("earlyCheckin"));
             reserva.setLateCheckout(rs.getBoolean("lateCheckout"));
             reserva.setTaxaHorario(rs.getBigDecimal("taxaHorario"));
+            reserva.setNomeCliente(rs.getString("nomeCliente"));
+            reserva.setNifCliente(rs.getString("nifCliente"));
             return reserva;
         }
     }

@@ -78,3 +78,28 @@
 .mensagem-aviso {
     -fx-text-fill: #B9770E;
 }
+
+.tab-pane .tab-header-background {
+    -fx-background-color: transparent;
+}
+.tab-pane .tab {
+    -fx-background-color: white;
+    -fx-background-radius: 6 6 0 0;
+    -fx-padding: 4 14;
+    -fx-cursor: hand;
+}
+.tab-pane .tab .tab-label {
+    -fx-text-fill: #1B3461;
+}
+.tab-pane .tab:selected {
+    -fx-background-color: #1B3461;
+    -fx-border-color: transparent transparent #C9A24A transparent;
+    -fx-border-width: 0 0 3 0;
+}
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.tab-pane .tab:selected .focus-indicator {
+    -fx-border-color: transparent;
+}

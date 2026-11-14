@@ -17,6 +17,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -47,6 +48,7 @@ public class ReservaBLLTest {
         private Reserva comCheckin;
         private boolean podeFazerCheckoutNaBD = true;
         private Reserva comCheckout;
+        private List<Reserva> todas = new ArrayList<>();
 
         @Override
         public boolean cancelar(int id) {
@@ -79,7 +81,7 @@ public class ReservaBLLTest {
 
         @Override
         public List<Reserva> listar() {
-            return new ArrayList<>();
+            return new ArrayList<>(todas);
         }
 
         @Override
@@ -1021,5 +1023,133 @@ public class ReservaBLLTest {
         BigDecimal expResult = reserva.getPrecoTotal().add(horarios.obter().getTaxaLateCheckout());
         BigDecimal result = instance.totalAPagar(RECECAO, reserva);
         assertEquals(expResult, result);
+    }
+
+    private Reserva reservaDe(int id, EstadoReserva estado, LocalDate dia, int quartoNumero, String nome, String nif) {
+        Reserva reserva = new Reserva(id, id, quartoNumero, dia, dia.plusDays(1), 1, estado,
+                new BigDecimal("100.00"), null, null);
+        reserva.setNomeCliente(nome);
+        reserva.setNifCliente(nif);
+        return reserva;
+    }
+
+    private void juntarReservasDosSeparadores() {
+        repositorio.todas.add(reservaDe(1, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 20), 201, "Ana Silva", "234567891"));
+        repositorio.todas.add(reservaDe(2, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 5), 305, "Rui Costa", "245678912"));
+        repositorio.todas.add(reservaDe(3, EstadoReserva.EM_CURSO, LocalDate.of(2026, 11, 10), 204, "João Reis", "267891234"));
+        repositorio.todas.add(reservaDe(4, EstadoReserva.CONCLUIDA, LocalDate.of(2026, 11, 2), 202, "Pedro Alves", "289123456"));
+        repositorio.todas.add(reservaDe(5, EstadoReserva.CANCELADA, LocalDate.of(2026, 11, 6), 103, "Inês Faria", "291234567"));
+    }
+
+    @Test
+    public void testListarPorFazer() {
+        System.out.println("listar (por fazer, da entrada mais próxima)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(1));
+        expResult.add(repositorio.todas.get(0));
+        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarEmCurso() {
+        System.out.println("listar (em curso)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(2));
+        List<Reserva> result = instance.listar(SeparadorReserva.EM_CURSO, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarHistorico() {
+        System.out.println("listar (histórico: concluídas e canceladas)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(3));
+        expResult.add(repositorio.todas.get(4));
+        List<Reserva> result = instance.listar(SeparadorReserva.HISTORICO, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaPorNome() {
+        System.out.println("listar (pesquisa pelo nome, sem maiúsculas)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(0));
+        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "ana");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaPorNif() {
+        System.out.println("listar (pesquisa pelo início do NIF)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(1));
+        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "2456");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaPorQuarto() {
+        System.out.println("listar (pesquisa pelo número do quarto)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(2));
+        List<Reserva> result = instance.listar(SeparadorReserva.EM_CURSO, "204");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaQuartoIncompleto() {
+        System.out.println("listar (parte do número do quarto não encontra)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "20");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaComEspacos() {
+        System.out.println("listar (pesquisa com espaços à volta)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(4));
+        List<Reserva> result = instance.listar(SeparadorReserva.HISTORICO, "  INÊS ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaSemResultados() {
+        System.out.println("listar (pesquisa sem resultados)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "Pedro");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarClienteSemNome() {
+        System.out.println("listar (reserva sem nome nem NIF do cliente)");
+        repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 1), 101, null, null));
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(0));
+        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "101");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarSemSeparador() {
+        System.out.println("listar (sem separador)");
+        String expResult = "Escolha o separador das reservas";
+        try {
+            instance.listar(null, "");
+            fail("Devia ter recusado sem separador");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
     }
 }
