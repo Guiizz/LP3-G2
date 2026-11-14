@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
- * Passagem de um cartão num local do hotel (US39): que cartão, onde, de que reserva e quando.
- * Só ficam registadas as passagens permitidas.
+ * Passagem de um cartão num local do hotel (US39 e US52): que cartão, onde, de que reserva ou de
+ * que funcionário, e quando. Só ficam registadas as passagens permitidas.
  */
 public class AcessoCartao {
 
@@ -20,6 +20,8 @@ public class AcessoCartao {
     private int quartoNumero;
     private int reservaId;
     private LocalDateTime registadoEm;
+    private int funcionarioId;
+    private String funcionarioNome;
 
     /**
      * Cria uma passagem de cartão.
@@ -73,6 +75,19 @@ public class AcessoCartao {
         this.registadoEm = registadoEm;
     }
 
+    public int getFuncionarioId() {
+        return funcionarioId;
+    }
+
+    public String getFuncionarioNome() {
+        return funcionarioNome;
+    }
+
+    public void setFuncionario(int funcionarioId, String funcionarioNome) {
+        this.funcionarioId = funcionarioId;
+        this.funcionarioNome = funcionarioNome;
+    }
+
     /**
      * @return o local para mostrar no ecrã, por exemplo {@code "Quarto 201"} ou {@code "Piscina"}
      */
@@ -85,6 +100,10 @@ public class AcessoCartao {
 
     public String getReservaTexto() {
         return reservaId > 0 ? String.valueOf(reservaId) : "-";
+    }
+
+    public String getFuncionarioTexto() {
+        return funcionarioId > 0 ? funcionarioNome : "-";
     }
 
     public String getRegistadoEmTexto() {
@@ -101,13 +120,14 @@ public class AcessoCartao {
         }
         AcessoCartao outro = (AcessoCartao) o;
         return id == outro.id && quartoNumero == outro.quartoNumero && reservaId == outro.reservaId
+                && funcionarioId == outro.funcionarioId
                 && Objects.equals(cartao, outro.cartao) && local == outro.local
                 && Objects.equals(registadoEm, outro.registadoEm);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, cartao, local, quartoNumero, reservaId, registadoEm);
+        return Objects.hash(id, cartao, local, quartoNumero, reservaId, funcionarioId, registadoEm);
     }
 
     @Override
