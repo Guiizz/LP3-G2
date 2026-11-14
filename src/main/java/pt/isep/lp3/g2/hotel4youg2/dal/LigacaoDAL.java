@@ -18,4 +18,9 @@ public class LigacaoDAL implements ILigacaoDAL {
     public void testar() {
         ConexaoBD.select(TESTAR, new InteiroMapper());
     }
+
+    @Override
+    public void preparar() {
+        ConexaoBD.preparar();
+    }
 }

@@ -27,9 +27,36 @@ public final class ConexaoBD {
                         + "EC keySize < 224, 3DES_EDE_CBC, anon, NULL, ECDH");
     }
 
+    static final int TEMPO_ESPERA_SEGUNDOS = 10;
+    static final int TEMPO_RESPOSTA_SEGUNDOS = 30;
+    static final int TENTATIVAS = 2;
+    static final long VERIFICAR_DEPOIS_DE_MS = 60_000;
+    static final String SEM_LIGACAO =
+            "Não foi possível ligar à base de dados. Verifique a ligação à internet e tente outra vez.";
+    static final String LIGACAO_PERDIDA = "A ligação à base de dados falhou. Tente outra vez.";
+
     private static final Dotenv DOTENV = Dotenv.configure().ignoreIfMissing().load();
 
+    private static Connection partilhada;
+    private static long usadaEm;
+
     private ConexaoBD() {}
+
+    interface FonteDeLigacoes {
+        Connection ligar() throws SQLException;
+    }
+
+    private static class LigacaoAoServidor implements FonteDeLigacoes {
+        @Override
+        public Connection ligar() throws SQLException {
+            String url = "jdbc:sqlserver://" + config("DB_SERVER")
+                    + ";databaseName=" + config("DB_DATABASE")
+                    + ";encrypt=false;trustServerCertificate=true"
+                    + ";loginTimeout=" + TEMPO_ESPERA_SEGUNDOS
+                    + ";socketTimeout=" + (TEMPO_RESPOSTA_SEGUNDOS * 1000);
+            return DriverManager.getConnection(url, config("DB_USER"), config("DB_PASSWORD"));
+        }
+    }
 
     private static String config(String chave) {
         String valor = DOTENV.get(chave);
@@ -41,24 +68,74 @@ public final class ConexaoBD {
 
     /**
      * Abre uma ligação nova à base de dados. Quem a abre tem de a fechar.
+     * Se a primeira tentativa falhar, tenta outra vez antes de desistir.
      *
      * @return a ligação aberta
      * @throws DataAccessException se faltar configuração no .env ou não for possível ligar
      */
     public static Connection abrir() {
-        String url = "jdbc:sqlserver://" + config("DB_SERVER")
-                + ";databaseName=" + config("DB_DATABASE")
-                + ";encrypt=false;trustServerCertificate=true"
-                + ";loginTimeout=5";
-        try {
-            return DriverManager.getConnection(url, config("DB_USER"), config("DB_PASSWORD"));
-        } catch (SQLException e) {
-            throw new DataAccessException("Não foi possível ligar à base de dados", e);
+        return abrir(new LigacaoAoServidor(), TENTATIVAS);
+    }
+
+    static Connection abrir(FonteDeLigacoes fonte, int tentativas) {
+        SQLException ultimoErro = null;
+        for (int tentativa = 1; tentativa <= tentativas; tentativa++) {
+            try {
+                return fonte.ligar();
+            } catch (SQLException e) {
+                ultimoErro = e;
+            }
+        }
+        throw new DataAccessException(SEM_LIGACAO, ultimoErro);
+    }
+
+    static boolean ligacaoCaiu(SQLException erro) {
+        String estado = erro.getSQLState();
+        return estado != null && estado.startsWith("08");
+    }
+
+    static String mensagem(SQLException erro, String textoNormal) {
+        if (ligacaoCaiu(erro)) {
+            return LIGACAO_PERDIDA;
+        }
+        return textoNormal;
+    }
+
+    private static Connection ligacaoPartilhada() throws SQLException {
+        long agora = System.currentTimeMillis();
+        if (partilhada != null && (partilhada.isClosed()
+                || (agora - usadaEm > VERIFICAR_DEPOIS_DE_MS && !partilhada.isValid(2)))) {
+            esquecerPartilhada();
+        }
+        if (partilhada == null) {
+            partilhada = abrir();
+        }
+        usadaEm = agora;
+        return partilhada;
+    }
+
+    private static void esquecerPartilhada() {
+        Connection antiga = partilhada;
+        partilhada = null;
+        if (antiga != null) {
+            try {
+                antiga.close();
+            } catch (SQLException e) {
+                return;
+            }
+        }
+    }
+
+    private static void tratarErro(SQLException erro) {
+        if (ligacaoCaiu(erro)) {
+            esquecerPartilhada();
         }
     }
 
     /**
      * Executa um SELECT e converte cada linha do resultado num objeto.
+     * Usa sempre a mesma ligação enquanto ela estiver boa, para não perder tempo a ligar outra vez.
+     * Se a ligação cair a meio de uma leitura, tenta outra vez com uma ligação nova.
      *
      * @param sql    a consulta, com {@code ?} no lugar de cada parâmetro
      * @param mapper converte uma linha do resultado num objeto
@@ -67,9 +144,26 @@ public final class ConexaoBD {
      * @return a lista de objetos (vazia se não houver resultados)
      * @throws DataAccessException se a consulta falhar
      */
-    public static <T> List<T> select(String sql, RowMapper<T> mapper, Object... params) {
-        try (Connection conn = abrir();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+    public static synchronized <T> List<T> select(String sql, RowMapper<T> mapper, Object... params) {
+        try {
+            return consultar(sql, mapper, params);
+        } catch (SQLException e) {
+            tratarErro(e);
+            if (!ligacaoCaiu(e) || !eLeitura(sql)) {
+                throw new DataAccessException(mensagem(e, "Erro ao executar a consulta"), e);
+            }
+        }
+        try {
+            return consultar(sql, mapper, params);
+        } catch (SQLException e) {
+            tratarErro(e);
+            throw new DataAccessException(mensagem(e, "Erro ao executar a consulta"), e);
+        }
+    }
+
+    private static <T> List<T> consultar(String sql, RowMapper<T> mapper, Object... params) throws SQLException {
+        Connection conn = ligacaoPartilhada();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             definirParametros(ps, params);
             try (ResultSet rs = ps.executeQuery()) {
                 List<T> resultados = new ArrayList<>();
@@ -78,26 +172,51 @@ public final class ConexaoBD {
                 }
                 return resultados;
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Erro ao executar a consulta", e);
+        }
+    }
+
+    static boolean eLeitura(String sql) {
+        return sql.trim().toUpperCase().startsWith("SELECT");
+    }
+
+    public static void preparar() {
+        Thread ligar = new Thread(new PrepararLigacao(), "preparar-ligacao");
+        ligar.setDaemon(true);
+        ligar.start();
+    }
+
+    private static class PrepararLigacao implements Runnable {
+        @Override
+        public void run() {
+            synchronized (ConexaoBD.class) {
+                try {
+                    ligacaoPartilhada();
+                } catch (SQLException | DataAccessException e) {
+                    return;
+                }
+            }
         }
     }
 
     /**
      * Executa um INSERT, UPDATE ou DELETE.
+     * Usa sempre a mesma ligação enquanto ela estiver boa, para não perder tempo a ligar outra vez.
      *
      * @param sql    a instrução, com {@code ?} no lugar de cada parâmetro
      * @param params os valores dos parâmetros, pela ordem dos {@code ?}
      * @return o número de linhas alteradas
      * @throws DataAccessException se a instrução falhar
      */
-    public static int executar(String sql, Object... params) {
-        try (Connection conn = abrir();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            definirParametros(ps, params);
-            return ps.executeUpdate();
+    public static synchronized int executar(String sql, Object... params) {
+        try {
+            Connection conn = ligacaoPartilhada();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                definirParametros(ps, params);
+                return ps.executeUpdate();
+            }
         } catch (SQLException e) {
-            throw new DataAccessException("Erro ao executar a instrução", e);
+            tratarErro(e);
+            throw new DataAccessException(mensagem(e, "Erro ao executar a instrução"), e);
         }
     }
 
