@@ -2,29 +2,30 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.Node;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
-import java.util.ArrayList;
-import java.util.List;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -267,6 +268,14 @@ public class GerirReservasController {
         mostrarSe(historicoLabel, separador == SeparadorReserva.HISTORICO);
     }
 
+    private boolean clicouNumaReserva(MouseEvent evento) {
+        Node no = evento.getPickResult().getIntersectedNode();
+        while (no != null && !(no instanceof TableRow)) {
+            no = no.getParent();
+        }
+        return no != null && !((TableRow<?>) no).isEmpty();
+    }
+
     private void mostrarSe(Node no, boolean visivel) {
         no.setVisible(visivel);
         no.setManaged(visivel);
@@ -290,8 +299,7 @@ public class GerirReservasController {
     private class AoClicarNaTabela implements EventHandler<MouseEvent> {
         @Override
         public void handle(MouseEvent evento) {
-            if (evento.getClickCount() == 2 && escolhida() != null) {
-                aoVerDetalhes();
+            if (evento.getClickCount() == 2 && clicouNumaReserva(evento)) {                aoVerDetalhes();
             }
         }
     }

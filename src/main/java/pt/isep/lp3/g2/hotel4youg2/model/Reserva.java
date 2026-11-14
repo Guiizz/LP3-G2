@@ -113,8 +113,6 @@ public class Reserva {
         this.checkoutEm = checkoutEm;
     }
 
-
-
     /**
      * Cria uma reserva.
      *

@@ -13,9 +13,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
-import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -223,10 +223,6 @@ public class ReservaBLL {
         return reservaDAL.listar();
     }
 
-    public List<Reserva> listar(SeparadorReserva separador, String pesquisa) {
-        return filtrar(reservaDAL.listar(), separador, pesquisa);
-    }
-
     public static List<Reserva> filtrar(List<Reserva> reservas, SeparadorReserva separador, String pesquisa) {
         if (separador == null) {
             throw new ValidacaoException("Escolha o separador das reservas");
@@ -340,10 +336,17 @@ public class ReservaBLL {
         LocalDate saidaAntes = reserva.getDataSaida();
         BigDecimal precoAntes = reserva.getPrecoTotal();
         reserva.alterarDatas(novaEntrada, novaSaida);
-        if (!reservaDAL.alterarDatasSeLivre(reserva)) {
-            reserva.setDataEntrada(entradaAntes);
-            reserva.setDataSaida(saidaAntes);
-            reserva.setPrecoTotal(precoAntes);
+        boolean gravou = false;
+        try {
+            gravou = reservaDAL.alterarDatasSeLivre(reserva);
+        } finally {
+            if (!gravou) {
+                reserva.setDataEntrada(entradaAntes);
+                reserva.setDataSaida(saidaAntes);
+                reserva.setPrecoTotal(precoAntes);
+            }
+        }
+        if (!gravou) {
             throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
                     + " não está livre nessas datas, ou a reserva já não pode ser alterada");
         }
