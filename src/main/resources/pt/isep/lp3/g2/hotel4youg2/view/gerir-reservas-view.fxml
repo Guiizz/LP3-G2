@@ -126,8 +126,7 @@
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
         <Button fx:id="checkinButton" text="Fazer check-in" onAction="#aoFazerCheckin"/>
         <Button fx:id="checkoutButton" text="Fazer check-out" onAction="#aoFazerCheckout"/>
-        <Label fx:id="historicoLabel" text="Só consulta: as reservas do histórico já não mudam."/>
-    </HBox>
+        <Label fx:id="historicoLabel" styleClass="mensagem-aviso" text="Só consulta: as reservas do histórico já não mudam."/>    </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>
 </VBox>
