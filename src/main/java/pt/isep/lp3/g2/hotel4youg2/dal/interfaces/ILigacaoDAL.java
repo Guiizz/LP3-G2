@@ -11,4 +11,6 @@ public interface ILigacaoDAL {
      * @throws pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException se não for possível ligar
      */
     void testar();
+
+    void preparar();
 }

@@ -41,4 +41,8 @@ public class LigacaoBLL {
             return "Não foi possível ligar: " + e.getMessage() + " (" + causa + ")";
         }
     }
+
+    public void prepararLigacao() {
+        ligacaoDAL.preparar();
+    }
 }
