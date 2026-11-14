@@ -1,12 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IHorarioReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
@@ -15,9 +16,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
-import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -41,6 +42,7 @@ public class ReservaBLLTest {
         private boolean podeCancelarNaBD = true;
         private Integer canceladaId;
         private boolean quartoLivreNasNovasDatas = true;
+        private boolean bdFalhaAoAlterarDatas = false;
         private Reserva alterada;
         private List<Reserva> reservasDoCliente = new ArrayList<>();
         private Integer clientePedido;
@@ -102,6 +104,9 @@ public class ReservaBLLTest {
 
         @Override
         public boolean alterarDatasSeLivre(Reserva reserva) {
+            if (bdFalhaAoAlterarDatas) {
+                throw new DataAccessException("Não foi possível ligar à base de dados");
+            }
             if (!quartoLivreNasNovasDatas) {
                 return false;
             }
@@ -502,6 +507,36 @@ public class ReservaBLLTest {
             fail("Devia ter recusado o quarto ocupado");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasQuartoOcupadoFicaComoEstava() {
+        System.out.println("alterarDatas (quarto ocupado, a reserva fica com as datas e o preço de antes)");
+        repositorio.quartoLivreNasNovasDatas = false;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter recusado o quarto ocupado");
+        } catch (ValidacaoException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasFalhaNaBDFicaComoEstava() {
+        System.out.println("alterarDatas (a BD falha, a reserva fica com as datas e o preço de antes)");
+        repositorio.bdFalhaAoAlterarDatas = true;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter passado o erro da base de dados");
+        } catch (DataAccessException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
         }
     }
 
@@ -1048,7 +1083,7 @@ public class ReservaBLLTest {
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(1));
         expResult.add(repositorio.todas.get(0));
-        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "");
         assertEquals(expResult, result);
     }
 
@@ -1058,7 +1093,7 @@ public class ReservaBLLTest {
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(2));
-        List<Reserva> result = instance.listar(SeparadorReserva.EM_CURSO, "");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.EM_CURSO, "");
         assertEquals(expResult, result);
     }
 
@@ -1069,7 +1104,7 @@ public class ReservaBLLTest {
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(3));
         expResult.add(repositorio.todas.get(4));
-        List<Reserva> result = instance.listar(SeparadorReserva.HISTORICO, "");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "");
         assertEquals(expResult, result);
     }
 
@@ -1079,7 +1114,7 @@ public class ReservaBLLTest {
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(0));
-        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "ana");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "ana");
         assertEquals(expResult, result);
     }
 
@@ -1089,7 +1124,7 @@ public class ReservaBLLTest {
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(1));
-        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "2456");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "2456");
         assertEquals(expResult, result);
     }
 
@@ -1099,7 +1134,7 @@ public class ReservaBLLTest {
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(2));
-        List<Reserva> result = instance.listar(SeparadorReserva.EM_CURSO, "204");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.EM_CURSO, "204");
         assertEquals(expResult, result);
     }
 
@@ -1108,7 +1143,7 @@ public class ReservaBLLTest {
         System.out.println("listar (parte do número do quarto não encontra)");
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
-        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "20");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "20");
         assertEquals(expResult, result);
     }
 
@@ -1118,7 +1153,7 @@ public class ReservaBLLTest {
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(4));
-        List<Reserva> result = instance.listar(SeparadorReserva.HISTORICO, "  INÊS ");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "  INÊS ");
         assertEquals(expResult, result);
     }
 
@@ -1127,7 +1162,7 @@ public class ReservaBLLTest {
         System.out.println("listar (pesquisa sem resultados)");
         juntarReservasDosSeparadores();
         List<Reserva> expResult = new ArrayList<>();
-        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "Pedro");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "Pedro");
         assertEquals(expResult, result);
     }
 
@@ -1137,7 +1172,7 @@ public class ReservaBLLTest {
         repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 1), 101, null, null));
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(0));
-        List<Reserva> result = instance.listar(SeparadorReserva.POR_FAZER, "101");
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "101");
         assertEquals(expResult, result);
     }
 
@@ -1146,7 +1181,7 @@ public class ReservaBLLTest {
         System.out.println("listar (sem separador)");
         String expResult = "Escolha o separador das reservas";
         try {
-            instance.listar(null, "");
+            ReservaBLL.filtrar(instance.listar(), null, "");
             fail("Devia ter recusado sem separador");
         } catch (ValidacaoException e) {
             assertEquals(expResult, e.getMessage());

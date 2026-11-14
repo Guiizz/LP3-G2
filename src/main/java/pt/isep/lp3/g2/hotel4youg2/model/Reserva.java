@@ -113,8 +113,6 @@ public class Reserva {
         this.checkoutEm = checkoutEm;
     }
 
-
-
     /**
      * Cria uma reserva.
      *
@@ -242,6 +240,20 @@ public class Reserva {
 
     public String getEstadoTexto() {
         return estado == null ? "" : estado.getDescricao();
+    }
+
+    public String getCheckoutEmTexto() {
+        return checkoutEm == null ? "" : checkoutEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+    }
+
+    public String getAvisoAlteracoes() {
+        if (podeSerAlterada()) {
+            return "";
+        }
+        if (aceitaServicos()) {
+            return "Com o check-in feito, as datas já não se alteram.";
+        }
+        return "Reserva " + getEstadoTexto().toLowerCase() + ": já não se alteram as datas nem os serviços.";
     }
 
     public void setCartao(String cartao) {

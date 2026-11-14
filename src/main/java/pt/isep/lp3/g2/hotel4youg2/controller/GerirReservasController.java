@@ -2,28 +2,30 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.Node;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
-import java.util.ArrayList;
-import java.util.List;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,6 +39,9 @@ public class GerirReservasController {
     private final ReservaBLL reservaBLL = new ReservaBLL();
 
     private List<Reserva> todas = new ArrayList<>();
+
+    @FXML
+    private VBox ecra;
 
     @FXML
     private TextField pesquisaField;
@@ -54,12 +59,6 @@ public class GerirReservasController {
     private TableView<Reserva> tabelaHistorico;
 
     @FXML
-    private HBox datasBox;
-
-    @FXML
-    private Button servicosButton;
-
-    @FXML
     private Button cancelarButton;
 
     @FXML
@@ -75,14 +74,11 @@ public class GerirReservasController {
     private Label mensagemLabel;
 
     @FXML
-    private DatePicker novaEntradaPicker;
-
-    @FXML
-    private DatePicker novaSaidaPicker;
-
-    @FXML
     private void initialize() {
-        tabelaPorFazer.getSelectionModel().selectedItemProperty().addListener(new AoEscolherReserva());
+        AoClicarNaTabela duploClique = new AoClicarNaTabela();
+        tabelaPorFazer.setOnMouseClicked(duploClique);
+        tabelaEmCurso.setOnMouseClicked(duploClique);
+        tabelaHistorico.setOnMouseClicked(duploClique);
         separadores.getSelectionModel().selectedIndexProperty().addListener(new AoMudarDeSeparador());
         pesquisaField.textProperty().addListener(new AoPesquisar());
         mostrarAcoes();
@@ -163,41 +159,6 @@ public class GerirReservasController {
         Mensagens.sucesso(mensagemLabel, texto);
     }
 
-    @FXML
-    private void aoAlterarDatas() {
-        Reserva escolhida = escolhida();
-        if (escolhida == null) {
-            mostrarErro("Escolha uma reserva na tabela.");
-            return;
-        }
-        try {
-            reservaBLL.alterarDatas(Sessao.getUtilizador(), escolhida,
-                    novaEntradaPicker.getValue(), novaSaidaPicker.getValue());
-            mostrarSucesso("Datas da reserva " + escolhida.getId() + " alteradas. Novo preço: "
-                    + escolhida.getPrecoTotal() + " €");
-        } catch (DataAccessException e) {
-            mostrarErro(ERRO_BD);
-        } catch (RuntimeException e) {
-            mostrarErro(e.getMessage());
-        }
-        carregar();
-    }
-
-    @FXML
-    private void aoServicos() {
-        Reserva escolhida = escolhida();
-        if (escolhida == null) {
-            mostrarErro("Escolha uma reserva na tabela.");
-            return;
-        }
-        try {
-            ServicosReservaController.abrir(escolhida);
-        } catch (IOException e) {
-            mostrarErro("Não foi possível abrir os serviços da reserva.");
-        }
-        carregar();
-    }
-
     private boolean confirmarCancelar(Reserva reserva) {
         Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
                 "Tem a certeza que quer cancelar a reserva " + reserva.getId() + " (quarto "
@@ -238,6 +199,25 @@ public class GerirReservasController {
         return resposta.isPresent() && resposta.get() == ButtonType.YES;
     }
 
+    @FXML
+    private void aoVerDetalhes() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            DetalhesReservaController.abrir(escolhida, ecra, this);
+        } catch (IOException e) {
+            mostrarErro("Não foi possível abrir os detalhes da reserva.");
+        }
+    }
+
+    public void atualizar() {
+        mensagemLabel.setText("");
+        carregar();
+    }
+
     private void carregar() {
         try {
             todas = reservaBLL.listar();
@@ -266,7 +246,6 @@ public class GerirReservasController {
         return SeparadorReserva.POR_FAZER;
     }
 
-    // a reserva escolhida na tabela do separador que está aberto
     private Reserva escolhida() {
         SeparadorReserva separador = separadorAberto();
         if (separador == SeparadorReserva.EM_CURSO) {
@@ -278,18 +257,23 @@ public class GerirReservasController {
         return tabelaPorFazer.getSelectionModel().getSelectedItem();
     }
 
-    // cada separador só mostra as ações possíveis nesse estado; cancelar é só do gestor
     private void mostrarAcoes() {
         SeparadorReserva separador = separadorAberto();
         boolean porFazer = separador == SeparadorReserva.POR_FAZER;
         boolean emCurso = separador == SeparadorReserva.EM_CURSO;
         boolean gestor = Permissoes.eGestor(Sessao.getUtilizador());
-        mostrarSe(datasBox, porFazer);
-        mostrarSe(servicosButton, porFazer || emCurso);
         mostrarSe(cancelarButton, porFazer && gestor);
         mostrarSe(checkinButton, porFazer);
         mostrarSe(checkoutButton, emCurso);
         mostrarSe(historicoLabel, separador == SeparadorReserva.HISTORICO);
+    }
+
+    private boolean clicouNumaReserva(MouseEvent evento) {
+        Node no = evento.getPickResult().getIntersectedNode();
+        while (no != null && !(no instanceof TableRow)) {
+            no = no.getParent();
+        }
+        return no != null && !((TableRow<?>) no).isEmpty();
     }
 
     private void mostrarSe(Node no, boolean visivel) {
@@ -312,13 +296,10 @@ public class GerirReservasController {
         }
     }
 
-    /** Preenche as datas com as da reserva escolhida, seja com o rato ou com as setas do teclado. */
-    private class AoEscolherReserva implements ChangeListener<Reserva> {
+    private class AoClicarNaTabela implements EventHandler<MouseEvent> {
         @Override
-        public void changed(ObservableValue<? extends Reserva> observavel, Reserva antiga, Reserva nova) {
-            if (nova != null) {
-                novaEntradaPicker.setValue(nova.getDataEntrada());
-                novaSaidaPicker.setValue(nova.getDataSaida());
+        public void handle(MouseEvent evento) {
+            if (evento.getClickCount() == 2 && clicouNumaReserva(evento)) {                aoVerDetalhes();
             }
         }
     }
