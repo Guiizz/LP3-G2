@@ -166,6 +166,10 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    public boolean podeSerApagada() {
+        return checkinEm == null && (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.CANCELADA);
+    }
+
     /**
      * @return {@code true} se ainda se puderem juntar ou retirar serviços extra: reserva confirmada
      *         ou em curso (US37)

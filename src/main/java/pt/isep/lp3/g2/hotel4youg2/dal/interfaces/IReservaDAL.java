@@ -62,6 +62,8 @@ public interface IReservaDAL {
      */
     boolean cancelar(int id);
 
+    boolean apagarSemCheckin(int id);
+
     /**
      * Grava as datas e o preço novos da reserva, só se ainda estiver confirmada e sem check-in
      * e o quarto estiver livre nas datas novas (sem contar com a própria reserva) (US30).

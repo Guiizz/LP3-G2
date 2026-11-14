@@ -41,6 +41,8 @@ public class ReservaBLLTest {
         private Reserva gravada;
         private boolean podeCancelarNaBD = true;
         private Integer canceladaId;
+        private boolean podeApagarNaBD = true;
+        private Integer apagadaId;
         private boolean quartoLivreNasNovasDatas = true;
         private boolean bdFalhaAoAlterarDatas = false;
         private Reserva alterada;
@@ -51,6 +53,15 @@ public class ReservaBLLTest {
         private boolean podeFazerCheckoutNaBD = true;
         private Reserva comCheckout;
         private List<Reserva> todas = new ArrayList<>();
+
+        @Override
+        public boolean apagarSemCheckin(int id) {
+            if (!podeApagarNaBD) {
+                return false;
+            }
+            apagadaId = id;
+            return true;
+        }
 
         @Override
         public boolean cancelar(int id) {
@@ -1183,6 +1194,99 @@ public class ReservaBLLTest {
         try {
             ReservaBLL.filtrar(instance.listar(), null, "");
             fail("Devia ter recusado sem separador");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagar() {
+        System.out.println("apagar (confirmada, sem check-in)");
+        instance.apagar(GESTOR, reservaConfirmada());
+        Integer expResult = 5;
+        Integer result = repositorio.apagadaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarCancelada() {
+        System.out.println("apagar (cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.cancelar();
+        instance.apagar(GESTOR, reserva);
+        Integer expResult = 5;
+        Integer result = repositorio.apagadaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarDiaDeEntradaJaPassou() {
+        System.out.println("apagar (confirmada, o cliente não compareceu)");
+        Reserva reserva = new Reserva(5, 7, 201, LocalDate.now().minusDays(3), LocalDate.now().minusDays(1), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        instance.apagar(GESTOR, reserva);
+        Integer expResult = 5;
+        Integer result = repositorio.apagadaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarRececionista() {
+        System.out.println("apagar (rececionista não pode)");
+        try {
+            instance.apagar(RECECAO, reservaConfirmada());
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.apagadaId);
+        }
+    }
+
+    @Test
+    public void testApagarSemReserva() {
+        System.out.println("apagar (sem reserva)");
+        String expResult = "Escolha uma reserva";
+        try {
+            instance.apagar(GESTOR, null);
+            fail("Devia ter pedido uma reserva");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagarEmCurso() {
+        System.out.println("apagar (em curso, aparece o motivo)");
+        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (em curso)";
+        try {
+            instance.apagar(GESTOR, reservaEmCurso());
+            fail("Devia ter recusado uma reserva com check-in");
+        } catch (IllegalStateException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagarConcluida() {
+        System.out.println("apagar (concluída, aparece o motivo)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (concluída)";
+        try {
+            instance.apagar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva concluída");
+        } catch (IllegalStateException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagarCheckinNoutroComputador() {
+        System.out.println("apagar (check-in feito entretanto noutro computador)");
+        repositorio.podeApagarNaBD = false;
+        String expResult = "A reserva 5 já não pode ser apagada: não existe ou entretanto teve check-in";
+        try {
+            instance.apagar(GESTOR, reservaConfirmada());
+            fail("Devia ter recusado o que a BD recusou");
         } catch (ValidacaoException e) {
             assertEquals(expResult, e.getMessage());
         }

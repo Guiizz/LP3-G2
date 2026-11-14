@@ -276,6 +276,11 @@ public class SugestaoQueixaBLLTest {
         }
 
         @Override
+        public boolean apagarSemCheckin(int id) {
+            return false;
+        }
+
+        @Override
         public boolean alterarDatasSeLivre(Reserva reserva) {
             return false;
         }
