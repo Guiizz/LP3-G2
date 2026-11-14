@@ -284,4 +284,62 @@ class ReservaTest {
         String result = novaReserva().getEstadoTexto();
         assertEquals(expResult, result);
     }
+
+    @Test
+    void getCheckoutEmTexto() {
+        System.out.println("getCheckoutEmTexto");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 5), 2,
+                EstadoReserva.CONCLUIDA, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 2, 15, 40),
+                LocalDateTime.of(2026, 11, 5, 11, 10));
+        String expResult = "05/11 11:10";
+        String result = reserva.getCheckoutEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getCheckoutEmTextoSemCheckout() {
+        System.out.println("getCheckoutEmTexto (sem check-out)");
+        String expResult = "";
+        String result = novaReserva().getCheckoutEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesConfirmada() {
+        System.out.println("getAvisoAlteracoes (confirmada, ainda se pode mudar tudo)");
+        String expResult = "";
+        String result = novaReserva().getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesEmCurso() {
+        System.out.println("getAvisoAlteracoes (em curso)");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 13), 2,
+                EstadoReserva.EM_CURSO, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 10, 15, 20), null);
+        String expResult = "Com o check-in feito, as datas já não se alteram.";
+        String result = reserva.getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesConcluida() {
+        System.out.println("getAvisoAlteracoes (concluída)");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 5), 2,
+                EstadoReserva.CONCLUIDA, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 2, 15, 40),
+                LocalDateTime.of(2026, 11, 5, 11, 10));
+        String expResult = "Reserva concluída: já não se alteram as datas nem os serviços.";
+        String result = reserva.getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesCancelada() {
+        System.out.println("getAvisoAlteracoes (cancelada)");
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        String expResult = "Reserva cancelada: já não se alteram as datas nem os serviços.";
+        String result = reserva.getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
 }
