@@ -19,31 +19,36 @@ public class ClienteDAL implements IClienteDAL {
     public int inserirCliente(Cliente c) {
         try(Connection conn = ConexaoBD.abrir()) {
             conn.setAutoCommit(false);
-            int id;
-            try(PreparedStatement ps = conn.prepareStatement(
-                    "INSERT Pessoa (nome, nif, dataNascimento, telemovel ,email, cc, morada) VALUES (?,?,?,?,?,?,?)",
-                    Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, c.getNome());
-                ps.setString(2, c.getNif());
-                ps.setObject(3, c.getDataNascimento());
-                ps.setString(4, c.getTelemovel());
-                ps.setString(5, c.getEmail());
-                ps.setString(6, c.getCc());
-                ps.setString(7, c.getMorada());
-                ps.executeUpdate();
-                try (ResultSet chaves = ps.getGeneratedKeys()) {
-                    chaves.next();
-                    id = chaves.getInt(1);
+            try {
+                int id;
+                try(PreparedStatement ps = conn.prepareStatement(
+                        "INSERT Pessoa (nome, nif, dataNascimento, telemovel ,email, cc, morada) VALUES (?,?,?,?,?,?,?)",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, c.getNome());
+                    ps.setString(2, c.getNif());
+                    ps.setObject(3, c.getDataNascimento());
+                    ps.setString(4, c.getTelemovel());
+                    ps.setString(5, c.getEmail());
+                    ps.setString(6, c.getCc());
+                    ps.setString(7, c.getMorada());
+                    ps.executeUpdate();
+                    try (ResultSet chaves = ps.getGeneratedKeys()) {
+                        chaves.next();
+                        id = chaves.getInt(1);
+                    }
                 }
+                try (PreparedStatement psCliente = conn.prepareStatement(
+                        "INSERT Cliente (pessoaId) VALUES (?)")) {
+                    psCliente.setInt(1, id);
+                    psCliente.executeUpdate();
+                }
+                conn.commit();
+                c.setId(id);
+                return id;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
             }
-            try (PreparedStatement psCliente = conn.prepareStatement(
-                    "INSERT Cliente (pessoaId) VALUES (?)")) {
-                psCliente.setInt(1, id);
-                psCliente.executeUpdate();
-            }
-            conn.commit();
-            c.setId(id);
-            return id;
         }catch (SQLException e) {
             throw new DataAccessException("Erro ao registar o cliente!", e);
         }

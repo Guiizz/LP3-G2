@@ -4,6 +4,8 @@ import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
+import java.util.List;
+
 /**
  * Acesso aos funcionários e às suas contas na base de dados.
  */
@@ -30,4 +32,12 @@ public interface IFuncionarioDAL {
      * @throws DataAccessException se não for possível gravar
      */
     void criarConta(Funcionario funcionario, Utilizador utilizador);
+
+    Funcionario procurarPorNumero(int numeroFuncionario);
+
+    Funcionario procurarPorId(int pessoaId);
+
+    boolean temContaAtiva(int pessoaId);
+
+    List<Funcionario> listarComContaAtiva();
 }

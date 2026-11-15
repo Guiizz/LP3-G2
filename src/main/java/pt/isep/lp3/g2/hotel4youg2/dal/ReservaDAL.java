@@ -61,6 +61,9 @@ public class ReservaDAL implements IReservaDAL {
 
     private static final String APAGAR = "DELETE FROM Reserva WHERE id = ?";
 
+    private static final String APAGAR_SEM_CHECKIN =
+            "DELETE FROM Reserva WHERE id = ? AND checkinEm IS NULL AND estado IN ('CONFIRMADA', 'CANCELADA')";
+
     private static final String CANCELAR =
             "UPDATE Reserva SET estado = 'CANCELADA' "
                     + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
@@ -172,6 +175,11 @@ public class ReservaDAL implements IReservaDAL {
     @Override
     public boolean apagar(int id) {
         return ConexaoBD.executar(APAGAR, id) > 0;
+    }
+
+    @Override
+    public boolean apagarSemCheckin(int id) {
+        return ConexaoBD.executar(APAGAR_SEM_CHECKIN, id) > 0;
     }
 
     @Override

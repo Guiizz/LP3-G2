@@ -9,6 +9,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoFornecedorBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
@@ -23,6 +24,7 @@ public class LoginController {
 
     private final AutenticacaoBLL autenticacaoBLL = new AutenticacaoBLL();
     private final AutenticacaoFornecedorBLL autenticacaoFornecedorBLL = new AutenticacaoFornecedorBLL();
+    private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
 
     @FXML
     private TextField nomeUtilizadorField;
@@ -32,6 +34,11 @@ public class LoginController {
 
     @FXML
     private Label erroLabel;
+
+    @FXML
+    private void initialize() {
+        ligacaoBLL.prepararLigacao();
+    }
 
     @FXML
     private void aoEntrar() {
@@ -44,7 +51,7 @@ public class LoginController {
             erroLabel.setText(e.getMessage());
             passwordField.clear();
         } catch (DataAccessException e) {
-            erroLabel.setText("Não foi possível ligar à base de dados: " + e.getMessage());
+            erroLabel.setText(e.getMessage());
         } catch (IOException e) {
             erroLabel.setText("Não foi possível abrir a janela principal.");
         }
@@ -67,7 +74,7 @@ public class LoginController {
             erroLabel.setText(e.getMessage());
             passwordField.clear();
         } catch (DataAccessException e) {
-            erroLabel.setText("Não foi possível ligar à base de dados: " + e.getMessage());
+            erroLabel.setText(e.getMessage());
         } catch (IOException e) {
             erroLabel.setText("Não foi possível abrir o ecrã do fornecedor.");
         }

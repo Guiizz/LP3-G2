@@ -303,6 +303,23 @@ public class ReservaBLL {
         }
     }
 
+    public void apagar(Utilizador quemAge, Reserva reserva) {
+        if (!Permissoes.eGestor(quemAge)) {
+            throw new IllegalStateException("Só o gestor pode apagar reservas");
+        }
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        if (!reserva.podeSerApagada()) {
+            throw new IllegalStateException("A reserva " + reserva.getId() + " não pode ser apagada: já teve check-in ("
+                    + reserva.getEstadoTexto().toLowerCase() + ")");
+        }
+        if (!reservaDAL.apagarSemCheckin(reserva.getId())) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já não pode ser apagada: não existe ou entretanto teve check-in");
+        }
+    }
+
     /**
      * Altera as datas de uma reserva confirmada, se o quarto estiver livre nas datas novas (US30).
      *

@@ -8,11 +8,17 @@ import java.util.Objects;
  */
 public class Funcionario extends Pessoa {
 
+    public static final String PREFIXO_CARTAO = "F";
+
     private int numeroFuncionario;
     private LocalDate dataAdmissao;
 
     public int getNumeroFuncionario() {
         return numeroFuncionario;
+    }
+
+    public String getCartao() {
+        return PREFIXO_CARTAO + numeroFuncionario;
     }
 
     public void setNumeroFuncionario(int numeroFuncionario) {
@@ -64,5 +70,10 @@ public class Funcionario extends Pessoa {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), numeroFuncionario, dataAdmissao);
+    }
+
+    @Override
+    public String toString() {
+        return getCartao() + " - " + getNome();
     }
 }
