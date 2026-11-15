@@ -31,6 +31,10 @@
 
             <Label text="Carregar uma entrega" style="-fx-font-weight: bold;"/>
             <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Button text="Importar XSD…" onAction="#aoImportarXsd"/>
+                <Label fx:id="xsdLabel"/>
+            </HBox>
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
                 <Button text="Escolher ficheiro XML…" onAction="#aoEscolherFicheiro"/>
                 <Label fx:id="ficheiroLabel" text="Nenhum ficheiro escolhido"/>
             </HBox>
