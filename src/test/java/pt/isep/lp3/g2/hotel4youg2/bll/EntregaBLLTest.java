@@ -103,8 +103,8 @@ public class EntregaBLLTest {
             List<ResumoEntrega> resumos = new ArrayList<>();
             for (Entrega e : registadas) {
                 if (e.getFornecedor().getCodigo().equals(codigoFornecedor)) {
-                    resumos.add(new ResumoEntrega(e.getNumeroEncomenda(), contarMateriais(e),
-                            LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado()));
+                    resumos.add(new ResumoEntrega(e.getId(), e.getNumeroEncomenda(), contarMateriais(e),
+                            LocalDateTime.of(2026, 11, 5, 21, 24, 38), e.getTotal(), e.getEstado(), null));
                 }
             }
             return resumos;
@@ -649,6 +649,160 @@ public class EntregaBLLTest {
             fail("Devia ter lançado IllegalStateException, mas não lançou");
         } catch (IllegalStateException expected) {
             assertEquals("Entre na aplicação para ver as suas entregas.", expected.getMessage());
+        }
+    }
+
+    // três entregas do fornecedor do ficheiro: uma aceite, uma recusada e uma pendente
+    private void entregasEmTresEstados() {
+        entregaPendente("OC-ACEITE");
+        entregaPendente("OC-RECUSADA");
+        entregaPendente("OC-PENDENTE");
+        instance.aceitar(RECECAO, 1);
+        instance.recusar(RECECAO, 2, "Faltam toalhas");
+    }
+
+    @Test
+    public void testHistoricoFiltradoPorEstado() {
+        System.out.println("historico (só as aceites)");
+        entregasEmTresEstados();
+        List<ResumoEntrega> result = instance.historico(fornecedorDoFicheiro(), EstadoEntrega.ACEITE);
+        assertEquals(1, result.size());
+        assertEquals("OC-ACEITE", result.get(0).getNumeroEncomenda());
+    }
+
+    @Test
+    public void testHistoricoSemFiltroMostraTodas() {
+        System.out.println("historico (sem filtro mostra as pendentes, aceites e recusadas)");
+        entregasEmTresEstados();
+        int expResult = 3;
+        int result = instance.historico(fornecedorDoFicheiro(), null).size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testHistoricoFiltradoSemEntregasNesseEstado() {
+        System.out.println("historico (nenhuma entrega nesse estado)");
+        entregaPendente("OC-PENDENTE");
+        int expResult = 0;
+        int result = instance.historico(fornecedorDoFicheiro(), EstadoEntrega.RECUSADA).size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarParaHotelFiltradoPorEstado() {
+        System.out.println("listarParaHotel (só as recusadas)");
+        entregasEmTresEstados();
+        List<ResumoEntregaHotel> result = instance.listarParaHotel(RECECAO, EstadoEntrega.RECUSADA);
+        assertEquals(1, result.size());
+        assertEquals("OC-RECUSADA", result.get(0).getNumeroEncomenda());
+    }
+
+    @Test
+    public void testListarParaHotelSemFiltroMostraTodas() {
+        System.out.println("listarParaHotel (sem filtro mostra todas)");
+        entregasEmTresEstados();
+        int expResult = 3;
+        int result = instance.listarParaHotel(RECECAO, null).size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEstadoDoFiltroTodas() {
+        System.out.println("estadoDoFiltro (Todas)");
+        EstadoEntrega expResult = null;
+        EstadoEntrega result = EntregaBLL.estadoDoFiltro(EntregaBLL.TODAS);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEstadoDoFiltroSemOpcao() {
+        System.out.println("estadoDoFiltro (sem opção escolhida)");
+        EstadoEntrega expResult = null;
+        EstadoEntrega result = EntregaBLL.estadoDoFiltro(null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEstadoDoFiltro() {
+        System.out.println("estadoDoFiltro (ACEITE)");
+        EstadoEntrega expResult = EstadoEntrega.ACEITE;
+        EstadoEntrega result = EntregaBLL.estadoDoFiltro("ACEITE");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFaturaParaFornecedor() {
+        System.out.println("faturaParaFornecedor");
+        Entrega expResult = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        int id = instance.carregar(fornecedorDoFicheiro(), expResult);
+        Entrega result = instance.faturaParaFornecedor(fornecedorDoFicheiro(), id);
+        assertEquals(expResult, result);
+        assertEquals(5, result.getLinhas().size());
+    }
+
+    @Test
+    public void testFaturaParaFornecedorDeOutroFornecedor() {
+        System.out.println("faturaParaFornecedor (entrega de outro fornecedor)");
+        int id = instance.carregar(fornecedorDoFicheiro(), instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        Fornecedor outro = new Fornecedor(2, "99PT000", "Outro", null, null, null, null, null, null);
+        try {
+            instance.faturaParaFornecedor(outro, id);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Só pode ver as entregas do seu fornecedor.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testFaturaParaFornecedorQueNaoExiste() {
+        System.out.println("faturaParaFornecedor (entrega que não existe)");
+        try {
+            instance.faturaParaFornecedor(fornecedorDoFicheiro(), 99);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("A entrega não existe.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testFaturaParaFornecedorSemSessao() {
+        System.out.println("faturaParaFornecedor (sem sessão)");
+        try {
+            instance.faturaParaFornecedor(null, 1);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            assertEquals("Entre na aplicação para ver as suas entregas.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testFaturaParaHotel() {
+        System.out.println("faturaParaHotel");
+        Entrega expResult = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        int id = instance.carregar(fornecedorDoFicheiro(), expResult);
+        Entrega result = instance.faturaParaHotel(RECECAO, id);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFaturaParaHotelQueNaoExiste() {
+        System.out.println("faturaParaHotel (entrega que não existe)");
+        try {
+            instance.faturaParaHotel(RECECAO, 99);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("A entrega não existe.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testFaturaParaHotelSemSessao() {
+        System.out.println("faturaParaHotel (sem sessão)");
+        try {
+            instance.faturaParaHotel(null, 1);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            assertEquals("Entre na aplicação para ver as entregas.", expected.getMessage());
         }
     }
 }

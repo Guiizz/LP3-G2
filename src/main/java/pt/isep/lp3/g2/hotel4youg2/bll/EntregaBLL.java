@@ -35,6 +35,9 @@ public class EntregaBLL {
     /** Diferença máxima (0,05 €) aceite nas contas de uma linha por causa de arredondamentos (US53). */
     public static final BigDecimal TOLERANCIA = new BigDecimal("0.05");
 
+    /** Opção do filtro do histórico que mostra as entregas em todos os estados (US54). */
+    public static final String TODAS = "Todas";
+
     private static final String ENTREGA_JA_DECIDIDA = "Esta entrega já foi decidida.";
 
     private final LeitorXmlEntrega leitor;
@@ -350,5 +353,107 @@ public class EntregaBLL {
             throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
         }
         return entregaDAL.listarResumosDoFornecedor(fornecedor.getCodigo());
+    }
+
+    /**
+     * Devolve o histórico das entregas do fornecedor, só com as do estado escolhido (US54).
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @param estado     o estado a mostrar, ou {@code null} para mostrar todas
+     * @return o resumo das entregas do fornecedor nesse estado, da mais recente para a mais antiga
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<ResumoEntrega> historico(Fornecedor fornecedor, EstadoEntrega estado) {
+        List<ResumoEntrega> todas = historico(fornecedor);
+        if (estado == null) {
+            return todas;
+        }
+        List<ResumoEntrega> escolhidas = new ArrayList<>();
+        for (ResumoEntrega resumo : todas) {
+            if (resumo.getEstado() == estado) {
+                escolhidas.add(resumo);
+            }
+        }
+        return escolhidas;
+    }
+
+    /**
+     * Devolve as entregas para o pessoal do hotel, só com as do estado escolhido (US54).
+     *
+     * @param quemAge o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @param estado  o estado a mostrar, ou {@code null} para mostrar todas
+     * @return o resumo das entregas nesse estado
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<ResumoEntregaHotel> listarParaHotel(Utilizador quemAge, EstadoEntrega estado) {
+        List<ResumoEntregaHotel> todas = listarParaHotel(quemAge);
+        if (estado == null) {
+            return todas;
+        }
+        List<ResumoEntregaHotel> escolhidas = new ArrayList<>();
+        for (ResumoEntregaHotel resumo : todas) {
+            if (resumo.getEstado() == estado) {
+                escolhidas.add(resumo);
+            }
+        }
+        return escolhidas;
+    }
+
+    /**
+     * Passa a opção escolhida no filtro do histórico para o estado da entrega (US54).
+     *
+     * @param opcao {@value #TODAS} ou o nome de um estado (PENDENTE, ACEITE ou RECUSADA)
+     * @return o estado, ou {@code null} se a opção for {@value #TODAS} ou não houver opção
+     */
+    public static EstadoEntrega estadoDoFiltro(String opcao) {
+        if (opcao == null || opcao.equals(TODAS)) {
+            return null;
+        }
+        return EstadoEntrega.valueOf(opcao);
+    }
+
+    /**
+     * Devolve a entrega completa, com as linhas, para o fornecedor a ver como uma fatura (US54).
+     * Cada fornecedor só abre as suas entregas.
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @param entregaId  o id da entrega
+     * @return a entrega com as linhas
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se a entrega não existir ou for de outro fornecedor
+     */
+    public Entrega faturaParaFornecedor(Fornecedor fornecedor, int entregaId) {
+        if (fornecedor == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
+        }
+        Entrega entrega = procurarEntrega(entregaId);
+        if (!entrega.getFornecedor().getCodigo().equals(fornecedor.getCodigo())) {
+            throw new IllegalArgumentException("Só pode ver as entregas do seu fornecedor.");
+        }
+        return entrega;
+    }
+
+    /**
+     * Devolve a entrega completa, com as linhas, para o pessoal do hotel a ver como uma fatura (US54).
+     *
+     * @param quemAge   o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @param entregaId o id da entrega
+     * @return a entrega com as linhas
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se a entrega não existir
+     */
+    public Entrega faturaParaHotel(Utilizador quemAge, int entregaId) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as entregas.");
+        }
+        return procurarEntrega(entregaId);
+    }
+
+    private Entrega procurarEntrega(int entregaId) {
+        Optional<Entrega> entrega = entregaDAL.procurarPorId(entregaId);
+        if (entrega.isEmpty()) {
+            throw new IllegalArgumentException("A entrega não existe.");
+        }
+        return entrega.get();
     }
 }

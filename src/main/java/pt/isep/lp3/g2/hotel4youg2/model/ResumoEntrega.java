@@ -16,6 +16,7 @@ public class ResumoEntrega {
     private static final ZoneId FUSO = ZoneId.of("Europe/Lisbon");
     private static final DateTimeFormatter FORMATO = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss (VV)");
 
+    private final int entregaId;
     private final String numeroEncomenda;
     private final int tiposDeMaterial;
     private final LocalDateTime carregadaEm;
@@ -48,12 +49,36 @@ public class ResumoEntrega {
      */
     public ResumoEntrega(String numeroEncomenda, int tiposDeMaterial, LocalDateTime carregadaEm, BigDecimal total,
                          EstadoEntrega estado, String motivoRecusa) {
+        this(0, numeroEncomenda, tiposDeMaterial, carregadaEm, total, estado, motivoRecusa);
+    }
+
+    /**
+     * Cria o resumo de uma entrega já gravada, com o id para se poder abrir a fatura (US54).
+     *
+     * @param entregaId       o id da entrega
+     * @param numeroEncomenda o número da encomenda
+     * @param tiposDeMaterial quantos materiais diferentes tem
+     * @param carregadaEm     quando foi carregada
+     * @param total           o total da entrega
+     * @param estado          o estado da entrega
+     * @param motivoRecusa    o motivo da recusa, ou {@code null}
+     */
+    public ResumoEntrega(int entregaId, String numeroEncomenda, int tiposDeMaterial, LocalDateTime carregadaEm,
+                         BigDecimal total, EstadoEntrega estado, String motivoRecusa) {
+        this.entregaId = entregaId;
         this.numeroEncomenda = numeroEncomenda;
         this.tiposDeMaterial = tiposDeMaterial;
         this.carregadaEm = carregadaEm;
         this.total = total;
         this.estado = estado;
         this.motivoRecusa = motivoRecusa;
+    }
+
+    /**
+     * @return o id da entrega (0 se o resumo foi criado sem ele)
+     */
+    public int getEntregaId() {
+        return entregaId;
     }
 
     public String getNumeroEncomenda() {

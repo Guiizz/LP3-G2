@@ -75,6 +75,13 @@
 .mensagem-sucesso {
     -fx-text-fill: #2E7D32;
 }
+/* linhas da fatura da entrega com contas que não batem certo (US54) */
+.table-row-cell.linha-com-erro {
+    -fx-background-color: #F8D7DA;
+}
+.table-row-cell.linha-com-erro .table-cell {
+    -fx-text-fill: #C0392B;
+}
 .mensagem-aviso {
     -fx-text-fill: #B9770E;
 }
