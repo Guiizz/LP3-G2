@@ -20,7 +20,7 @@
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Cartão:"/>
-        <TextField fx:id="cartaoField" promptText="ex.: C201 ou C000" prefWidth="170.0" onAction="#aoProcurarCartao"/>
+        <TextField fx:id="cartaoField" promptText="ex.: C201, C000 ou F12" prefWidth="170.0" onAction="#aoProcurarCartao"/>
         <Button text="Procurar por cartão" onAction="#aoProcurarCartao"/>
     </HBox>
 
@@ -46,6 +46,9 @@
             </TableColumn>
             <TableColumn text="Reserva" prefWidth="90.0">
                 <cellValueFactory><PropertyValueFactory property="reservaTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Funcionário" prefWidth="220.0">
+                <cellValueFactory><PropertyValueFactory property="funcionarioTexto"/></cellValueFactory>
             </TableColumn>
         </columns>
     </TableView>

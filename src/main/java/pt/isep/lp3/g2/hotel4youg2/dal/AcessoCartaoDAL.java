@@ -15,20 +15,21 @@ import java.util.List;
 public class AcessoCartaoDAL implements IAcessoCartaoDAL {
 
     private static final String REGISTAR =
-            "INSERT INTO AcessoCartao (cartao, localAcesso, quartoNumero, reservaId) "
-            + "OUTPUT INSERTED.id, INSERTED.registadoEm VALUES (?, ?, NULLIF(?, 0), NULLIF(?, 0))";
+            "INSERT INTO AcessoCartao (cartao, localAcesso, quartoNumero, reservaId, funcionarioId) "
+            + "OUTPUT INSERTED.id, INSERTED.registadoEm VALUES (?, ?, NULLIF(?, 0), NULLIF(?, 0), NULLIF(?, 0))";
+    private static final String LISTAR =
+            "SELECT a.id, a.cartao, a.localAcesso, a.quartoNumero, a.reservaId, a.registadoEm, a.funcionarioId, "
+            + "p.nome AS funcionarioNome FROM AcessoCartao a LEFT JOIN Pessoa p ON p.id = a.funcionarioId ";
     private static final String LISTAR_POR_CARTAO =
-            "SELECT id, cartao, localAcesso, quartoNumero, reservaId, registadoEm FROM AcessoCartao "
-            + "WHERE cartao = ? ORDER BY registadoEm DESC, id DESC";
+            LISTAR + "WHERE a.cartao = ? ORDER BY a.registadoEm DESC, a.id DESC";
     private static final String LISTAR_POR_QUARTO =
-            "SELECT id, cartao, localAcesso, quartoNumero, reservaId, registadoEm FROM AcessoCartao "
-            + "WHERE quartoNumero = ? ORDER BY registadoEm DESC, id DESC";
+            LISTAR + "WHERE a.quartoNumero = ? ORDER BY a.registadoEm DESC, a.id DESC";
     private static final String APAGAR = "DELETE FROM AcessoCartao WHERE id = ?";
 
     @Override
     public void registar(AcessoCartao acesso) {
         ConexaoBD.select(REGISTAR, new DadosGeradosMapper(acesso), acesso.getCartao(), acesso.getLocal().name(),
-                acesso.getQuartoNumero(), acesso.getReservaId());
+                acesso.getQuartoNumero(), acesso.getReservaId(), acesso.getFuncionarioId());
     }
 
     @Override
@@ -49,9 +50,11 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
     private static class AcessoCartaoMapper implements RowMapper<AcessoCartao> {
         @Override
         public AcessoCartao map(ResultSet rs) throws SQLException {
-            return new AcessoCartao(rs.getInt("id"), rs.getString("cartao"),
+            AcessoCartao acesso = new AcessoCartao(rs.getInt("id"), rs.getString("cartao"),
                     LocalHotel.valueOf(rs.getString("localAcesso")), rs.getInt("quartoNumero"),
                     rs.getInt("reservaId"), rs.getTimestamp("registadoEm").toLocalDateTime());
+            acesso.setFuncionario(rs.getInt("funcionarioId"), rs.getString("funcionarioNome"));
+            return acesso;
         }
     }
 

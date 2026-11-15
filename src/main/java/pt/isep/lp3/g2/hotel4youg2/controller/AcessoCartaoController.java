@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.bll.AcessoCartaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
@@ -21,6 +22,8 @@ public class AcessoCartaoController {
 
     @FXML
     private TextField cartaoField;
+    @FXML
+    private ComboBox<Funcionario> funcionarioCombo;
     @FXML
     private ComboBox<LocalHotel> localCombo;
     @FXML
@@ -36,11 +39,44 @@ public class AcessoCartaoController {
     private void initialize() {
         localCombo.getItems().setAll(LocalHotel.values());
         mostrarQuarto(false);
+        carregarFuncionarios();
+    }
+
+    private void carregarFuncionarios() {
+        try {
+            funcionarioCombo.getItems().setAll(acessoCartaoBLL.listarFuncionariosComCartao(Sessao.getUtilizador()));
+        } catch (IllegalStateException | DataAccessException e) {
+            mostrarErro("Não foi possível carregar os cartões dos funcionários.");
+        }
+    }
+
+    @FXML
+    private void aoEscolherFuncionario() {
+        Funcionario escolhido = funcionarioCombo.getValue();
+        if (escolhido != null) {
+            cartaoField.setText(escolhido.getCartao());
+            Mensagens.info(mensagemLabel, "");
+            atualizarTabela();
+        }
     }
 
     @FXML
     private void aoEscolherLocal() {
         mostrarQuarto(localCombo.getValue() == LocalHotel.QUARTO);
+    }
+
+    @FXML
+    private void aoUsarOMeuCartao() {
+        try {
+            funcionarioCombo.setValue(null);
+            cartaoField.setText(acessoCartaoBLL.cartaoDoFuncionario(Sessao.getUtilizador()));
+            Mensagens.info(mensagemLabel, "");
+            atualizarTabela();
+        } catch (IllegalStateException e) {
+            mostrarErro(e.getMessage());
+        } catch (DataAccessException e) {
+            mostrarErro("Não foi possível encontrar o seu cartão. Tente novamente.");
+        }
     }
 
     @FXML
