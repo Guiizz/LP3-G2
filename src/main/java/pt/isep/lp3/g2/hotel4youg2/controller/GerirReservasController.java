@@ -62,6 +62,9 @@ public class GerirReservasController {
     private Button cancelarButton;
 
     @FXML
+    private Button apagarButton;
+
+    @FXML
     private Button checkinButton;
 
     @FXML
@@ -98,6 +101,28 @@ public class GerirReservasController {
         try {
             reservaBLL.cancelar(Sessao.getUtilizador(), escolhida);
             mostrarSucesso("Reserva " + escolhida.getId() + " cancelada.");
+        } catch (DataAccessException e) {
+            mostrarErro(ERRO_BD);
+        } catch (RuntimeException e) {
+            mostrarErro(e.getMessage());
+        }
+        carregar();
+    }
+
+    @FXML
+    private void aoApagar() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null) {
+            mostrarErro("Escolha uma reserva na tabela.");
+            return;
+        }
+        if (escolhida.podeSerApagada() && !confirmarApagar(escolhida)) {
+            return;
+        }
+        try {
+            reservaBLL.apagar(Sessao.getUtilizador(), escolhida);
+            mostrarSucesso("Reserva " + escolhida.getId() + " apagada. O quarto " + escolhida.getQuartoNumero()
+                    + " fica livre nessas datas.");
         } catch (DataAccessException e) {
             mostrarErro(ERRO_BD);
         } catch (RuntimeException e) {
@@ -167,6 +192,19 @@ public class GerirReservasController {
                         + "A reserva fica no histórico e o quarto volta a ficar livre.",
                 ButtonType.YES, ButtonType.NO);
         alerta.setTitle("Cancelar reserva");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    }
+
+    private boolean confirmarApagar(Reserva reserva) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION,
+                "Tem a certeza que quer apagar a reserva " + reserva.getId() + " (quarto "
+                        + reserva.getQuartoNumero() + ", " + reserva.getDataEntrada() + " a "
+                        + reserva.getDataSaida() + ")?\n"
+                        + "A reserva e os seus serviços deixam de existir e não é possível desfazer.",
+                ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Apagar reserva");
         alerta.setHeaderText(null);
         Optional<ButtonType> resposta = alerta.showAndWait();
         return resposta.isPresent() && resposta.get() == ButtonType.YES;
@@ -263,6 +301,7 @@ public class GerirReservasController {
         boolean emCurso = separador == SeparadorReserva.EM_CURSO;
         boolean gestor = Permissoes.eGestor(Sessao.getUtilizador());
         mostrarSe(cancelarButton, porFazer && gestor);
+        mostrarSe(apagarButton, (porFazer || separador == SeparadorReserva.HISTORICO) && gestor);
         mostrarSe(checkinButton, porFazer);
         mostrarSe(checkoutButton, emCurso);
         mostrarSe(historicoLabel, separador == SeparadorReserva.HISTORICO);

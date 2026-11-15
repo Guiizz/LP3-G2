@@ -125,6 +125,17 @@ public class ServicoReservaDALTest {
     }
 
     @Test
+    public void testApagarReservaApagaOsServicos() {
+        System.out.println("apagarSemCheckin (os serviços da reserva também deixam de existir)");
+        instance.inserirSeAberta(novoServico(2));
+        reservaDAL.apagarSemCheckin(reserva.getId());
+        int expResult = 0;
+        int result = instance.listarPorReserva(reserva.getId()).size();
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
     public void testInserirReservaCancelada() {
         System.out.println("inserirSeAberta (reserva cancelada)");
         reservaDAL.atualizarEstado(reserva.getId(), EstadoReserva.CANCELADA);

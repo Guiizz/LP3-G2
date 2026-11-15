@@ -115,6 +115,7 @@
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Button text="Detalhes" onAction="#aoVerDetalhes"/>
         <Button fx:id="cancelarButton" text="Cancelar reserva" onAction="#aoCancelar"/>
+        <Button fx:id="apagarButton" text="Apagar reserva" onAction="#aoApagar"/>
         <Button fx:id="checkinButton" text="Fazer check-in" onAction="#aoFazerCheckin"/>
         <Button fx:id="checkoutButton" text="Fazer check-out" onAction="#aoFazerCheckout"/>
         <Label fx:id="historicoLabel" styleClass="mensagem-aviso" text="Só consulta: as reservas do histórico já não mudam."/>

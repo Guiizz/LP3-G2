@@ -121,6 +121,48 @@ public class ReservaDALTest {
     }
 
     @Test
+    public void testApagarSemCheckin() {
+        System.out.println("apagarSemCheckin (confirmada)");
+        instance.apagarSemCheckin(reserva.getId());
+        Reserva expResult = null;
+        Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
+    public void testApagarSemCheckinCancelada() {
+        System.out.println("apagarSemCheckin (cancelada)");
+        instance.cancelar(reserva.getId());
+        boolean expResult = true;
+        boolean result = instance.apagarSemCheckin(reserva.getId());
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
+    public void testApagarSemCheckinDepoisDoCheckin() {
+        System.out.println("apagarSemCheckin (com check-in não apaga)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
+        boolean expResult = false;
+        boolean result = instance.apagarSemCheckin(reserva.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarSemCheckinQuartoFicaLivre() {
+        System.out.println("apagarSemCheckin (o quarto fica livre nessas datas)");
+        instance.apagarSemCheckin(reserva.getId());
+        Reserva outra = new Reserva(0, cliente.getId(), reserva.getQuartoNumero(), reserva.getDataEntrada(),
+                reserva.getDataSaida(), 1, EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
+        outras.add(outra);
+        boolean expResult = true;
+        boolean result = instance.inserirSeLivre(outra);
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
     public void testCancelarDepoisDoCheckin() {
         System.out.println("cancelar (check-in feito entretanto)");
         ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
