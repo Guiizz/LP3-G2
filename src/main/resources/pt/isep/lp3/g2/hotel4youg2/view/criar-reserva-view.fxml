@@ -13,6 +13,7 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
 
 <VBox spacing="10.0"
       xmlns="http://javafx.com/javafx/17"
@@ -67,6 +68,32 @@
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
         </columnResizePolicy>
+    </TableView>
+
+    <Label text="4. Serviços extra (opcional): ficam gravados com a reserva ao confirmar"/>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <ComboBox fx:id="servicoCombo" promptText="Escolha um serviço" prefWidth="240"/>
+        <Label text="Quantidade:"/>
+        <Spinner fx:id="quantidadeSpinner" min="1" max="99" initialValue="1" prefWidth="80"/>
+        <Button text="Juntar" onAction="#aoJuntarServico"/>
+        <Button text="Retirar" onAction="#aoRetirarServico"/>
+    </HBox>
+    <TableView fx:id="servicosTabela" prefHeight="110">
+        <columns>
+            <TableColumn text="Serviço" prefWidth="200">
+                <cellValueFactory><PropertyValueFactory property="nomeServico"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade" prefWidth="90">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Preço" prefWidth="90">
+                <cellValueFactory><PropertyValueFactory property="precoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total" prefWidth="90">
+                <cellValueFactory><PropertyValueFactory property="totalTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <placeholder><Label text="Sem serviços extra."/></placeholder>
     </TableView>
 
     <Label fx:id="precoLabel" style="-fx-font-size: 14; -fx-font-weight: bold;"/>

@@ -5,6 +5,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -34,6 +35,9 @@ public class ReservaDAL implements IReservaDAL {
                     + "WHERE NOT EXISTS (SELECT 1 FROM Reserva r WITH (UPDLOCK, HOLDLOCK) "
                     + "WHERE r.quartoNumero = ? AND r.estado <> 'CANCELADA' "
                     + "AND " + CONFLITO_DE_DATAS + ")";
+
+    private static final String INSERIR_SERVICO =
+            "INSERT INTO ReservaServico (reservaId, servicoId, quantidade, precoUnitario) VALUES (?, ?, ?, ?)";
 
     private static final String SELECT_RESERVA =
             "SELECT id, clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, "
@@ -77,8 +81,45 @@ public class ReservaDAL implements IReservaDAL {
 
     @Override
     public boolean inserirSeLivre(Reserva reserva) {
-        try (Connection conn = ConexaoBD.abrir();
-             PreparedStatement ps = conn.prepareStatement(INSERIR_SE_LIVRE)) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            return inserirSeLivre(conn, reserva);
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao gravar a reserva", e);
+        }
+    }
+
+    @Override
+    public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try {
+                if (!inserirSeLivre(conn, reserva)) {
+                    conn.rollback();
+                    return false;
+                }
+                for (ServicoReserva servico : servicos) {
+                    try (PreparedStatement ps = conn.prepareStatement(INSERIR_SERVICO)) {
+                        ps.setInt(1, reserva.getId());
+                        ps.setInt(2, servico.getServico().getId());
+                        ps.setInt(3, servico.getQuantidade());
+                        ps.setBigDecimal(4, servico.getPrecoUnitario());
+                        ps.executeUpdate();
+                    }
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                reserva.setId(0);
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao gravar a reserva e os serviços", e);
+        }
+    }
+
+    private boolean inserirSeLivre(Connection conn, Reserva reserva) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(INSERIR_SE_LIVRE)) {
             ps.setInt(1, reserva.getClienteId());
             ps.setInt(2, reserva.getQuartoNumero());
             ps.setObject(3, reserva.getDataEntrada());
@@ -98,8 +139,6 @@ public class ReservaDAL implements IReservaDAL {
                 }
                 return false;
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Erro ao gravar a reserva", e);
         }
     }
 

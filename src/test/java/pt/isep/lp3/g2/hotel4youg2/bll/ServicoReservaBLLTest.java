@@ -359,4 +359,57 @@ public class ServicoReservaBLLTest {
         BigDecimal result = ServicoReservaBLL.somar(servicos);
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testNovoServico() {
+        System.out.println("novoServico (preço da tabela, ainda sem reserva)");
+        ServicoReserva expResult = new ServicoReserva(0, 0, pequenoAlmoco, 2, new BigDecimal("12.00"), null);
+        ServicoReserva result = ServicoReservaBLL.novoServico(0, pequenoAlmoco, 2);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testNovoServicoTotal() {
+        System.out.println("novoServico (preço vezes a quantidade)");
+        BigDecimal expResult = new BigDecimal("24.00");
+        BigDecimal result = ServicoReservaBLL.novoServico(0, pequenoAlmoco, 2).getTotal();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testNovoServicoSemServico() {
+        System.out.println("novoServico (sem serviço)");
+        String expResult = "Escolha um serviço";
+        try {
+            ServicoReservaBLL.novoServico(0, null, 1);
+            fail("Devia ter pedido um serviço");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNovoServicoDesativado() {
+        System.out.println("novoServico (serviço desativado)");
+        Servico antigo = new Servico(3, "Almoço antigo", new BigDecimal("15.00"), REFEICAO, false);
+        String expResult = "O serviço Almoço antigo está desativado";
+        try {
+            ServicoReservaBLL.novoServico(0, antigo, 1);
+            fail("Devia ter recusado um serviço desativado");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNovoServicoQuantidadeZero() {
+        System.out.println("novoServico (quantidade zero)");
+        String expResult = "A quantidade tem de ser pelo menos 1";
+        try {
+            ServicoReservaBLL.novoServico(0, pequenoAlmoco, 0);
+            fail("Devia ter recusado a quantidade zero");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
 }
