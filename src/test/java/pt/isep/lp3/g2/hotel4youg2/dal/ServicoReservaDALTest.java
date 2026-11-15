@@ -156,15 +156,15 @@ public class ServicoReservaDALTest {
     }
 
     @Test
-    public void testInserirComServicosFalhaNaoGravaAReserva() {
-        System.out.println("inserirComServicosSeLivre (um serviço falha, a reserva também não fica gravada)");
-        LocalDate entrada = reserva.getDataSaida().plusDays(10);
+    public void testInserirComServicosDesativadoNaoGravaNada() {
+        System.out.println("inserirComServicosSeLivre (serviço desativado entretanto, nada fica gravado)");
+        LocalDate entrada = reserva.getDataSaida().plusDays(15);
         comServicos = novaReservaNoMesmoQuarto(entrada);
-        Servico inexistente = new Servico(-1, "Não existe", new BigDecimal("1.00"), categoria, true);
+        ServicoReserva escolhido = novoServico(1);
+        servicoDAL.atualizarAtivo(servico.getId(), false);
         try {
-            reservaDAL.inserirComServicosSeLivre(comServicos,
-                    List.of(new ServicoReserva(0, 0, inexistente, 1, inexistente.getPreco(), null)));
-        } catch (DataAccessException esperado) {
+            reservaDAL.inserirComServicosSeLivre(comServicos, List.of(escolhido));
+        } catch (IllegalStateException esperado) {
         }
         List<Integer> reservas = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE clienteId = ? AND dataEntrada = ?",
                 new InteiroMapper(), cliente.getId(), entrada);

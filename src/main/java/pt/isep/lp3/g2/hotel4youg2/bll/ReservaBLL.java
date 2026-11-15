@@ -104,6 +104,23 @@ public class ReservaBLL {
         return opcoes;
     }
 
+    /**
+     * Cria uma reserva confirmada para o tipo e a vista escolhidos. É a aplicação que atribui
+     * o quarto: o primeiro que ainda estiver livre quando a reserva é gravada. O preço é o das
+     * noites mais a taxa de early check-in e de late check-out.
+     *
+     * @param cliente      o cliente, procurado pelo NIF
+     * @param tipo         o tipo de quarto escolhido
+     * @param vista        a vista escolhida
+     * @param entrada      a data de entrada (hoje ou depois)
+     * @param saida        a data de saída (depois da entrada)
+     * @param hospedes     o número de hóspedes (pelo menos 1)
+     * @param earlyCheckin se o cliente quer early check-in
+     * @param lateCheckout se o cliente quer late check-out
+     * @return a reserva gravada, com o quarto atribuído
+     * @throws ValidacaoException se faltar o cliente, o tipo ou a vista, se as datas ou os hóspedes
+     *                            não forem válidos, ou se já não houver nenhum quarto livre
+     */
     public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
                          int hospedes, boolean earlyCheckin, boolean lateCheckout) {
         return criar(cliente, tipo, vista, entrada, saida, hospedes, earlyCheckin, lateCheckout, new ArrayList<>());

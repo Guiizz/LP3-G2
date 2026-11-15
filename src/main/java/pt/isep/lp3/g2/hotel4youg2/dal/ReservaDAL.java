@@ -37,7 +37,8 @@ public class ReservaDAL implements IReservaDAL {
                     + "AND " + CONFLITO_DE_DATAS + ")";
 
     private static final String INSERIR_SERVICO =
-            "INSERT INTO ReservaServico (reservaId, servicoId, quantidade, precoUnitario) VALUES (?, ?, ?, ?)";
+            "INSERT INTO ReservaServico (reservaId, servicoId, quantidade, precoUnitario) "
+                    + "SELECT ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM Servico WHERE id = ? AND ativo = 1)";
 
     private static final String SELECT_RESERVA =
             "SELECT id, clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, "
@@ -106,7 +107,11 @@ public class ReservaDAL implements IReservaDAL {
                         ps.setInt(2, servico.getServico().getId());
                         ps.setInt(3, servico.getQuantidade());
                         ps.setBigDecimal(4, servico.getPrecoUnitario());
-                        ps.executeUpdate();
+                        ps.setInt(5, servico.getServico().getId());
+                        if (ps.executeUpdate() == 0) {
+                            throw new IllegalStateException("O serviço " + servico.getServico().getDesignacao()
+                                    + " foi desativado entretanto. Retire-o e confirme outra vez.");
+                        }
                     }
                 }
                 conn.commit();

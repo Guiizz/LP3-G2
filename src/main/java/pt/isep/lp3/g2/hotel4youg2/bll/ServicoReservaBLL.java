@@ -74,6 +74,19 @@ public class ServicoReservaBLL {
         return servicoReservaDAL.listarPorReserva(reserva.getId());
     }
 
+    /**
+     * Junta um serviço à reserva, com o preço que tem agora na tabela de preços,
+     * e atualiza o total dos serviços da reserva.
+     *
+     * @param quemAge    o utilizador com a sessão iniciada (rececionista ou gestor)
+     * @param reserva    a reserva (confirmada ou em curso)
+     * @param servico    o serviço a juntar (tem de estar ativo)
+     * @param quantidade quantas vezes (de 1 a {@value #QUANTIDADE_MAXIMA})
+     * @return o serviço junto, já gravado
+     * @throws IllegalStateException se quem age não for rececionista nem gestor
+     * @throws ValidacaoException    se a reserva já não aceitar serviços, o serviço estiver
+     *                               desativado ou a quantidade não for válida
+     */
     public ServicoReserva adicionar(Utilizador quemAge, Reserva reserva, Servico servico, int quantidade) {
         exigirRececaoOuGestor(quemAge);
         exigirReservaAberta(reserva, "juntar");

@@ -50,7 +50,8 @@
     </HBox>
 
     <Label text="3. Escolha o tipo de quarto (o número é atribuído pela aplicação)"/>
-    <TableView fx:id="quartosTabela" onMouseClicked="#aoEscolherQuarto" prefHeight="230" minHeight="150">        <columns>
+    <TableView fx:id="quartosTabela" onMouseClicked="#aoEscolherQuarto" prefHeight="230" minHeight="150">
+        <columns>
             <TableColumn text="Tipo">
                 <cellValueFactory><PropertyValueFactory property="tipo"/></cellValueFactory>
             </TableColumn>
