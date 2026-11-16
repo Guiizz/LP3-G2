@@ -29,6 +29,7 @@
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <TextField fx:id="nifField" promptText="NIF do cliente" prefWidth="140"/>
         <Button text="Procurar" onAction="#aoProcurarCliente"/>
+        <Button text="Escolher da lista" onAction="#aoEscolherCliente"/>
         <Label fx:id="clienteLabel" style="-fx-font-weight: bold;"/>
     </HBox>
 
