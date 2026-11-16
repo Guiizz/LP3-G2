@@ -8,6 +8,7 @@ import java.util.Objects;
  */
 public class Funcionario extends Pessoa {
 
+    /** Letra com que começa o cartão de um funcionário, seguida do número de funcionário (US52). */
     public static final String PREFIXO_CARTAO = "F";
 
     private int numeroFuncionario;
@@ -17,6 +18,9 @@ public class Funcionario extends Pessoa {
         return numeroFuncionario;
     }
 
+    /**
+     * @return o número do cartão do funcionário, por exemplo {@code "F12"} (US52)
+     */
     public String getCartao() {
         return PREFIXO_CARTAO + numeroFuncionario;
     }

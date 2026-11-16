@@ -17,6 +17,7 @@ import java.io.IOException;
 
 /**
  * Controlador do ecrã "Acesso com cartão" (US39): regista a passagem de um cartão num local do hotel e mostra as passagens desse cartão.
+ * Também aceita os cartões dos funcionários (US52).
  */
 public class AcessoCartaoController {
 

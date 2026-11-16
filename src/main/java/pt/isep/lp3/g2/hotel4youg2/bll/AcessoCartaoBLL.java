@@ -128,6 +128,13 @@ public class AcessoCartaoBLL {
         return acesso;
     }
 
+    /**
+     * Lista os funcionários com a conta ativa, que são os que têm um cartão que funciona (US52).
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return os funcionários com a conta ativa, pelo número de funcionário
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<Funcionario> listarFuncionariosComCartao(Utilizador quemAge) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para ver os cartões dos funcionários.");
@@ -144,6 +151,13 @@ public class AcessoCartaoBLL {
         return cartoes;
     }
 
+    /**
+     * Devolve o cartão do funcionário com a sessão iniciada, para o botão "O meu cartão" (US52).
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return o número do cartão, por exemplo {@code "F12"}
+     * @throws IllegalStateException se não houver sessão iniciada ou se a conta não for de um funcionário
+     */
     public String cartaoDoFuncionario(Utilizador quemAge) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para usar o seu cartão.");

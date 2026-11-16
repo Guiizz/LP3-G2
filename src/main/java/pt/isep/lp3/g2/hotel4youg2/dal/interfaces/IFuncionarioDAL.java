@@ -33,11 +33,32 @@ public interface IFuncionarioDAL {
      */
     void criarConta(Funcionario funcionario, Utilizador utilizador);
 
+    /**
+     * Procura o funcionário de um cartão, pelo número de funcionário (US52).
+     *
+     * @param numeroFuncionario o número que vem a seguir ao F no cartão
+     * @return o funcionário, ou {@code null} se não existir
+     * @throws DataAccessException se não for possível ler a base de dados
+     */
     Funcionario procurarPorNumero(int numeroFuncionario);
 
+    /**
+     * @param pessoaId o id da pessoa do funcionário
+     * @return o funcionário, ou {@code null} se não existir (US52)
+     * @throws DataAccessException se não for possível ler a base de dados
+     */
     Funcionario procurarPorId(int pessoaId);
 
+    /**
+     * @param pessoaId o id da pessoa do funcionário
+     * @return {@code true} se o funcionário tiver uma conta ativa; só esses podem picar o cartão (US52)
+     * @throws DataAccessException se não for possível ler a base de dados
+     */
     boolean temContaAtiva(int pessoaId);
 
+    /**
+     * @return os funcionários com a conta ativa, pelo número de funcionário (US52)
+     * @throws DataAccessException se não for possível ler a base de dados
+     */
     List<Funcionario> listarComContaAtiva();
 }
