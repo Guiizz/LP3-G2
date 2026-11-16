@@ -12,5 +12,8 @@ public interface ILigacaoDAL {
      */
     void testar();
 
+    /**
+     * Começa a abrir a ligação em segundo plano, para a primeira consulta ser mais rápida (US51).
+     */
     void preparar();
 }

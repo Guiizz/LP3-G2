@@ -179,6 +179,10 @@ public final class ConexaoBD {
         return sql.trim().toUpperCase().startsWith("SELECT");
     }
 
+    /**
+     * Abre a ligação partilhada numa thread à parte, sem bloquear o ecrã (US51). Se não conseguir ligar,
+     * não faz nada: a primeira consulta tenta outra vez e mostra o erro.
+     */
     public static void preparar() {
         Thread ligar = new Thread(new PrepararLigacao(), "preparar-ligacao");
         ligar.setDaemon(true);
