@@ -17,7 +17,7 @@
           <mxGeometry height="60" width="30" x="1070" y="560" as="geometry" />
         </mxCell>
         <mxCell id="FORN" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Fornecedor" vertex="1">
-          <mxGeometry height="60" width="30" x="1070" y="880" as="geometry" />
+          <mxGeometry height="60" width="30" x="1070" y="1000" as="geometry" />
         </mxCell>
         <mxCell id="UC1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Registar cliente" vertex="1">
           <mxGeometry height="60" width="180" x="230" y="30" as="geometry" />
@@ -37,7 +37,7 @@
         <mxCell id="UC9" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Adicionar serviço à estadia" vertex="1">
           <mxGeometry height="60" width="180" x="350" y="370" as="geometry" />
         </mxCell>
-        <mxCell id="UC10" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Importar entrega de fornecedor (XML)" vertex="1">
+        <mxCell id="UC10" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Ver detalhes da reserva" vertex="1">
           <mxGeometry height="60" width="180" x="260" y="520" as="geometry" />
         </mxCell>
         <mxCell id="UC12" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Apagar reserva (sem check-in)" vertex="1">
@@ -171,16 +171,6 @@
             <mxPoint x="546" y="510" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="zTYPzhLqcjIlk3VxRZew-4" edge="1" parent="1" source="UC10" style="endArrow=open;endFill=0;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="UC11" value="&lt;&lt;include&gt;&gt;">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="520" y="550" />
-            </Array>
-            <mxPoint x="480" y="530" as="sourcePoint" />
-            <mxPoint x="600" y="530" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="UC22" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Carregar ficheiro de entrega (XML)" vertex="1">
           <mxGeometry height="60" width="180" x="760" y="890" as="geometry" />
         </mxCell>
@@ -212,6 +202,27 @@
         </mxCell>
         <mxCell id="i5" edge="1" parent="1" source="UC24" style="endArrow=open;endFill=0;dashed=1;" target="UC11" value="&lt;&lt;include&gt;&gt;">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="UC25" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Importar XSD" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="1050" as="geometry" />
+        </mxCell>
+        <mxCell id="UC26" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Ver entrega como fatura" vertex="1">
+          <mxGeometry height="60" width="180" x="760" y="1130" as="geometry" />
+        </mxCell>
+        <mxCell id="a27" edge="1" parent="1" source="FORN" target="UC25" style="endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a28" edge="1" parent="1" source="FORN" target="UC26" style="endArrow=none;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a29" edge="1" parent="1" source="FR" target="UC26" style="endArrow=none;rounded=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="1262" />
+              <mxPoint x="850" y="1262" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
