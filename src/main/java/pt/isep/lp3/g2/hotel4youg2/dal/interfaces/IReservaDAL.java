@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.util.List;
 
@@ -19,6 +20,8 @@ public interface IReservaDAL {
      *         em datas que se sobrepõem
      */
     boolean inserirSeLivre(Reserva reserva);
+
+    boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos);
 
     /**
      * @param id o id da reserva
@@ -61,6 +64,8 @@ public interface IReservaDAL {
      * @return {@code true} se foi cancelada; {@code false} se não existe, já foi cancelada ou já teve check-in
      */
     boolean cancelar(int id);
+
+    boolean apagarSemCheckin(int id);
 
     /**
      * Grava as datas e o preço novos da reserva, só se ainda estiver confirmada e sem check-in

@@ -258,4 +258,127 @@ class ReservaTest {
         BigDecimal result = instance.getTotal();
         assertEquals(expResult, result);
     }
+
+    @Test
+    void getCheckinEmTexto() {
+        System.out.println("getCheckinEmTexto");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 13), 2,
+                EstadoReserva.EM_CURSO, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 10, 15, 20), null);
+        String expResult = "10/11 15:20";
+        String result = reserva.getCheckinEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getCheckinEmTextoSemCheckin() {
+        System.out.println("getCheckinEmTexto (sem check-in)");
+        String expResult = "";
+        String result = novaReserva().getCheckinEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getEstadoTexto() {
+        System.out.println("getEstadoTexto");
+        String expResult = "Confirmada";
+        String result = novaReserva().getEstadoTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getCheckoutEmTexto() {
+        System.out.println("getCheckoutEmTexto");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 5), 2,
+                EstadoReserva.CONCLUIDA, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 2, 15, 40),
+                LocalDateTime.of(2026, 11, 5, 11, 10));
+        String expResult = "05/11 11:10";
+        String result = reserva.getCheckoutEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getCheckoutEmTextoSemCheckout() {
+        System.out.println("getCheckoutEmTexto (sem check-out)");
+        String expResult = "";
+        String result = novaReserva().getCheckoutEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesConfirmada() {
+        System.out.println("getAvisoAlteracoes (confirmada, ainda se pode mudar tudo)");
+        String expResult = "";
+        String result = novaReserva().getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesEmCurso() {
+        System.out.println("getAvisoAlteracoes (em curso)");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 13), 2,
+                EstadoReserva.EM_CURSO, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 10, 15, 20), null);
+        String expResult = "Com o check-in feito, as datas já não se alteram.";
+        String result = reserva.getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesConcluida() {
+        System.out.println("getAvisoAlteracoes (concluída)");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 5), 2,
+                EstadoReserva.CONCLUIDA, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 2, 15, 40),
+                LocalDateTime.of(2026, 11, 5, 11, 10));
+        String expResult = "Reserva concluída: já não se alteram as datas nem os serviços.";
+        String result = reserva.getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void getAvisoAlteracoesCancelada() {
+        System.out.println("getAvisoAlteracoes (cancelada)");
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        String expResult = "Reserva cancelada: já não se alteram as datas nem os serviços.";
+        String result = reserva.getAvisoAlteracoes();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void podeSerApagadaConfirmada() {
+        System.out.println("podeSerApagada (confirmada)");
+        boolean expResult = true;
+        boolean result = novaReserva().podeSerApagada();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void podeSerApagadaCancelada() {
+        System.out.println("podeSerApagada (cancelada)");
+        Reserva reserva = novaReserva();
+        reserva.cancelar();
+        boolean expResult = true;
+        boolean result = reserva.podeSerApagada();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void podeSerApagadaEmCurso() {
+        System.out.println("podeSerApagada (em curso)");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 13), 2,
+                EstadoReserva.EM_CURSO, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 10, 15, 20), null);
+        boolean expResult = false;
+        boolean result = reserva.podeSerApagada();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void podeSerApagadaConcluida() {
+        System.out.println("podeSerApagada (concluída)");
+        Reserva reserva = new Reserva(1, 7, 305, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 5), 2,
+                EstadoReserva.CONCLUIDA, new BigDecimal("300.00"), LocalDateTime.of(2026, 11, 2, 15, 40),
+                LocalDateTime.of(2026, 11, 5, 11, 10));
+        boolean expResult = false;
+        boolean result = reserva.podeSerApagada();
+        assertEquals(expResult, result);
+    }
 }

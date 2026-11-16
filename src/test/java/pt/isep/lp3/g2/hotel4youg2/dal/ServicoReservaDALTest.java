@@ -31,6 +31,7 @@ public class ServicoReservaDALTest {
     private Categoria categoria;
     private Servico servico;
     private Reserva reserva;
+    private Reserva comServicos;
 
     @BeforeAll
     public static void limparRestosDeTestes() {
@@ -77,6 +78,9 @@ public class ServicoReservaDALTest {
 
     @AfterEach
     public void tearDown() {
+        if (comServicos != null && comServicos.getId() > 0) {
+            reservaDAL.apagar(comServicos.getId());
+        }
         if (reserva != null && reserva.getId() > 0) {
             reservaDAL.apagar(reserva.getId());
         }
@@ -122,6 +126,62 @@ public class ServicoReservaDALTest {
         BigDecimal expResult = new BigDecimal("130.00");
         BigDecimal result = reservaDAL.procurarPorId(reserva.getId()).getTotal();
         assertEquals(0, expResult.compareTo(result));
+    }
+
+    private Reserva novaReservaNoMesmoQuarto(LocalDate entrada) {
+        return new Reserva(0, cliente.getId(), reserva.getQuartoNumero(), entrada, entrada.plusDays(1), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
+    }
+
+    @Test
+    public void testInserirComServicosSeLivre() {
+        System.out.println("inserirComServicosSeLivre (a reserva e os serviços ficam gravados)");
+        comServicos = novaReservaNoMesmoQuarto(reserva.getDataSaida().plusDays(5));
+        reservaDAL.inserirComServicosSeLivre(comServicos, List.of(novoServico(2), novoServico(1)));
+        BigDecimal expResult = new BigDecimal("30.00");
+        BigDecimal result = reservaDAL.procurarPorId(comServicos.getId()).getTotalServicos();
+        assertEquals(0, expResult.compareTo(result));
+    }
+
+    @Test
+    public void testInserirComServicosQuartoOcupado() {
+        System.out.println("inserirComServicosSeLivre (quarto ocupado, nenhum serviço fica gravado)");
+        comServicos = novaReservaNoMesmoQuarto(reserva.getDataEntrada());
+        boolean gravou = reservaDAL.inserirComServicosSeLivre(comServicos, List.of(novoServico(2)));
+        List<Integer> servicosDoServico = ConexaoBD.select("SELECT COUNT(*) FROM ReservaServico WHERE servicoId = ?",
+                new InteiroMapper(), servico.getId());
+        String expResult = "false / 0";
+        String result = gravou + " / " + servicosDoServico.get(0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testInserirComServicosDesativadoNaoGravaNada() {
+        System.out.println("inserirComServicosSeLivre (serviço desativado entretanto, nada fica gravado)");
+        LocalDate entrada = reserva.getDataSaida().plusDays(15);
+        comServicos = novaReservaNoMesmoQuarto(entrada);
+        ServicoReserva escolhido = novoServico(1);
+        servicoDAL.atualizarAtivo(servico.getId(), false);
+        try {
+            reservaDAL.inserirComServicosSeLivre(comServicos, List.of(escolhido));
+        } catch (IllegalStateException esperado) {
+        }
+        List<Integer> reservas = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE clienteId = ? AND dataEntrada = ?",
+                new InteiroMapper(), cliente.getId(), entrada);
+        String expResult = "0 / 0";
+        String result = comServicos.getId() + " / " + reservas.get(0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarReservaApagaOsServicos() {
+        System.out.println("apagarSemCheckin (os serviços da reserva também deixam de existir)");
+        instance.inserirSeAberta(novoServico(2));
+        reservaDAL.apagarSemCheckin(reserva.getId());
+        int expResult = 0;
+        int result = instance.listarPorReserva(reserva.getId()).size();
+        assertEquals(expResult, result);
+        reserva.setId(0);
     }
 
     @Test

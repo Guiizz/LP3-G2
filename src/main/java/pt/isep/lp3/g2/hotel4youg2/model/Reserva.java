@@ -30,6 +30,8 @@ public class Reserva {
     private boolean earlyCheckin;
     private boolean lateCheckout;
     private BigDecimal taxaHorario = BigDecimal.ZERO;
+    private String nomeCliente;
+    private String nifCliente;
 
     public int getId() {
         return id;
@@ -164,6 +166,10 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    public boolean podeSerApagada() {
+        return checkinEm == null && (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.CANCELADA);
+    }
+
     /**
      * @return {@code true} se ainda se puderem juntar ou retirar serviços extra: reserva confirmada
      *         ou em curso (US37)
@@ -214,6 +220,44 @@ public class Reserva {
 
     public String getCartao() {
         return cartao;
+    }
+
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
+    }
+
+    public String getNifCliente() {
+        return nifCliente;
+    }
+
+    public void setNifCliente(String nifCliente) {
+        this.nifCliente = nifCliente;
+    }
+
+    public String getCheckinEmTexto() {
+        return checkinEm == null ? "" : checkinEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+    }
+
+    public String getEstadoTexto() {
+        return estado == null ? "" : estado.getDescricao();
+    }
+
+    public String getCheckoutEmTexto() {
+        return checkoutEm == null ? "" : checkoutEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+    }
+
+    public String getAvisoAlteracoes() {
+        if (podeSerAlterada()) {
+            return "";
+        }
+        if (aceitaServicos()) {
+            return "Com o check-in feito, as datas já não se alteram.";
+        }
+        return "Reserva " + getEstadoTexto().toLowerCase() + ": já não se alteram as datas nem os serviços.";
     }
 
     public void setCartao(String cartao) {

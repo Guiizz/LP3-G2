@@ -338,4 +338,21 @@ public class EntregaDALTest {
         assertEquals(100, pendente.getTotalUnidades());
         assertEquals(700, aceite.getTotalUnidades());
     }
+
+    @Test
+    public void testProcurarPorIdTrazMoedaETotal() {
+        System.out.println("procurarPorId (moeda e total guardado, US54)");
+        Entrega result = instance.procurarPorId(entrega.getId()).orElseThrow();
+        assertEquals("EUR", result.getMoeda());
+        assertEquals(0, new BigDecimal("1012.91").compareTo(result.getTotalRegistado()));
+        assertEquals(true, result.isTotalCerto());
+    }
+
+    @Test
+    public void testListarResumosDoFornecedorTrazOId() {
+        System.out.println("listarResumosDoFornecedor (com o id para abrir a fatura, US54)");
+        int expResult = entrega.getId();
+        int result = instance.listarResumosDoFornecedor(codigoFornecedor).get(0).getEntregaId();
+        assertEquals(expResult, result);
+    }
 }

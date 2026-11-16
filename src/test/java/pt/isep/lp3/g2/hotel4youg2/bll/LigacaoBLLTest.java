@@ -14,12 +14,18 @@ public class LigacaoBLLTest {
 
     private static class LigacaoDALFalsa implements ILigacaoDAL {
         private DataAccessException erro;
+        private int preparacoes;
 
         @Override
         public void testar() {
             if (erro != null) {
                 throw erro;
             }
+        }
+
+        @Override
+        public void preparar() {
+            preparacoes++;
         }
     }
 
@@ -60,6 +66,15 @@ public class LigacaoBLLTest {
         ligacaoDAL.erro = new DataAccessException("Erro ao ligar");
         String expResult = "Não foi possível ligar: Erro ao ligar (sem detalhe)";
         String result = instance.testarLigacao();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPrepararLigacao() {
+        System.out.println("prepararLigacao");
+        instance.prepararLigacao();
+        int expResult = 1;
+        int result = ligacaoDAL.preparacoes;
         assertEquals(expResult, result);
     }
 }

@@ -1,12 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IHorarioReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
@@ -15,8 +16,12 @@ import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
+import pt.isep.lp3.g2.hotel4youg2.model.Servico;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,9 +42,13 @@ public class ReservaBLLTest {
     private static class ReservaDALFalsa implements IReservaDAL {
         private boolean quartoLivre = true;
         private Reserva gravada;
+        private List<ServicoReserva> servicosGravados;
         private boolean podeCancelarNaBD = true;
         private Integer canceladaId;
+        private boolean podeApagarNaBD = true;
+        private Integer apagadaId;
         private boolean quartoLivreNasNovasDatas = true;
+        private boolean bdFalhaAoAlterarDatas = false;
         private Reserva alterada;
         private List<Reserva> reservasDoCliente = new ArrayList<>();
         private Integer clientePedido;
@@ -47,6 +56,16 @@ public class ReservaBLLTest {
         private Reserva comCheckin;
         private boolean podeFazerCheckoutNaBD = true;
         private Reserva comCheckout;
+        private List<Reserva> todas = new ArrayList<>();
+
+        @Override
+        public boolean apagarSemCheckin(int id) {
+            if (!podeApagarNaBD) {
+                return false;
+            }
+            apagadaId = id;
+            return true;
+        }
 
         @Override
         public boolean cancelar(int id) {
@@ -68,6 +87,15 @@ public class ReservaBLLTest {
         }
 
         @Override
+        public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
+            boolean gravou = inserirSeLivre(reserva);
+            if (gravou) {
+                servicosGravados = new ArrayList<>(servicos);
+            }
+            return gravou;
+        }
+
+        @Override
         public Reserva procurarPorId(int id) {
             return gravada;
         }
@@ -79,7 +107,7 @@ public class ReservaBLLTest {
 
         @Override
         public List<Reserva> listar() {
-            return new ArrayList<>();
+            return new ArrayList<>(todas);
         }
 
         @Override
@@ -100,6 +128,9 @@ public class ReservaBLLTest {
 
         @Override
         public boolean alterarDatasSeLivre(Reserva reserva) {
+            if (bdFalhaAoAlterarDatas) {
+                throw new DataAccessException("Não foi possível ligar à base de dados");
+            }
             if (!quartoLivreNasNovasDatas) {
                 return false;
             }
@@ -500,6 +531,36 @@ public class ReservaBLLTest {
             fail("Devia ter recusado o quarto ocupado");
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.alterada);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasQuartoOcupadoFicaComoEstava() {
+        System.out.println("alterarDatas (quarto ocupado, a reserva fica com as datas e o preço de antes)");
+        repositorio.quartoLivreNasNovasDatas = false;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter recusado o quarto ocupado");
+        } catch (ValidacaoException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasFalhaNaBDFicaComoEstava() {
+        System.out.println("alterarDatas (a BD falha, a reserva fica com as datas e o preço de antes)");
+        repositorio.bdFalhaAoAlterarDatas = true;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter passado o erro da base de dados");
+        } catch (DataAccessException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
         }
     }
 
@@ -1021,5 +1082,279 @@ public class ReservaBLLTest {
         BigDecimal expResult = reserva.getPrecoTotal().add(horarios.obter().getTaxaLateCheckout());
         BigDecimal result = instance.totalAPagar(RECECAO, reserva);
         assertEquals(expResult, result);
+    }
+
+    private Reserva reservaDe(int id, EstadoReserva estado, LocalDate dia, int quartoNumero, String nome, String nif) {
+        Reserva reserva = new Reserva(id, id, quartoNumero, dia, dia.plusDays(1), 1, estado,
+                new BigDecimal("100.00"), null, null);
+        reserva.setNomeCliente(nome);
+        reserva.setNifCliente(nif);
+        return reserva;
+    }
+
+    private void juntarReservasDosSeparadores() {
+        repositorio.todas.add(reservaDe(1, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 20), 201, "Ana Silva", "234567891"));
+        repositorio.todas.add(reservaDe(2, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 5), 305, "Rui Costa", "245678912"));
+        repositorio.todas.add(reservaDe(3, EstadoReserva.EM_CURSO, LocalDate.of(2026, 11, 10), 204, "João Reis", "267891234"));
+        repositorio.todas.add(reservaDe(4, EstadoReserva.CONCLUIDA, LocalDate.of(2026, 11, 2), 202, "Pedro Alves", "289123456"));
+        repositorio.todas.add(reservaDe(5, EstadoReserva.CANCELADA, LocalDate.of(2026, 11, 6), 103, "Inês Faria", "291234567"));
+    }
+
+    @Test
+    public void testListarPorFazer() {
+        System.out.println("listar (por fazer, da entrada mais próxima)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(1));
+        expResult.add(repositorio.todas.get(0));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarEmCurso() {
+        System.out.println("listar (em curso)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(2));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.EM_CURSO, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarHistorico() {
+        System.out.println("listar (histórico: concluídas e canceladas)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(3));
+        expResult.add(repositorio.todas.get(4));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaPorNome() {
+        System.out.println("listar (pesquisa pelo nome, sem maiúsculas)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(0));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "ana");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaPorNif() {
+        System.out.println("listar (pesquisa pelo início do NIF)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(1));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "2456");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaPorQuarto() {
+        System.out.println("listar (pesquisa pelo número do quarto)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(2));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.EM_CURSO, "204");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaQuartoIncompleto() {
+        System.out.println("listar (parte do número do quarto não encontra)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "20");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaComEspacos() {
+        System.out.println("listar (pesquisa com espaços à volta)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(4));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "  INÊS ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPesquisaSemResultados() {
+        System.out.println("listar (pesquisa sem resultados)");
+        juntarReservasDosSeparadores();
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "Pedro");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarClienteSemNome() {
+        System.out.println("listar (reserva sem nome nem NIF do cliente)");
+        repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 1), 101, null, null));
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(repositorio.todas.get(0));
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "101");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarSemSeparador() {
+        System.out.println("listar (sem separador)");
+        String expResult = "Escolha o separador das reservas";
+        try {
+            ReservaBLL.filtrar(instance.listar(), null, "");
+            fail("Devia ter recusado sem separador");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagar() {
+        System.out.println("apagar (confirmada, sem check-in)");
+        instance.apagar(GESTOR, reservaConfirmada());
+        Integer expResult = 5;
+        Integer result = repositorio.apagadaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarCancelada() {
+        System.out.println("apagar (cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.cancelar();
+        instance.apagar(GESTOR, reserva);
+        Integer expResult = 5;
+        Integer result = repositorio.apagadaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarDiaDeEntradaJaPassou() {
+        System.out.println("apagar (confirmada, o cliente não compareceu)");
+        Reserva reserva = new Reserva(5, 7, 201, LocalDate.now().minusDays(3), LocalDate.now().minusDays(1), 1,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        instance.apagar(GESTOR, reserva);
+        Integer expResult = 5;
+        Integer result = repositorio.apagadaId;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarRececionista() {
+        System.out.println("apagar (rececionista não pode)");
+        try {
+            instance.apagar(RECECAO, reservaConfirmada());
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            assertEquals(null, repositorio.apagadaId);
+        }
+    }
+
+    @Test
+    public void testApagarSemReserva() {
+        System.out.println("apagar (sem reserva)");
+        String expResult = "Escolha uma reserva";
+        try {
+            instance.apagar(GESTOR, null);
+            fail("Devia ter pedido uma reserva");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagarEmCurso() {
+        System.out.println("apagar (em curso, aparece o motivo)");
+        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (em curso)";
+        try {
+            instance.apagar(GESTOR, reservaEmCurso());
+            fail("Devia ter recusado uma reserva com check-in");
+        } catch (IllegalStateException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagarConcluida() {
+        System.out.println("apagar (concluída, aparece o motivo)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (concluída)";
+        try {
+            instance.apagar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva concluída");
+        } catch (IllegalStateException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testApagarCheckinNoutroComputador() {
+        System.out.println("apagar (check-in feito entretanto noutro computador)");
+        repositorio.podeApagarNaBD = false;
+        String expResult = "A reserva 5 já não pode ser apagada: não existe ou entretanto teve check-in";
+        try {
+            instance.apagar(GESTOR, reservaConfirmada());
+            fail("Devia ter recusado o que a BD recusou");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    private List<ServicoReserva> servicosEscolhidos() {
+        Categoria refeicao = new Categoria(1, "Refeição");
+        List<ServicoReserva> servicos = new ArrayList<>();
+        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(1, "Pequeno-almoço", new BigDecimal("12.00"), refeicao, true), 2));
+        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(2, "Jantar", new BigDecimal("22.00"), refeicao, true), 1));
+        return servicos;
+    }
+
+    @Test
+    public void testCriarComServicosGravaOsServicos() {
+        System.out.println("criar (com serviços extra, ficam gravados com a reserva)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        List<ServicoReserva> expResult = servicosEscolhidos();
+        instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false, expResult);
+        List<ServicoReserva> result = repositorio.servicosGravados;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarComServicosSomaAoTotal() {
+        System.out.println("criar (o total inclui os serviços extra)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        Reserva reserva = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+                false, false, servicosEscolhidos());
+        BigDecimal expResult = new BigDecimal("246.00");
+        BigDecimal result = reserva.getTotal();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarSemServicos() {
+        System.out.println("criar (sem serviços extra)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false);
+        int expResult = 0;
+        int result = repositorio.servicosGravados.size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarQuartoOcupadoNaoGravaServicos() {
+        System.out.println("criar (sem quarto livre, nenhum serviço fica gravado)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        repositorio.quartoLivre = false;
+        try {
+            instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false,
+                    servicosEscolhidos());
+            fail("Devia ter recusado sem quarto livre");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.servicosGravados);
+        }
     }
 }

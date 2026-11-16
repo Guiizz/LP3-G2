@@ -13,8 +13,10 @@ import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -121,6 +123,11 @@ public class ReservaBLL {
      */
     public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
                          int hospedes, boolean earlyCheckin, boolean lateCheckout) {
+        return criar(cliente, tipo, vista, entrada, saida, hospedes, earlyCheckin, lateCheckout, new ArrayList<>());
+    }
+
+    public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
+                         int hospedes, boolean earlyCheckin, boolean lateCheckout, List<ServicoReserva> servicos) {
         if (cliente == null) {
             throw new ValidacaoException("Escolha o cliente pelo NIF");
         }
@@ -129,6 +136,7 @@ public class ReservaBLL {
         }
         validarDatas(entrada, saida);
         validarHospedes(hospedes);
+        List<ServicoReserva> extras = servicos == null ? new ArrayList<>() : servicos;
         BigDecimal taxa = calcularTaxa(earlyCheckin, lateCheckout);
         for (Quarto quarto : quartoDAL.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
             if (quarto.getTipo() == tipo && quarto.getVista() == vista && quarto.getCapacidade() >= hospedes) {
@@ -137,7 +145,8 @@ public class ReservaBLL {
                 reserva.setEarlyCheckin(earlyCheckin);
                 reserva.setLateCheckout(lateCheckout);
                 reserva.setTaxaHorario(taxa);
-                if (reservaDAL.inserirSeLivre(reserva)) {
+                if (reservaDAL.inserirComServicosSeLivre(reserva, extras)) {
+                    reserva.setTotalServicos(ServicoReservaBLL.somar(extras));
                     return reserva;
                 }
             }
@@ -222,6 +231,44 @@ public class ReservaBLL {
         return reservaDAL.listar();
     }
 
+    public static List<Reserva> filtrar(List<Reserva> reservas, SeparadorReserva separador, String pesquisa) {
+        if (separador == null) {
+            throw new ValidacaoException("Escolha o separador das reservas");
+        }
+        String termo = pesquisa == null ? "" : pesquisa.trim().toLowerCase();
+        List<Reserva> resultado = new ArrayList<>();
+        for (Reserva reserva : reservas) {
+            if (separador.inclui(reserva.getEstado()) && corresponde(reserva, termo)) {
+                resultado.add(reserva);
+            }
+        }
+        if (separador == SeparadorReserva.POR_FAZER) {
+            resultado.sort(new EntradaMaisProximaPrimeiro());
+        }
+        return resultado;
+    }
+
+    private static boolean corresponde(Reserva reserva, String termo) {
+        if (termo.isEmpty()) {
+            return true;
+        }
+        String nome = reserva.getNomeCliente() == null ? "" : reserva.getNomeCliente().toLowerCase();
+        String nif = reserva.getNifCliente() == null ? "" : reserva.getNifCliente();
+        String quarto = String.valueOf(reserva.getQuartoNumero());
+        return nome.contains(termo) || nif.startsWith(termo) || quarto.equals(termo);
+    }
+
+    private static class EntradaMaisProximaPrimeiro implements Comparator<Reserva> {
+        @Override
+        public int compare(Reserva a, Reserva b) {
+            int porData = a.getDataEntrada().compareTo(b.getDataEntrada());
+            if (porData != 0) {
+                return porData;
+            }
+            return Integer.compare(a.getId(), b.getId());
+        }
+    }
+
     /**
      * Lista as reservas de um cliente (US33).
      *
@@ -273,6 +320,23 @@ public class ReservaBLL {
         }
     }
 
+    public void apagar(Utilizador quemAge, Reserva reserva) {
+        if (!Permissoes.eGestor(quemAge)) {
+            throw new IllegalStateException("Só o gestor pode apagar reservas");
+        }
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        if (!reserva.podeSerApagada()) {
+            throw new IllegalStateException("A reserva " + reserva.getId() + " não pode ser apagada: já teve check-in ("
+                    + reserva.getEstadoTexto().toLowerCase() + ")");
+        }
+        if (!reservaDAL.apagarSemCheckin(reserva.getId())) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já não pode ser apagada: não existe ou entretanto teve check-in");
+        }
+    }
+
     /**
      * Altera as datas de uma reserva confirmada, se o quarto estiver livre nas datas novas (US30).
      *
@@ -293,8 +357,21 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         validarDatas(novaEntrada, novaSaida);
+        LocalDate entradaAntes = reserva.getDataEntrada();
+        LocalDate saidaAntes = reserva.getDataSaida();
+        BigDecimal precoAntes = reserva.getPrecoTotal();
         reserva.alterarDatas(novaEntrada, novaSaida);
-        if (!reservaDAL.alterarDatasSeLivre(reserva)) {
+        boolean gravou = false;
+        try {
+            gravou = reservaDAL.alterarDatasSeLivre(reserva);
+        } finally {
+            if (!gravou) {
+                reserva.setDataEntrada(entradaAntes);
+                reserva.setDataSaida(saidaAntes);
+                reserva.setPrecoTotal(precoAntes);
+            }
+        }
+        if (!gravou) {
             throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
                     + " não está livre nessas datas, ou a reserva já não pode ser alterada");
         }

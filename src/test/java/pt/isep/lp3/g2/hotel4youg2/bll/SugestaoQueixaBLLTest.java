@@ -7,6 +7,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ISugestaoQueixaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
@@ -246,6 +247,11 @@ public class SugestaoQueixaBLLTest {
         }
 
         @Override
+        public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
+            return false;
+        }
+
+        @Override
         public Reserva procurarPorId(int id) {
             return null;
         }
@@ -272,6 +278,11 @@ public class SugestaoQueixaBLLTest {
 
         @Override
         public boolean cancelar(int id) {
+            return false;
+        }
+
+        @Override
+        public boolean apagarSemCheckin(int id) {
             return false;
         }
 
