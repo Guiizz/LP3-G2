@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
@@ -13,7 +14,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="10.0" prefWidth="620.0" prefHeight="520.0"
+<VBox spacing="10.0" prefWidth="620.0" prefHeight="600.0"
       xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.ServicosReservaController">
@@ -60,13 +61,23 @@
 
     <Separator/>
 
+    <Label text="Horário da reserva" style="-fx-font-weight: bold;"/>
+    <HBox spacing="20.0" alignment="CENTER_LEFT">
+        <CheckBox fx:id="earlyCheckBox" text="Early check-in" onAction="#aoMudarHorario"/>
+        <CheckBox fx:id="lateCheckBox" text="Late check-out" onAction="#aoMudarHorario"/>
+    </HBox>
+
+    <Separator/>
+
     <GridPane hgap="10.0" vgap="4.0">
         <Label text="Quarto:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <Label fx:id="quartoLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
         <Label text="Serviços:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <Label fx:id="servicosLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-        <Label text="Total:" style="-fx-font-weight: bold;" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <Label fx:id="totalLabel" style="-fx-font-weight: bold;" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Early / late:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label fx:id="taxaLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Total:" style="-fx-font-weight: bold;" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Label fx:id="totalLabel" style="-fx-font-weight: bold;" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
     </GridPane>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>

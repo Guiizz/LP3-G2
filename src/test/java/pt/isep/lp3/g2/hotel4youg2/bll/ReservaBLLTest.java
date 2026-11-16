@@ -50,6 +50,9 @@ public class ReservaBLLTest {
         private boolean quartoLivreNasNovasDatas = true;
         private boolean bdFalhaAoAlterarDatas = false;
         private Reserva alterada;
+        private boolean quartoPermiteHorario = true;
+        private boolean bdFalhaAoAlterarHorario = false;
+        private Reserva comHorarioAlterado;
         private List<Reserva> reservasDoCliente = new ArrayList<>();
         private Integer clientePedido;
         private boolean podeFazerCheckinNaBD = true;
@@ -135,6 +138,18 @@ public class ReservaBLLTest {
                 return false;
             }
             alterada = reserva;
+            return true;
+        }
+
+        @Override
+        public boolean alterarHorarioSeLivre(Reserva reserva) {
+            if (bdFalhaAoAlterarHorario) {
+                throw new DataAccessException("Não foi possível ligar à base de dados");
+            }
+            if (!quartoPermiteHorario) {
+                return false;
+            }
+            comHorarioAlterado = reserva;
             return true;
         }
 
@@ -562,6 +577,170 @@ public class ReservaBLLTest {
             String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
             assertEquals(expResult, result);
         }
+    }
+
+    private Reserva reservaComHorario(EstadoReserva estado, boolean earlyCheckin, boolean lateCheckout, String taxa) {
+        LocalDateTime checkin = estado == EstadoReserva.CONFIRMADA ? null : entrada.atTime(15, 0);
+        LocalDateTime checkout = estado == EstadoReserva.CONCLUIDA ? entrada.plusDays(2).atTime(11, 0) : null;
+        Reserva reserva = new Reserva(5, 7, 201, entrada, entrada.plusDays(2), 1, estado,
+                new BigDecimal("200.00"), checkin, checkout);
+        reserva.setEarlyCheckin(earlyCheckin);
+        reserva.setLateCheckout(lateCheckout);
+        reserva.setTaxaHorario(new BigDecimal(taxa));
+        return reserva;
+    }
+
+    @Test
+    public void testAlterarHorarioRetirarEarly() {
+        System.out.println("alterarHorario (retirar o early check-in, a taxa sai do total)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        instance.alterarHorario(RECECAO, reserva, false, false);
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, false, false, "0");
+        Reserva result = repositorio.comHorarioAlterado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioRetirarLateFicaOEarly() {
+        System.out.println("alterarHorario (retirar o late check-out e ficar com o early check-in)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, true, "45.00");
+        instance.alterarHorario(RECECAO, reserva, true, false);
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        Reserva result = repositorio.comHorarioAlterado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioJuntarLate() {
+        System.out.println("alterarHorario (juntar o late check-out depois de criar a reserva)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, false, false, "0");
+        instance.alterarHorario(GESTOR, reserva, false, true);
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, false, true, "25.00");
+        Reserva result = repositorio.comHorarioAlterado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioRetirarLateEmCurso() {
+        System.out.println("alterarHorario (retirar o late check-out com a reserva em curso)");
+        Reserva reserva = reservaComHorario(EstadoReserva.EM_CURSO, false, true, "25.00");
+        instance.alterarHorario(RECECAO, reserva, false, false);
+        Reserva expResult = reservaComHorario(EstadoReserva.EM_CURSO, false, false, "0");
+        Reserva result = repositorio.comHorarioAlterado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioEarlyDepoisDoCheckin() {
+        System.out.println("alterarHorario (early check-in depois do check-in)");
+        Reserva reserva = reservaComHorario(EstadoReserva.EM_CURSO, true, false, "20.00");
+        String expResult = "A reserva 5 já tem o check-in feito: o early check-in já não se pode mudar";
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, false);
+            fail("Devia ter recusado mudar o early check-in depois do check-in");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioLateDepoisDoCheckout() {
+        System.out.println("alterarHorario (late check-out depois do check-out)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONCLUIDA, false, true, "25.00");
+        String expResult = "A reserva 5 já não está confirmada nem em curso: o late check-out já não se pode mudar";
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, false);
+            fail("Devia ter recusado mudar o late check-out depois do check-out");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioQuartoNaoPermite() {
+        System.out.println("alterarHorario (o quarto não permite o late check-out, aparece o motivo)");
+        repositorio.quartoPermiteHorario = false;
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, false, false, "0");
+        String expResult = "O quarto 201 não permite o early check-in ou o late check-out nestas datas: "
+                + "há outra reserva a sair no dia de entrada ou a entrar no dia de saída";
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, true);
+            fail("Devia ter recusado o late check-out");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioQuartoNaoPermiteFicaComoEstava() {
+        System.out.println("alterarHorario (o quarto não permite, a reserva fica como estava)");
+        repositorio.quartoPermiteHorario = false;
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        try {
+            instance.alterarHorario(RECECAO, reserva, true, true);
+            fail("Devia ter recusado o late check-out");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, reserva);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioFalhaNaBDFicaComoEstava() {
+        System.out.println("alterarHorario (a BD falha, a reserva fica como estava)");
+        repositorio.bdFalhaAoAlterarHorario = true;
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, false);
+            fail("Devia ter passado o erro da base de dados");
+        } catch (DataAccessException e) {
+            assertEquals(expResult, reserva);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioSemMudancas() {
+        System.out.println("alterarHorario (sem mudanças, não grava nada)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        instance.alterarHorario(RECECAO, reserva, true, false);
+        Reserva expResult = null;
+        Reserva result = repositorio.comHorarioAlterado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioSemSessao() {
+        System.out.println("alterarHorario (sem sessão iniciada)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        try {
+            instance.alterarHorario(null, reserva, false, false);
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException e) {
+            assertEquals(null, repositorio.comHorarioAlterado);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioSemReserva() {
+        System.out.println("alterarHorario (sem reserva)");
+        String expResult = "Escolha uma reserva";
+        try {
+            instance.alterarHorario(RECECAO, null, false, false);
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testTotalAPagarDepoisDeRetirarLate() {
+        System.out.println("totalAPagar (depois de retirar o late check-out, a taxa já não conta)");
+        Reserva reserva = reservaComHorario(EstadoReserva.EM_CURSO, false, true, "25.00");
+        instance.alterarHorario(RECECAO, reserva, false, false);
+        BigDecimal expResult = new BigDecimal("200.00");
+        BigDecimal result = instance.totalAPagar(RECECAO, reserva);
+        assertEquals(expResult, result);
     }
 
     private Reserva reservaDaAna(int id, LocalDate entradaReserva, EstadoReserva estado) {
