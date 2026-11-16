@@ -47,6 +47,14 @@ public class StockBLL {
         return stockDAL.listar();
     }
 
+    /**
+     * Procura materiais pelo código, pela descrição ou pelo fornecedor, sem distinguir maiúsculas (US62).
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param termo   o texto a procurar; vazio ou {@code null} mostra todos
+     * @return os materiais encontrados, com o que entrou, o que saiu e o stock efetivo
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<MaterialStock> pesquisar(Utilizador quemAge, String termo) {
         exigirSessaoParaConsultar(quemAge);
         String procurado = termo == null ? "" : termo.trim().toLowerCase();
@@ -61,6 +69,16 @@ public class StockBLL {
         return encontrados;
     }
 
+    /**
+     * Devolve o histórico de entradas e saídas de um material, do mais recente para o mais antigo (US62).
+     *
+     * @param quemAge  o utilizador com a sessão iniciada
+     * @param material o material escolhido na tabela
+     * @param tipo     só as entradas ou só as saídas, ou {@code null} para todos os movimentos
+     * @return os movimentos do material, com a data, a quantidade e o funcionário
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se não for escolhido nenhum material
+     */
     public List<MovimentoStock> historico(Utilizador quemAge, MaterialStock material, TipoMovimento tipo) {
         exigirSessaoParaConsultar(quemAge);
         if (material == null) {

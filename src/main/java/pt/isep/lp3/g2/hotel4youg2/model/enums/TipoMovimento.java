@@ -1,5 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
+/**
+ * Tipo de movimento do stock (US62): entrada (entrega aceite) ou saída (material usado ou retirado).
+ */
 public enum TipoMovimento {
     ENTRADA("Entrada"),
     SAIDA("Saída");

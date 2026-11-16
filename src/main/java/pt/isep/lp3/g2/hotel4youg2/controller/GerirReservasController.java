@@ -29,8 +29,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Controlador do ecrã "Gerir reservas": lista as reservas, deixa alterar as datas (US30),
- * deixa o gestor cancelá-las (US29) e abre os serviços de cada reserva (US37).
+ * Controlador do ecrã "Gerir reservas": mostra as reservas em separadores por estado, com pesquisa (US55),
+ * abre os detalhes de cada reserva (US56), faz o check-in e o check-out, e deixa o gestor cancelar (US29)
+ * e apagar as reservas sem check-in (US57).
  */
 public class GerirReservasController {
 
@@ -251,6 +252,9 @@ public class GerirReservasController {
         }
     }
 
+    /**
+     * Volta a ler as reservas da base de dados e limpa a mensagem; é chamado ao voltar dos detalhes (US56).
+     */
     public void atualizar() {
         mensagemLabel.setText("");
         carregar();

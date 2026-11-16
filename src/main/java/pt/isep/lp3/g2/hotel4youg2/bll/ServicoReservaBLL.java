@@ -99,6 +99,16 @@ public class ServicoReservaBLL {
         return novo;
     }
 
+    /**
+     * Prepara um serviço para juntar a uma reserva, com o preço que tem agora na tabela de preços, sem o gravar.
+     * Serve para juntar serviços a uma reserva existente e para os escolher ao criar a reserva (US60).
+     *
+     * @param reservaId  o id da reserva (0 se a reserva ainda não foi criada)
+     * @param servico    o serviço (tem de estar ativo)
+     * @param quantidade quantas vezes (de 1 a {@value #QUANTIDADE_MAXIMA})
+     * @return o serviço da reserva, ainda por gravar
+     * @throws ValidacaoException se faltar o serviço, se estiver desativado ou se a quantidade não for válida
+     */
     public static ServicoReserva novoServico(int reservaId, Servico servico, int quantidade) {
         if (servico == null) {
             throw new ValidacaoException("Escolha um serviço");

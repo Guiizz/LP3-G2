@@ -20,6 +20,11 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Detalhes da reserva" (US56): mostra o cliente, o quarto, as datas, o early check-in
+ * e o late check-out, o cartão, os serviços extra e o total, e deixa alterar as datas e abrir os serviços.
+ * Abre dentro da área, no lugar da lista das reservas.
+ */
 public class DetalhesReservaController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
@@ -78,6 +83,15 @@ public class DetalhesReservaController {
     @FXML
     private Label mensagemLabel;
 
+    /**
+     * Abre os detalhes de uma reserva no lugar da lista. O botão Voltar regressa à lista tal como estava
+     * e atualiza-a.
+     *
+     * @param reserva     a reserva escolhida
+     * @param ecraDaLista o ecrã da lista que está aberto (fica guardado para voltar)
+     * @param lista       o controlador da lista, para a atualizar ao voltar
+     * @throws IOException se não for possível ler o FXML
+     */
     public static void abrir(Reserva reserva, Node ecraDaLista, GerirReservasController lista) throws IOException {
         FXMLLoader loader = Navegador.carregar("detalhes-reserva-view.fxml");
         DetalhesReservaController controller = loader.getController();

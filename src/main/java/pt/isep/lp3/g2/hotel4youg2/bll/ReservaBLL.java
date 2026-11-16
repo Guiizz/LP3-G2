@@ -126,6 +126,25 @@ public class ReservaBLL {
         return criar(cliente, tipo, vista, entrada, saida, hospedes, earlyCheckin, lateCheckout, new ArrayList<>());
     }
 
+    /**
+     * Cria uma reserva como {@link #criar(Cliente, TipoQuarto, Vista, LocalDate, LocalDate, int, boolean, boolean)},
+     * já com os serviços extra escolhidos (US60). A reserva e os serviços são gravados juntos: se um falhar,
+     * nada fica gravado.
+     *
+     * @param cliente      o cliente, procurado pelo NIF
+     * @param tipo         o tipo de quarto escolhido
+     * @param vista        a vista escolhida
+     * @param entrada      a data de entrada (hoje ou depois)
+     * @param saida        a data de saída (depois da entrada)
+     * @param hospedes     o número de hóspedes (pelo menos 1)
+     * @param earlyCheckin se o cliente quer early check-in
+     * @param lateCheckout se o cliente quer late check-out
+     * @param servicos     os serviços extra a juntar à reserva ({@code null} ou vazia se não houver)
+     * @return a reserva gravada, com o quarto atribuído e o total dos serviços
+     * @throws ValidacaoException    se faltar o cliente, o tipo ou a vista, se as datas ou os hóspedes
+     *                               não forem válidos, ou se já não houver nenhum quarto livre
+     * @throws IllegalStateException se um dos serviços foi desativado entretanto
+     */
     public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
                          int hospedes, boolean earlyCheckin, boolean lateCheckout, List<ServicoReserva> servicos) {
         if (cliente == null) {
@@ -231,6 +250,18 @@ public class ReservaBLL {
         return reservaDAL.listar();
     }
 
+    /**
+     * Escolhe as reservas de um separador do ecrã "Gerir reservas" e aplica a pesquisa (US55). Trabalha em memória,
+     * sobre as reservas já lidas, para escrever na pesquisa não fazer consultas novas.
+     * No separador "Por fazer" ficam da entrada mais próxima para a mais distante.
+     *
+     * @param reservas  as reservas lidas da base de dados
+     * @param separador o separador aberto
+     * @param pesquisa  parte do nome do cliente (sem distinguir maiúsculas), início do NIF ou número exato
+     *                  do quarto; vazia ou {@code null} para não filtrar
+     * @return as reservas desse separador que correspondem à pesquisa
+     * @throws ValidacaoException se não houver separador
+     */
     public static List<Reserva> filtrar(List<Reserva> reservas, SeparadorReserva separador, String pesquisa) {
         if (separador == null) {
             throw new ValidacaoException("Escolha o separador das reservas");
@@ -320,6 +351,16 @@ public class ReservaBLL {
         }
     }
 
+    /**
+     * Apaga uma reserva sem check-in, confirmada ou cancelada (US57). Os serviços da reserva também deixam
+     * de existir e o quarto fica livre nessas datas. Só o gestor pode apagar.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param reserva a reserva a apagar
+     * @throws IllegalStateException se quem age não for o gestor, ou se a reserva já teve check-in
+     * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se entretanto deixou de existir
+     *                               ou teve check-in noutro computador
+     */
     public void apagar(Utilizador quemAge, Reserva reserva) {
         if (!Permissoes.eGestor(quemAge)) {
             throw new IllegalStateException("Só o gestor pode apagar reservas");
@@ -377,6 +418,20 @@ public class ReservaBLL {
         }
     }
 
+    /**
+     * Junta ou retira o early check-in e o late check-out de uma reserva (US58). O early check-in só muda antes do
+     * check-in e o late check-out só muda antes do check-out. Ao juntar, o quarto tem de permitir o pedido
+     * (regra da US47). A taxa volta a ser calculada com os valores em vigor. Se não for possível gravar,
+     * a reserva fica como estava.
+     *
+     * @param quemAge      o utilizador com a sessão iniciada (rececionista ou gestor)
+     * @param reserva      a reserva a alterar
+     * @param earlyCheckin se a reserva passa a ter early check-in
+     * @param lateCheckout se a reserva passa a ter late check-out
+     * @throws IllegalStateException se quem age não for rececionista nem gestor
+     * @throws ValidacaoException    se não for escolhida nenhuma reserva, se a mudança já não for possível
+     *                               nesse estado da reserva, ou se o quarto não permitir o pedido
+     */
     public void alterarHorario(Utilizador quemAge, Reserva reserva, boolean earlyCheckin, boolean lateCheckout) {
         if (!Permissoes.podeGerirReservas(quemAge)) {
             throw new IllegalStateException("Entre na aplicação como rececionista ou gestor para alterar reservas");

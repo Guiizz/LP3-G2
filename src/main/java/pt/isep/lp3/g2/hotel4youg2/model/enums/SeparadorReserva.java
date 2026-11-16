@@ -1,5 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
+/**
+ * Separadores do ecrã "Gerir reservas" (US55): cada reserva aparece no separador do seu estado.
+ */
 public enum SeparadorReserva {
     POR_FAZER("Por fazer"),
     EM_CURSO("Em curso"),
@@ -14,6 +17,13 @@ public enum SeparadorReserva {
         return descricao;
     }
 
+    /**
+     * Diz se uma reserva com este estado aparece neste separador: "Por fazer" tem as confirmadas,
+     * "Em curso" as em curso e "Histórico" as concluídas e as canceladas.
+     *
+     * @param estado o estado da reserva
+     * @return {@code true} se a reserva aparece neste separador
+     */
     public boolean inclui(EstadoReserva estado) {
         if (this == POR_FAZER) {
             return estado == EstadoReserva.CONFIRMADA;

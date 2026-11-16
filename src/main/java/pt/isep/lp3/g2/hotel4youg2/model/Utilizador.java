@@ -65,10 +65,16 @@ public class Utilizador {
         this.perfil = perfil;
     }
 
+    /**
+     * @return o perfil como texto, para a coluna da tabela das contas (US50)
+     */
     public String getPerfilTexto() {
         return perfil.name();
     }
 
+    /**
+     * @return {@code "Ativa"} ou {@code "Desativada"}, para a coluna da tabela das contas (US50)
+     */
     public String getEstadoTexto() {
         return ativo ? "Ativa" : "Desativada";
     }

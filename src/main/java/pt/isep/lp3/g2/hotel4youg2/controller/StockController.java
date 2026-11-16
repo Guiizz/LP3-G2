@@ -14,6 +14,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.List;
 
+/**
+ * Controlador da "Janela de stock" (US62): mostra cada material com o que entrou, o que saiu e o stock efetivo,
+ * permite pesquisar e mostra o histórico de movimentos do material escolhido, com filtro por entradas ou saídas.
+ */
 public class StockController {
 
     private final StockBLL stockBLL = new StockBLL();

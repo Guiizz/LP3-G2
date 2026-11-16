@@ -27,5 +27,11 @@ public interface IStockDAL {
      */
     boolean registarSaida(int materialId, int quantidade, int funcionarioId);
 
+    /**
+     * Lista as entradas (linhas de entregas aceites) e as saídas de um material (US62).
+     *
+     * @param materialId o id do material
+     * @return os movimentos, do mais recente para o mais antigo
+     */
     List<MovimentoStock> listarMovimentos(int materialId);
 }

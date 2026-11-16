@@ -29,7 +29,8 @@ import java.util.Optional;
 
 /**
  * Controlador do ecrã "Serviços da reserva" (US37): mostra os serviços juntos a uma reserva
- * e o total (quarto + serviços), e deixa juntar e retirar serviços. Abre em pop-up.
+ * e o total (quarto + serviços + early/late), e deixa juntar e retirar serviços e também o early check-in
+ * e o late check-out (US58). Abre em pop-up.
  */
 public class ServicosReservaController {
 

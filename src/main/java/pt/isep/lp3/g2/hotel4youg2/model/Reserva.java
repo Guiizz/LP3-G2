@@ -166,6 +166,10 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    /**
+     * @return {@code true} se a reserva ainda não teve check-in e está confirmada ou cancelada:
+     *         só estas podem ser apagadas pelo gestor (US57)
+     */
     public boolean podeSerApagada() {
         return checkinEm == null && (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.CANCELADA);
     }
@@ -178,10 +182,18 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
     }
 
+    /**
+     * @return {@code true} se ainda se pode juntar ou retirar o early check-in: reserva confirmada
+     *         e sem check-in (US58)
+     */
     public boolean podeMudarEarlyCheckin() {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    /**
+     * @return {@code true} se ainda se pode juntar ou retirar o late check-out: reserva confirmada
+     *         ou em curso e sem check-out (US58)
+     */
     public boolean podeMudarLateCheckout() {
         return (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO) && checkoutEm == null;
     }
@@ -246,18 +258,34 @@ public class Reserva {
         this.nifCliente = nifCliente;
     }
 
+    /**
+     * @return o dia e a hora do check-in (por exemplo {@code "10/11 15:20"}), ou vazio se ainda não foi feito;
+     *         para a tabela do separador "Em curso" (US55)
+     */
     public String getCheckinEmTexto() {
         return checkinEm == null ? "" : checkinEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
     }
 
+    /**
+     * @return o estado para mostrar no ecrã (por exemplo {@code "Em curso"}), ou vazio se não tiver estado (US55)
+     */
     public String getEstadoTexto() {
         return estado == null ? "" : estado.getDescricao();
     }
 
+    /**
+     * @return o dia e a hora do check-out (por exemplo {@code "13/11 11:00"}), ou vazio se ainda não foi feito;
+     *         para os detalhes da reserva (US56)
+     */
     public String getCheckoutEmTexto() {
         return checkoutEm == null ? "" : checkoutEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
     }
 
+    /**
+     * Explica, nos detalhes da reserva, o que já não se pode mudar (US56).
+     *
+     * @return vazio se ainda se pode mudar tudo; senão, o motivo (check-in feito, reserva concluída ou cancelada)
+     */
     public String getAvisoAlteracoes() {
         if (podeSerAlterada()) {
             return "";

@@ -36,6 +36,12 @@ public class UtilizadorBLL {
         this(utilizadorDAL, new FornecedorDAL());
     }
 
+    /**
+     * Cria o BLL com outros DAL (usado nos testes).
+     *
+     * @param utilizadorDAL de onde vêm as contas dos funcionários
+     * @param fornecedorDAL de onde vêm as contas dos fornecedores
+     */
     public UtilizadorBLL(IUtilizadorDAL utilizadorDAL, IFornecedorDAL fornecedorDAL) {
         this.utilizadorDAL = utilizadorDAL;
         this.fornecedorDAL = fornecedorDAL;
@@ -48,6 +54,14 @@ public class UtilizadorBLL {
         return utilizadorDAL.listar();
     }
 
+    /**
+     * Lista as contas para o ecrã "Contas" (US63): primeiro as dos funcionários, depois as dos fornecedores,
+     * cada uma com o tipo e o estado. Só o gestor pode ver.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return as contas dos funcionários e dos fornecedores
+     * @throws IllegalStateException se quem age não for o gestor
+     */
     public List<Conta> listarContas(Utilizador quemAge) {
         Permissoes.exigirGestor(quemAge);
         List<Conta> contas = new ArrayList<>();
@@ -60,10 +74,26 @@ public class UtilizadorBLL {
         return contas;
     }
 
+    /**
+     * Desativa a conta escolhida na tabela das contas (US63), com as regras de
+     * {@link #desativar(Utilizador, Utilizador)}.
+     *
+     * @param quemAge o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param conta   a conta escolhida
+     * @throws IllegalArgumentException se a conta for de um fornecedor, que não se desativa aqui
+     */
     public void desativarConta(Utilizador quemAge, Conta conta) {
         desativar(quemAge, utilizadorDe(conta));
     }
 
+    /**
+     * Reativa a conta escolhida na tabela das contas (US63), com as regras de
+     * {@link #reativar(Utilizador, Utilizador)}.
+     *
+     * @param quemAge o utilizador com a sessão iniciada (tem de ser gestor)
+     * @param conta   a conta escolhida
+     * @throws IllegalArgumentException se a conta for de um fornecedor, que não se reativa aqui
+     */
     public void reativarConta(Utilizador quemAge, Conta conta) {
         reativar(quemAge, utilizadorDe(conta));
     }

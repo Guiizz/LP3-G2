@@ -42,6 +42,10 @@ public class LigacaoBLL {
         }
     }
 
+    /**
+     * Começa a abrir a ligação à base de dados em segundo plano, logo no ecrã de entrada,
+     * para a primeira consulta não ter de esperar por ela (US51).
+     */
     public void prepararLigacao() {
         ligacaoDAL.preparar();
     }

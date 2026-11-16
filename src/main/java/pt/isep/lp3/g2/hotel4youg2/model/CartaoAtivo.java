@@ -2,11 +2,21 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.util.Objects;
 
+/**
+ * Cartão que abre portas neste momento (US63): o de um funcionário com a conta ativa ou o de um cliente
+ * com uma reserva em curso. Aparece na lista para escolher o cartão no ecrã dos acessos.
+ */
 public class CartaoAtivo {
 
     private final String cartao;
     private final String titular;
 
+    /**
+     * Cria um cartão da lista.
+     *
+     * @param cartao  o número do cartão, por exemplo {@code "F12"} ou {@code "C201"}
+     * @param titular quem o usa, por exemplo o nome do funcionário ou o nome do cliente e o quarto
+     */
     public CartaoAtivo(String cartao, String titular) {
         this.cartao = cartao;
         this.titular = titular;

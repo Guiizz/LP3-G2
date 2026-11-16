@@ -83,6 +83,12 @@ public class AcessoCartao {
         return funcionarioNome;
     }
 
+    /**
+     * Liga a passagem ao funcionário que picou o cartão (US52).
+     *
+     * @param funcionarioId   o id da pessoa do funcionário
+     * @param funcionarioNome o nome do funcionário, para mostrar nas tabelas
+     */
     public void setFuncionario(int funcionarioId, String funcionarioNome) {
         this.funcionarioId = funcionarioId;
         this.funcionarioNome = funcionarioNome;
@@ -102,6 +108,9 @@ public class AcessoCartao {
         return reservaId > 0 ? String.valueOf(reservaId) : "-";
     }
 
+    /**
+     * @return o nome do funcionário que picou o cartão, ou {@code "-"} se a passagem for de um cliente (US52)
+     */
     public String getFuncionarioTexto() {
         return funcionarioId > 0 ? funcionarioNome : "-";
     }

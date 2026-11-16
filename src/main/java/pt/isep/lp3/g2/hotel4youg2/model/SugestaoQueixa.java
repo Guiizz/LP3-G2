@@ -89,11 +89,21 @@ public class SugestaoQueixa {
         return quartoNumero;
     }
 
+    /**
+     * Liga a sugestão ou queixa à reserva em curso do cliente quando foi registada (US61).
+     *
+     * @param reservaId    o id da reserva em curso (0 se não houver)
+     * @param quartoNumero o número do quarto dessa reserva
+     */
     public void setReserva(int reservaId, int quartoNumero) {
         this.reservaId = reservaId;
         this.quartoNumero = quartoNumero;
     }
 
+    /**
+     * @return o quarto e a reserva em curso, por exemplo {@code "Quarto 201 (reserva n.º 5)"},
+     *         ou {@code "-"} se não havia reserva em curso; para a consulta do gestor (US61)
+     */
     public String getReservaTexto() {
         if (reservaId == 0) {
             return "-";

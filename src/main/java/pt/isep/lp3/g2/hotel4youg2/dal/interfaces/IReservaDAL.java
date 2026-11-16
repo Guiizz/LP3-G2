@@ -21,6 +21,15 @@ public interface IReservaDAL {
      */
     boolean inserirSeLivre(Reserva reserva);
 
+    /**
+     * Grava a reserva e os seus serviços na mesma transação, só se o quarto estiver livre (US60).
+     * Se gravar, atualiza o id da reserva; se algum serviço falhar, nada fica gravado.
+     *
+     * @param reserva  a reserva a gravar
+     * @param servicos os serviços escolhidos ao criar a reserva
+     * @return {@code true} se foi gravada; {@code false} se o quarto já estava reservado nessas datas
+     * @throws IllegalStateException se um dos serviços foi desativado entretanto
+     */
     boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos);
 
     /**
@@ -65,6 +74,12 @@ public interface IReservaDAL {
      */
     boolean cancelar(int id);
 
+    /**
+     * Apaga a reserva e os seus serviços, só se ainda não teve check-in (confirmada ou cancelada) (US57).
+     *
+     * @param id o id da reserva
+     * @return {@code true} se foi apagada; {@code false} se não existe ou entretanto teve check-in
+     */
     boolean apagarSemCheckin(int id);
 
     /**
@@ -76,6 +91,14 @@ public interface IReservaDAL {
      */
     boolean alterarDatasSeLivre(Reserva reserva);
 
+    /**
+     * Grava o early check-in, o late check-out e a taxa novos da reserva (US58), só se a reserva ainda não teve
+     * check-out, se o early check-in não mudar depois do check-in e se o quarto permitir o pedido
+     * (sem contar com a própria reserva).
+     *
+     * @param reserva a reserva, já com o early check-in, o late check-out e a taxa novos
+     * @return {@code true} se foi alterada; {@code false} se o quarto não permite ou a reserva já não pode mudar
+     */
     boolean alterarHorarioSeLivre(Reserva reserva);
 
     /**
