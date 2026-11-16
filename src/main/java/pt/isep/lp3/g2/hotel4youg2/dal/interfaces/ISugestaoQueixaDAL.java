@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Acesso à base de dados das sugestões e queixas dos clientes (US23 e US48).
+ * Acesso à base de dados das sugestões e queixas dos clientes (US23 e US61).
  */
 public interface ISugestaoQueixaDAL {
 
     /**
      * Grava uma sugestão ou queixa. Se {@code registadaPor} for 0, fica sem funcionário (foi o próprio
-     * cliente, com o cartão). Preenche o id e a data, que é posta pela base de dados.
+     * cliente, com o NIF); se {@code reservaId} for 0, fica sem reserva. Preenche o id e a data,
+     * que é posta pela base de dados.
      *
      * @param sugestao a sugestão ou queixa a gravar
      * @return o id gravado
@@ -36,7 +37,7 @@ public interface ISugestaoQueixaDAL {
 
     /**
      * @param tipo só sugestões ou só queixas, ou {@code null} para todas
-     * @return as sugestões e queixas com o nome do cliente, da mais recente para a mais antiga
+     * @return as sugestões e queixas com o nome do cliente e o quarto da reserva, da mais recente para a mais antiga
      */
     List<SugestaoQueixa> listar(TipoSugestao tipo);
 }
