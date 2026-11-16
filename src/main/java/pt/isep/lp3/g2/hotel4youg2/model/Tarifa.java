@@ -31,14 +31,23 @@ public class Tarifa {
         this.vista = vista;
     }
 
+    /**
+     * @return o tipo de quarto como texto, para a coluna da tabela das tarifas (US50)
+     */
     public String getTipoTexto() {
         return tipo.name();
     }
 
+    /**
+     * @return a vista como texto, para a coluna da tabela das tarifas (US50)
+     */
     public String getVistaTexto() {
         return vista.name();
     }
 
+    /**
+     * @return o valor por noite sem notação científica, para a coluna da tabela das tarifas (US50)
+     */
     public String getValorNoiteTexto() {
         return valorNoite.toPlainString();
     }
