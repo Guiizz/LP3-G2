@@ -19,6 +19,7 @@ public class Entrega {
     private Fornecedor fornecedor;
     private EstadoEntrega estado = EstadoEntrega.PENDENTE;
     private String moeda = "EUR";
+    private BigDecimal totalRegistado;
     private final List<LinhaEntrega> linhas = new ArrayList<>();
 
     /**
@@ -78,6 +79,18 @@ public class Entrega {
         this.moeda = moeda;
     }
 
+    /**
+     * @return o total guardado na base de dados quando a entrega foi gravada, ou {@code null} se a entrega
+     * ainda não foi gravada (acabou de ser lida do ficheiro)
+     */
+    public BigDecimal getTotalRegistado() {
+        return totalRegistado;
+    }
+
+    public void setTotalRegistado(BigDecimal totalRegistado) {
+        this.totalRegistado = totalRegistado;
+    }
+
     public List<LinhaEntrega> getLinhas() {
         return linhas;
     }
@@ -102,6 +115,60 @@ public class Entrega {
             soma = soma.add(linha.getTotal());
         }
         return soma;
+    }
+
+    /**
+     * Soma o valor sem IVA de todas as linhas (US54).
+     *
+     * @return o total sem IVA; zero se não tiver linhas
+     */
+    public BigDecimal getTotalSemIva() {
+        BigDecimal soma = BigDecimal.ZERO;
+        for (LinhaEntrega linha : linhas) {
+            soma = soma.add(linha.getValorSemIva());
+        }
+        return soma;
+    }
+
+    /**
+     * Soma o valor do IVA de todas as linhas (US54).
+     *
+     * @return o total do IVA; zero se não tiver linhas
+     */
+    public BigDecimal getTotalIva() {
+        BigDecimal soma = BigDecimal.ZERO;
+        for (LinhaEntrega linha : linhas) {
+            soma = soma.add(linha.getValorIva());
+        }
+        return soma;
+    }
+
+    /**
+     * Confere o total guardado com a soma das linhas (US54). Uma entrega acabada de ler do ficheiro
+     * ainda não tem total guardado, por isso está certa.
+     *
+     * @return {@code true} se não houver total guardado ou se este bater certo (até 1 cêntimo) com a soma das linhas
+     */
+    public boolean isTotalCerto() {
+        if (totalRegistado == null) {
+            return true;
+        }
+        return getTotal().subtract(totalRegistado).abs().compareTo(new BigDecimal("0.01")) <= 0;
+    }
+
+    /**
+     * @return {@code true} se o total bater certo e todas as linhas tiverem as contas certas (US54)
+     */
+    public boolean isContasCertas() {
+        if (!isTotalCerto()) {
+            return false;
+        }
+        for (LinhaEntrega linha : linhas) {
+            if (!linha.isContasCertas()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

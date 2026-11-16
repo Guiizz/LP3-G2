@@ -53,8 +53,8 @@ public class EntregaDAL implements IEntregaDAL {
             "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, unidades, "
             + "precoUnitario, valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ENTREGA =
-            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, e.estado, f.codigo, f.nome, f.morada1, f.morada2, f.cidade, "
-            + "f.codigoPostal, f.pais, f.codigoPais, f.id AS fornecedorId "
+            "SELECT e.id, e.numeroEncomenda, e.dataEncomenda, e.estado, e.moeda, e.total, f.codigo, f.nome, "
+            + "f.morada1, f.morada2, f.cidade, f.codigoPostal, f.pais, f.codigoPais, f.id AS fornecedorId "
             + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE e.id = ?";
     private static final String SELECT_LINHAS =
             "SELECT l.numeroLinha, m.codigo, m.descricao, l.quantidade, l.unidade, l.unidades, l.precoUnitario, "
@@ -63,7 +63,7 @@ public class EntregaDAL implements IEntregaDAL {
             + "FROM LinhaEntrega l JOIN Material m ON m.id = l.materialId WHERE l.entregaId = ? ORDER BY l.numeroLinha";
     private static final String APAGAR = "DELETE FROM Entrega WHERE id = ?";
     private static final String SELECT_RESUMOS_DO_FORNECEDOR =
-            "SELECT e.numeroEncomenda, e.registadaEm, e.total, e.estado, e.motivoRecusa, "
+            "SELECT e.id, e.numeroEncomenda, e.registadaEm, e.total, e.estado, e.motivoRecusa, "
                     + "(SELECT COUNT(DISTINCT l.materialId) FROM LinhaEntrega l WHERE l.entregaId = e.id) AS tipos "
                     + "FROM Entrega e JOIN Fornecedor f ON f.id = e.fornecedorId WHERE f.codigo = ? "
                     + "ORDER BY e.registadaEm DESC, e.id DESC";
@@ -249,6 +249,8 @@ public class EntregaDAL implements IEntregaDAL {
                             rs.getString("morada1"), rs.getString("morada2"), rs.getString("cidade"),
                             rs.getString("codigoPostal"), rs.getString("pais"), rs.getString("codigoPais")));
             entrega.setEstado(EstadoEntrega.valueOf(rs.getString("estado")));
+            entrega.setMoeda(rs.getString("moeda").trim());
+            entrega.setTotalRegistado(rs.getBigDecimal("total"));
             return entrega;
         }
     }
@@ -256,7 +258,7 @@ public class EntregaDAL implements IEntregaDAL {
     private static class ResumoEntregaMapper implements RowMapper<ResumoEntrega> {
         @Override
         public ResumoEntrega map(ResultSet rs) throws SQLException {
-            return new ResumoEntrega(rs.getString("numeroEncomenda"), rs.getInt("tipos"),
+            return new ResumoEntrega(rs.getInt("id"), rs.getString("numeroEncomenda"), rs.getInt("tipos"),
                     rs.getTimestamp("registadaEm").toLocalDateTime(), rs.getBigDecimal("total"),
                     EstadoEntrega.valueOf(rs.getString("estado")), rs.getString("motivoRecusa"));
         }

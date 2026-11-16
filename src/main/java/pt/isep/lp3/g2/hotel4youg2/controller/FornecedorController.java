@@ -2,9 +2,11 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import pt.isep.lp3.g2.hotel4youg2.bll.EntregaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
@@ -12,6 +14,7 @@ import pt.isep.lp3.g2.hotel4youg2.exception.ErrosFicheiroException;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.File;
@@ -20,7 +23,8 @@ import java.util.List;
 
 /**
  * Controlador do ecrã do fornecedor: importa o XSD, carrega o ficheiro XML de uma entrega e mostra
- * o histórico das suas entregas com o estado de cada uma (US38 e US53).
+ * o histórico das suas entregas com o estado de cada uma, com filtro por estado, e abre cada uma
+ * como uma fatura (US38, US53 e US54).
  */
 public class FornecedorController {
 
@@ -29,6 +33,10 @@ public class FornecedorController {
 
     @FXML
     private BorderPane raiz;
+    @FXML
+    private VBox ecra;
+    @FXML
+    private ComboBox<String> filtroCombo;
     @FXML
     private Label fornecedorLabel;
     @FXML
@@ -52,7 +60,34 @@ public class FornecedorController {
             fornecedorLabel.setText(fornecedor.toString());
         }
         mostrarXsdEmUso();
+        filtroCombo.getItems().setAll(EntregaBLL.TODAS, EstadoEntrega.PENDENTE.name(), EstadoEntrega.ACEITE.name(),
+                EstadoEntrega.RECUSADA.name());
+        // escolher o valor do filtro dispara o aoFiltrar, que já preenche a tabela
+        filtroCombo.setValue(EntregaBLL.TODAS);
+    }
+
+    @FXML
+    private void aoFiltrar() {
         atualizarHistorico();
+    }
+
+    @FXML
+    private void aoVerFatura() {
+        ResumoEntrega escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarMensagem("Escolha primeiro uma entrega na tabela.", "red");
+            return;
+        }
+        try {
+            Entrega entrega = entregaBLL.faturaParaFornecedor(Sessao.getFornecedor(), escolhida.getEntregaId());
+            FaturaEntregaController.abrir(entrega, ecra);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            mostrarMensagem(e.getMessage(), "red");
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível abrir a entrega. Tente novamente.", "red");
+        } catch (IOException e) {
+            mostrarMensagem("Não foi possível abrir a fatura da entrega.", "red");
+        }
     }
 
     @FXML
@@ -130,7 +165,8 @@ public class FornecedorController {
 
     private void atualizarHistorico() {
         try {
-            tabela.getItems().setAll(entregaBLL.historico(Sessao.getFornecedor()));
+            EstadoEntrega estado = EntregaBLL.estadoDoFiltro(filtroCombo.getValue());
+            tabela.getItems().setAll(entregaBLL.historico(Sessao.getFornecedor(), estado));
         } catch (IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
