@@ -21,6 +21,15 @@ public interface IReservaDAL {
      */
     boolean inserirSeLivre(Reserva reserva);
 
+    /**
+     * Grava a reserva e os seus serviços na mesma transação, só se o quarto estiver livre (US60).
+     * Se gravar, atualiza o id da reserva; se algum serviço falhar, nada fica gravado.
+     *
+     * @param reserva  a reserva a gravar
+     * @param servicos os serviços escolhidos ao criar a reserva
+     * @return {@code true} se foi gravada; {@code false} se o quarto já estava reservado nessas datas
+     * @throws IllegalStateException se um dos serviços foi desativado entretanto
+     */
     boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos);
 
     /**

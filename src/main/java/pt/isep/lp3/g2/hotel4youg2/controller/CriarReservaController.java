@@ -29,7 +29,8 @@ import java.util.List;
 
 /**
  * Controlador do ecrã para criar uma reserva (US27): escolher o cliente pelo NIF,
- * pesquisar quartos livres, ver o preço e confirmar. Depois de criada, pode juntar-lhe serviços (US37).
+ * pesquisar quartos livres, juntar logo os serviços extra (US60), ver o preço e confirmar.
+ * Depois de criada, pode juntar-lhe mais serviços (US37).
  */
 public class CriarReservaController {
 
