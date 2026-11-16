@@ -63,11 +63,21 @@ public class MaterialStock {
         return saiu;
     }
 
+    /**
+     * Guarda o total que entrou e o total que saiu do material, para a janela de stock (US62).
+     *
+     * @param entrou as unidades que entraram com entregas aceites
+     * @param saiu   as unidades que saíram (usadas ou retiradas)
+     */
     public void setMovimentos(int entrou, int saiu) {
         this.entrou = entrou;
         this.saiu = saiu;
     }
 
+    /**
+     * @return a unidade em que o stock é contado: sempre unidades, mesmo que a entrega viesse em caixas
+     *         ou quilos (US62)
+     */
     public String getUnidade() {
         return Unidade.UNIT.getDescricao();
     }
