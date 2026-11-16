@@ -182,10 +182,18 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
     }
 
+    /**
+     * @return {@code true} se ainda se pode juntar ou retirar o early check-in: reserva confirmada
+     *         e sem check-in (US58)
+     */
     public boolean podeMudarEarlyCheckin() {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    /**
+     * @return {@code true} se ainda se pode juntar ou retirar o late check-out: reserva confirmada
+     *         ou em curso e sem check-out (US58)
+     */
     public boolean podeMudarLateCheckout() {
         return (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO) && checkoutEm == null;
     }

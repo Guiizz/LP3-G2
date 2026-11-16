@@ -82,6 +82,14 @@ public interface IReservaDAL {
      */
     boolean alterarDatasSeLivre(Reserva reserva);
 
+    /**
+     * Grava o early check-in, o late check-out e a taxa novos da reserva (US58), só se a reserva ainda não teve
+     * check-out, se o early check-in não mudar depois do check-in e se o quarto permitir o pedido
+     * (sem contar com a própria reserva).
+     *
+     * @param reserva a reserva, já com o early check-in, o late check-out e a taxa novos
+     * @return {@code true} se foi alterada; {@code false} se o quarto não permite ou a reserva já não pode mudar
+     */
     boolean alterarHorarioSeLivre(Reserva reserva);
 
     /**
