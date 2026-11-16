@@ -18,6 +18,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.function.UnaryOperator;
 
@@ -67,6 +68,19 @@ public class SugestoesController {
         @Override
         public void changed(ObservableValue<? extends String> observavel, String antes, String agora) {
             contadorLabel.setText(agora.length() + "/" + SugestaoQueixaBLL.MAXIMO_DESCRICAO);
+        }
+    }
+
+    @FXML
+    private void aoEscolherCliente() {
+        try {
+            Cliente escolhido = EscolherPessoaController.escolher("Escolher cliente", clienteBLL.pesquisar(""));
+            if (escolhido != null) {
+                nifField.setText(escolhido.getNif());
+                aoProcurarCliente();
+            }
+        } catch (IOException | DataAccessException e) {
+            mostrarMensagem("Não foi possível abrir a lista de clientes. Tente novamente.", "red");
         }
     }
 

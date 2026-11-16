@@ -19,14 +19,14 @@
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Utilizador" prefWidth="180.0">
-                <cellValueFactory><PropertyValueFactory property="nomeUtilizador"/></cellValueFactory>
+            <TableColumn text="Conta" prefWidth="280.0">
+                <cellValueFactory><PropertyValueFactory property="nome"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Perfil" prefWidth="130.0">
-                <cellValueFactory><PropertyValueFactory property="perfilTexto"/></cellValueFactory>
+            <TableColumn text="Tipo" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="tipo"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Estado" prefWidth="100.0">
-                <cellValueFactory><PropertyValueFactory property="estadoTexto"/></cellValueFactory>
+            <TableColumn text="Estado" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
             </TableColumn>
         </columns>
     </TableView>

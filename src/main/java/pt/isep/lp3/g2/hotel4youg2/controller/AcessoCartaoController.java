@@ -9,9 +9,11 @@ import pt.isep.lp3.g2.hotel4youg2.bll.AcessoCartaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
-import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
+
+import java.io.IOException;
 
 /**
  * Controlador do ecrã "Acesso com cartão" (US39): regista a passagem de um cartão num local do hotel e mostra as passagens desse cartão.
@@ -22,8 +24,6 @@ public class AcessoCartaoController {
 
     @FXML
     private TextField cartaoField;
-    @FXML
-    private ComboBox<Funcionario> funcionarioCombo;
     @FXML
     private ComboBox<LocalHotel> localCombo;
     @FXML
@@ -39,24 +39,20 @@ public class AcessoCartaoController {
     private void initialize() {
         localCombo.getItems().setAll(LocalHotel.values());
         mostrarQuarto(false);
-        carregarFuncionarios();
-    }
-
-    private void carregarFuncionarios() {
-        try {
-            funcionarioCombo.getItems().setAll(acessoCartaoBLL.listarFuncionariosComCartao(Sessao.getUtilizador()));
-        } catch (IllegalStateException | DataAccessException e) {
-            mostrarErro("Não foi possível carregar os cartões dos funcionários.");
-        }
     }
 
     @FXML
-    private void aoEscolherFuncionario() {
-        Funcionario escolhido = funcionarioCombo.getValue();
-        if (escolhido != null) {
-            cartaoField.setText(escolhido.getCartao());
-            Mensagens.info(mensagemLabel, "");
-            atualizarTabela();
+    private void aoEscolherCartao() {
+        try {
+            CartaoAtivo escolhido = EscolherPessoaController.escolher("Escolher cartão",
+                    acessoCartaoBLL.listarCartoes(Sessao.getUtilizador()));
+            if (escolhido != null) {
+                cartaoField.setText(escolhido.getCartao());
+                Mensagens.info(mensagemLabel, "");
+                atualizarTabela();
+            }
+        } catch (IOException | IllegalStateException | DataAccessException e) {
+            mostrarErro("Não foi possível abrir a lista de cartões. Tente novamente.");
         }
     }
 
@@ -68,7 +64,6 @@ public class AcessoCartaoController {
     @FXML
     private void aoUsarOMeuCartao() {
         try {
-            funcionarioCombo.setValue(null);
             cartaoField.setText(acessoCartaoBLL.cartaoDoFuncionario(Sessao.getUtilizador()));
             Mensagens.info(mensagemLabel, "");
             atualizarTabela();

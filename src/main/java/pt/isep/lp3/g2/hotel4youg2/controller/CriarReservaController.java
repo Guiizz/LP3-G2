@@ -66,6 +66,19 @@ public class CriarReservaController {
     private boolean latePesquisado;
 
     @FXML
+    private void aoEscolherCliente() {
+        try {
+            Cliente escolhido = EscolherPessoaController.escolher("Escolher cliente", clienteBLL.pesquisar(""));
+            if (escolhido != null) {
+                nifField.setText(escolhido.getNif());
+                aoProcurarCliente();
+            }
+        } catch (IOException | DataAccessException e) {
+            mostrarMensagem("Não foi possível abrir a lista de clientes. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
     private void aoProcurarCliente() {
         cliente = null;
         clienteLabel.setText("");

@@ -10,6 +10,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
@@ -38,6 +39,7 @@ public class AcessoCartaoBLLTest {
         private final List<AcessoCartao> registados = new ArrayList<>();
         private final LocalDateTime agora = LocalDateTime.of(2026, 11, 8, 14, 30);
         private int consultas;
+        private final List<CartaoAtivo> cartoesDeClientes = new ArrayList<>();
 
         @Override
         public void registar(AcessoCartao acesso) {
@@ -68,6 +70,11 @@ public class AcessoCartaoBLLTest {
                 }
             }
             return resultado;
+        }
+
+        @Override
+        public List<CartaoAtivo> listarCartoesDeClientes() {
+            return cartoesDeClientes;
         }
 
         @Override
@@ -799,6 +806,37 @@ public class AcessoCartaoBLLTest {
         String expResult = "Entre na aplicação para ver os cartões dos funcionários.";
         try {
             instance.listarFuncionariosComCartao(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testListarCartoes() {
+        System.out.println("listarCartoes (funcionários ativos e clientes com reserva em curso)");
+        acessoDAL.cartoesDeClientes.add(new CartaoAtivo("C201", "Rui Costa (quarto 201)"));
+        List<CartaoAtivo> expResult = List.of(new CartaoAtivo("F12", "Ana Silva"),
+                new CartaoAtivo("C201", "Rui Costa (quarto 201)"));
+        List<CartaoAtivo> result = instance.listarCartoes(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCartoesSemContasAtivas() {
+        System.out.println("listarCartoes (só pessoas ativas)");
+        funcionarioDAL.contaAtiva = false;
+        List<CartaoAtivo> expResult = new ArrayList<>();
+        List<CartaoAtivo> result = instance.listarCartoes(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCartoesSemSessao() {
+        System.out.println("listarCartoes (sem sessão iniciada)");
+        String expResult = "Entre na aplicação para ver os cartões dos funcionários.";
+        try {
+            instance.listarCartoes(null);
             fail("Devia ter exigido a sessão");
         } catch (IllegalStateException expected) {
             assertEquals(expResult, expected.getMessage());

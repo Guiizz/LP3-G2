@@ -32,6 +32,19 @@ public class ConsultarReservasController {
     private Label mensagemLabel;
 
     @FXML
+    private void aoEscolherCliente() {
+        try {
+            Cliente escolhido = EscolherPessoaController.escolher("Escolher cliente", clienteBLL.pesquisar(""));
+            if (escolhido != null) {
+                nifField.setText(escolhido.getNif());
+                aoProcurar();
+            }
+        } catch (IOException | DataAccessException e) {
+            mostrarMensagem("Não foi possível abrir a lista de clientes. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
     private void aoProcurar() {
         clienteLabel.setText("");
         reservasTabela.getItems().clear();

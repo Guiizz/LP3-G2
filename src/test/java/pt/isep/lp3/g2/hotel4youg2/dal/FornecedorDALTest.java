@@ -57,6 +57,19 @@ public class FornecedorDALTest {
     }
 
     @Test
+    public void testListar() {
+        System.out.println("listar (traz o fornecedor criado)");
+        boolean expResult = true;
+        boolean result = false;
+        for (Fornecedor fornecedor : instance.listar()) {
+            if (fornecedor.getCodigo().equals(codigo)) {
+                result = true;
+            }
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testProcurarPorCodigoQueNaoExiste() {
         System.out.println("procurarPorCodigo (não existe)");
         Optional<Fornecedor> expResult = Optional.empty();
