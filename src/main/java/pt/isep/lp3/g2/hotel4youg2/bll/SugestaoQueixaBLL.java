@@ -1,20 +1,23 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.ClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.SugestaoQueixaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ISugestaoQueixaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 
 import java.util.List;
 
 /**
  * Regras de negócio das sugestões e queixas dos clientes: a receção regista-as (US23),
- * o cliente pode enviá-las com o cartão do quarto (US48) e o gestor consulta-as.
+ * o cliente pode enviá-las com o NIF (US61) e o gestor consulta-as.
  */
 public class SugestaoQueixaBLL {
 
@@ -23,37 +26,31 @@ public class SugestaoQueixaBLL {
 
     private final ISugestaoQueixaDAL sugestaoQueixaDAL;
     private final IReservaDAL reservaDAL;
+    private final ClienteBLL clienteBLL;
 
     /**
      * Cria o BLL ligado à base de dados.
      */
     public SugestaoQueixaBLL() {
-        this(new SugestaoQueixaDAL(), new ReservaDAL());
-    }
-
-    /**
-     * Cria o BLL com outro DAL das sugestões (usado nos testes); as reservas vêm da base de dados.
-     *
-     * @param sugestaoQueixaDAL onde ficam as sugestões e queixas
-     */
-    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoQueixaDAL) {
-        this(sugestaoQueixaDAL, new ReservaDAL());
+        this(new SugestaoQueixaDAL(), new ReservaDAL(), new ClienteDAL());
     }
 
     /**
      * Cria o BLL com outros DAL (usado nos testes).
      *
      * @param sugestaoQueixaDAL onde ficam as sugestões e queixas
-     * @param reservaDAL        onde procurar a reserva em curso de um cartão
+     * @param reservaDAL        onde procurar a reserva em curso do cliente
+     * @param clienteDAL        onde procurar o cliente pelo NIF
      */
-    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoQueixaDAL, IReservaDAL reservaDAL) {
+    public SugestaoQueixaBLL(ISugestaoQueixaDAL sugestaoQueixaDAL, IReservaDAL reservaDAL, IClienteDAL clienteDAL) {
         this.sugestaoQueixaDAL = sugestaoQueixaDAL;
         this.reservaDAL = reservaDAL;
+        this.clienteBLL = new ClienteBLL(clienteDAL);
     }
 
     /**
      * Regista uma sugestão ou queixa de um cliente, feita na receção. Fica guardado o funcionário
-     * que a registou; a data é posta pela base de dados.
+     * que a registou e a reserva em curso do cliente, se houver; a data é posta pela base de dados.
      *
      * @param quemAge   o utilizador com a sessão iniciada
      * @param cliente   o cliente, procurado pelo NIF
@@ -73,33 +70,37 @@ public class SugestaoQueixaBLL {
         String texto = textoValidado(tipo, descricao);
         // a data fica a null: é a BD que a regista no momento em que grava
         SugestaoQueixa sugestao = new SugestaoQueixa(0, cliente.getId(), tipo, texto, quemAge.getFuncionarioId(), null);
-        sugestaoQueixaDAL.inserir(sugestao);
-        return sugestao;
+        return gravarComReserva(sugestao);
     }
 
     /**
-     * Regista uma sugestão ou queixa enviada pelo próprio cliente, com o número do cartão do quarto
-     * (US48). Fica no nome do cliente da reserva em curso desse cartão, sem funcionário.
+     * Regista uma sugestão ou queixa enviada pelo próprio cliente, que se identifica com o NIF (US61).
+     * Fica sem funcionário e com a reserva em curso do cliente, se houver.
      *
-     * @param cartao    o número do cartão (maiúsculas ou minúsculas, com ou sem espaços)
+     * @param nif       o NIF do cliente (com ou sem espaços à volta)
      * @param tipo      sugestão ou queixa
      * @param descricao o texto (obrigatório, até {@value #MAXIMO_DESCRICAO} caracteres)
      * @return a sugestão ou queixa gravada, com o id e a data
-     * @throws IllegalArgumentException se faltar o cartão, se o cartão não for de uma reserva em curso,
-     *                                  se faltar o tipo ou se a descrição não for válida
+     * @throws pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException se o NIF estiver vazio ou não tiver 9 dígitos
+     * @throws IllegalArgumentException se o NIF não for de um cliente registado, se faltar o tipo
+     *                                  ou se a descrição não for válida
      */
-    public SugestaoQueixa registarPeloCartao(String cartao, TipoSugestao tipo, String descricao) {
-        String numero = cartao == null ? "" : cartao.trim().toUpperCase();
-        if (numero.isEmpty()) {
-            throw new IllegalArgumentException("Escreva o número do cartão.");
-        }
-        Reserva reserva = reservaDAL.procurarEmCursoPorCartao(numero);
-        if (reserva == null || !reserva.cartaoDaAcesso()) {
-            throw new IllegalArgumentException("O cartão " + numero
-                    + " não é válido ou é de uma reserva que já não está em curso.");
+    public SugestaoQueixa registarPeloNif(String nif, TipoSugestao tipo, String descricao) {
+        Cliente cliente = clienteBLL.pesquisarPorNif(nif);
+        if (cliente == null) {
+            throw new IllegalArgumentException("O NIF " + nif.trim() + " não é de um cliente registado no hotel.");
         }
         String texto = textoValidado(tipo, descricao);
-        SugestaoQueixa sugestao = new SugestaoQueixa(0, reserva.getClienteId(), tipo, texto, 0, null);
+        SugestaoQueixa sugestao = new SugestaoQueixa(0, cliente.getId(), tipo, texto, 0, null);
+        return gravarComReserva(sugestao);
+    }
+
+    private SugestaoQueixa gravarComReserva(SugestaoQueixa sugestao) {
+        for (Reserva reserva : reservaDAL.listarPorCliente(sugestao.getClienteId())) {
+            if (reserva.getEstado() == EstadoReserva.EM_CURSO) {
+                sugestao.setReserva(reserva.getId(), reserva.getQuartoNumero());
+            }
+        }
         sugestaoQueixaDAL.inserir(sugestao);
         return sugestao;
     }
@@ -124,6 +125,7 @@ public class SugestaoQueixaBLL {
      * @param quemAge o utilizador com a sessão iniciada
      * @param tipo    só sugestões ou só queixas, ou {@code null} para todas
      * @return as sugestões e queixas, da mais recente para a mais antiga, com o nome do cliente
+     *         e o quarto da reserva em curso quando foram registadas
      * @throws IllegalStateException se quem age não for o gestor
      */
     public List<SugestaoQueixa> listar(Utilizador quemAge, TipoSugestao tipo) {

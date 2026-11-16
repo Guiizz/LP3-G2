@@ -11,14 +11,14 @@
 <VBox spacing="10.0" prefWidth="420.0"
       xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.SugestaoCartaoController">
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.SugestaoClienteController">
     <padding>
         <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
     </padding>
 
     <Label text="Sugestão ou queixa" styleClass="titulo"/>
-    <Label text="Número do cartão do quarto"/>
-    <TextField fx:id="cartaoField" promptText="ex.: C201"/>
+    <Label text="O seu NIF"/>
+    <TextField fx:id="nifField" promptText="9 dígitos, ex.: 123456789"/>
     <Label text="Tipo"/>
     <ComboBox fx:id="tipoCombo" promptText="Sugestão ou queixa" maxWidth="Infinity"/>
     <Label text="Descrição"/>

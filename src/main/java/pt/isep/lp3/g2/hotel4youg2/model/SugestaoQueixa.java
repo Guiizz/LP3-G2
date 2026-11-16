@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
- * Sugestão ou queixa de um cliente (US23 e US48), registada na receção ou enviada pelo próprio
- * cliente com o cartão do quarto.
+ * Sugestão ou queixa de um cliente (US23 e US61), registada na receção ou enviada pelo próprio
+ * cliente com o NIF.
  */
 public class SugestaoQueixa {
 
@@ -18,6 +18,8 @@ public class SugestaoQueixa {
     private int registadaPor;
     private LocalDateTime registadaEm;
     private String nomeCliente;
+    private int reservaId;
+    private int quartoNumero;
 
     /**
      * Cria uma sugestão ou queixa.
@@ -26,7 +28,7 @@ public class SugestaoQueixa {
      * @param clienteId    o id do cliente
      * @param tipo         sugestão ou queixa
      * @param descricao    o texto
-     * @param registadaPor o id do funcionário que a registou; 0 se foi o próprio cliente, com o cartão
+     * @param registadaPor o id do funcionário que a registou; 0 se foi o próprio cliente, com o NIF
      * @param registadaEm  quando foi registada ({@code null} antes de gravar: é a base de dados que a põe)
      */
     public SugestaoQueixa(int id, int clienteId, TipoSugestao tipo, String descricao, int registadaPor,
@@ -79,6 +81,26 @@ public class SugestaoQueixa {
         this.nomeCliente = nomeCliente;
     }
 
+    public int getReservaId() {
+        return reservaId;
+    }
+
+    public int getQuartoNumero() {
+        return quartoNumero;
+    }
+
+    public void setReserva(int reservaId, int quartoNumero) {
+        this.reservaId = reservaId;
+        this.quartoNumero = quartoNumero;
+    }
+
+    public String getReservaTexto() {
+        if (reservaId == 0) {
+            return "-";
+        }
+        return "Quarto " + quartoNumero + " (reserva n.º " + reservaId + ")";
+    }
+
     public String getRegistadaEmTexto() {
         return registadaEm == null ? "" : registadaEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
@@ -93,12 +115,12 @@ public class SugestaoQueixa {
         }
         return id == outra.id && clienteId == outra.clienteId && tipo == outra.tipo
                 && Objects.equals(descricao, outra.descricao) && registadaPor == outra.registadaPor
-                && Objects.equals(registadaEm, outra.registadaEm);
+                && Objects.equals(registadaEm, outra.registadaEm) && reservaId == outra.reservaId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, clienteId, tipo, descricao, registadaPor, registadaEm);
+        return Objects.hash(id, clienteId, tipo, descricao, registadaPor, registadaEm, reservaId);
     }
 
     @Override

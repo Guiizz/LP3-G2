@@ -170,6 +170,41 @@ public class SugestaoQueixaTest {
     }
 
     @Test
+    public void testGetReservaTextoSemReserva() {
+        System.out.println("getReservaTexto (sem reserva em curso)");
+        String expResult = "-";
+        String result = instance.getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetReservaTexto() {
+        System.out.println("getReservaTexto (com reserva em curso)");
+        instance.setReserva(30, 201);
+        String expResult = "Quarto 201 (reserva n.º 30)";
+        String result = instance.getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testSetReserva() {
+        System.out.println("setReserva");
+        instance.setReserva(30, 201);
+        int expResult = 201;
+        int result = instance.getQuartoNumero();
+        assertEquals(expResult, result);
+        assertEquals(30, instance.getReservaId());
+    }
+
+    @Test
+    public void testEqualsOutraReserva() {
+        System.out.println("equals (reserva diferente)");
+        SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.QUEIXA, "Ar condicionado avariado", 2, QUANDO);
+        outra.setReserva(30, 201);
+        assertNotEquals(outra, instance);
+    }
+
+    @Test
     public void testToString() {
         System.out.println("toString");
         String expResult = "Queixa do cliente 7: Ar condicionado avariado";
