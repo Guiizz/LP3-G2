@@ -3,12 +3,16 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import pt.isep.lp3.g2.hotel4youg2.dal.StockDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IStockDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
+import pt.isep.lp3.g2.hotel4youg2.model.MovimentoStock;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoMovimento;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Regras de negócio do stock de materiais (US42): consultar o que existe e registar as saídas.
+ * Regras de negócio do stock de materiais (US42 e US62): consultar o que existe, ver o histórico
+ * de entradas e saídas de cada material e registar as saídas.
  * O stock só aumenta quando uma entrega é aceite (US49) e só diminui com as saídas registadas aqui.
  */
 public class StockBLL {
@@ -43,6 +47,34 @@ public class StockBLL {
         return stockDAL.listar();
     }
 
+    public List<MaterialStock> pesquisar(Utilizador quemAge, String termo) {
+        exigirSessaoParaConsultar(quemAge);
+        String procurado = termo == null ? "" : termo.trim().toLowerCase();
+        List<MaterialStock> encontrados = new ArrayList<>();
+        for (MaterialStock material : stockDAL.listar()) {
+            String texto = (material.getCodigo() + " " + material.getDescricao() + " " + material.getFornecedor())
+                    .toLowerCase();
+            if (texto.contains(procurado)) {
+                encontrados.add(material);
+            }
+        }
+        return encontrados;
+    }
+
+    public List<MovimentoStock> historico(Utilizador quemAge, MaterialStock material, TipoMovimento tipo) {
+        exigirSessaoParaConsultar(quemAge);
+        if (material == null) {
+            throw new IllegalArgumentException("Escolha o material na tabela.");
+        }
+        List<MovimentoStock> movimentos = new ArrayList<>();
+        for (MovimentoStock movimento : stockDAL.listarMovimentos(material.getMaterialId())) {
+            if (tipo == null || movimento.getTipo() == tipo) {
+                movimentos.add(movimento);
+            }
+        }
+        return movimentos;
+    }
+
     /**
      * Regista a saída de um material do stock. Fica guardado o funcionário que a registou.
      * Não é possível tirar mais do que existe.
@@ -74,6 +106,12 @@ public class StockBLL {
             throw new IllegalArgumentException("A quantidade tem de ser um número inteiro maior que zero.");
         }
         return Integer.parseInt(texto);
+    }
+
+    private void exigirSessaoParaConsultar(Utilizador quemAge) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para consultar o stock.");
+        }
     }
 
     private void exigirSessao(Utilizador quemAge) {

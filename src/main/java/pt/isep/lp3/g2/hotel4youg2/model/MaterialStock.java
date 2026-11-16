@@ -1,9 +1,12 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
+
 import java.util.Objects;
 
 /**
- * Linha do stock (US42): um material, o fornecedor que o entrega e quantas unidades existem.
+ * Linha do stock (US42 e US62): um material, o fornecedor que o entrega, quantas unidades existem
+ * e quantas entraram e saíram.
  */
 public class MaterialStock {
 
@@ -12,6 +15,8 @@ public class MaterialStock {
     private final String descricao;
     private final String fornecedor;
     private final int quantidade;
+    private int entrou;
+    private int saiu;
 
     /**
      * Cria uma linha do stock.
@@ -48,6 +53,23 @@ public class MaterialStock {
 
     public int getQuantidade() {
         return quantidade;
+    }
+
+    public int getEntrou() {
+        return entrou;
+    }
+
+    public int getSaiu() {
+        return saiu;
+    }
+
+    public void setMovimentos(int entrou, int saiu) {
+        this.entrou = entrou;
+        this.saiu = saiu;
+    }
+
+    public String getUnidade() {
+        return Unidade.UNIT.getDescricao();
     }
 
     @Override
