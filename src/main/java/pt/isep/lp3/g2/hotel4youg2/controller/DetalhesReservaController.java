@@ -164,6 +164,6 @@ public class DetalhesReservaController {
         } catch (IOException e) {
             Mensagens.erro(mensagemLabel, "Não foi possível abrir os serviços da reserva.");
         }
-        mostrarServicos();
+        mostrar();
     }
 }
