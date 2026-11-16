@@ -76,6 +76,8 @@ public interface IReservaDAL {
      */
     boolean alterarDatasSeLivre(Reserva reserva);
 
+    boolean alterarHorarioSeLivre(Reserva reserva);
+
     /**
      * Grava o check-in (estado, hora e cartão), só se a reserva ainda estiver confirmada e sem check-in (US35).
      *

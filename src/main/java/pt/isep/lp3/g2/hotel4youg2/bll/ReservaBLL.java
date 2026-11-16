@@ -377,6 +377,50 @@ public class ReservaBLL {
         }
     }
 
+    public void alterarHorario(Utilizador quemAge, Reserva reserva, boolean earlyCheckin, boolean lateCheckout) {
+        if (!Permissoes.podeGerirReservas(quemAge)) {
+            throw new IllegalStateException("Entre na aplicação como rececionista ou gestor para alterar reservas");
+        }
+        if (reserva == null) {
+            throw new ValidacaoException("Escolha uma reserva");
+        }
+        boolean mudaEarly = earlyCheckin != reserva.isEarlyCheckin();
+        boolean mudaLate = lateCheckout != reserva.isLateCheckout();
+        if (mudaEarly && !reserva.podeMudarEarlyCheckin()) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já tem o check-in feito: o early check-in já não se pode mudar");
+        }
+        if (mudaLate && !reserva.podeMudarLateCheckout()) {
+            throw new ValidacaoException("A reserva " + reserva.getId()
+                    + " já não está confirmada nem em curso: o late check-out já não se pode mudar");
+        }
+        if (!mudaEarly && !mudaLate) {
+            return;
+        }
+        BigDecimal novaTaxa = calcularTaxa(earlyCheckin, lateCheckout);
+        boolean earlyAntes = reserva.isEarlyCheckin();
+        boolean lateAntes = reserva.isLateCheckout();
+        BigDecimal taxaAntes = reserva.getTaxaHorario();
+        reserva.setEarlyCheckin(earlyCheckin);
+        reserva.setLateCheckout(lateCheckout);
+        reserva.setTaxaHorario(novaTaxa);
+        boolean gravou = false;
+        try {
+            gravou = reservaDAL.alterarHorarioSeLivre(reserva);
+        } finally {
+            if (!gravou) {
+                reserva.setEarlyCheckin(earlyAntes);
+                reserva.setLateCheckout(lateAntes);
+                reserva.setTaxaHorario(taxaAntes);
+            }
+        }
+        if (!gravou) {
+            throw new ValidacaoException("O quarto " + reserva.getQuartoNumero()
+                    + " não permite o early check-in ou o late check-out nestas datas: há outra reserva a sair"
+                    + " no dia de entrada ou a entrar no dia de saída");
+        }
+    }
+
     /**
      * Faz o check-in de uma reserva agora (US35). Ver {@link #fazerCheckin(Utilizador, Reserva, LocalDateTime)}.
      *
