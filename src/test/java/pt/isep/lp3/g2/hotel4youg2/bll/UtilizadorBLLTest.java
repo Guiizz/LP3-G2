@@ -3,7 +3,10 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFornecedorDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IUtilizadorDAL;
+import pt.isep.lp3.g2.hotel4youg2.model.Conta;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
@@ -51,7 +54,32 @@ public class UtilizadorBLLTest {
         }
     }
 
+    private static class FornecedorDALFalso implements IFornecedorDAL {
+        private final List<Fornecedor> fornecedores = new ArrayList<>();
+
+        @Override
+        public Optional<Fornecedor> procurarPorCodigo(String codigo) {
+            return Optional.empty();
+        }
+
+        @Override
+        public int criar(Fornecedor fornecedor) {
+            return 0;
+        }
+
+        @Override
+        public boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt) {
+            return false;
+        }
+
+        @Override
+        public List<Fornecedor> listar() {
+            return fornecedores;
+        }
+    }
+
     private UtilizadorDALFalso dal;
+    private FornecedorDALFalso fornecedorDAL;
     private UtilizadorBLL instance;
     private Utilizador gestor;
     private Utilizador rececionista;
@@ -66,7 +94,13 @@ public class UtilizadorBLLTest {
         dal.contas.add(gestor);
         dal.contas.add(rececionista);
         dal.contas.add(desativada);
-        instance = new UtilizadorBLL(dal);
+        fornecedorDAL = new FornecedorDALFalso();
+        Fornecedor comPassword = new Fornecedor(1, "F001", "Lavandaria Norte", null, null, null, null, null, null);
+        comPassword.definirPassword("h", "s");
+        fornecedorDAL.fornecedores.add(comPassword);
+        fornecedorDAL.fornecedores.add(new Fornecedor(2, "F002", "Padaria Sul", null, null, null, null, null, null));
+        instance = new UtilizadorBLL(dal, fornecedorDAL);
+
     }
 
     @AfterEach
@@ -197,5 +231,80 @@ public class UtilizadorBLLTest {
         String result = mensagemAoReativar(gestor, null);
         assertEquals(expResult, result);
         assertEquals(0, dal.alteracoes);
+    }
+
+    private List<String> textos(List<Conta> contas) {
+        List<String> textos = new ArrayList<>();
+        for (Conta conta : contas) {
+            textos.add(conta.toString());
+        }
+        return textos;
+    }
+
+    @Test
+    public void testListarContas() {
+        System.out.println("listarContas (funcionários e fornecedores, com o tipo e o estado)");
+        List<String> expResult = List.of("gestor (Gestor, Ativa)", "rece (Rececionista, Ativa)",
+                "antiga (Rececionista, Desativada)", "F001 - Lavandaria Norte (Fornecedor, Ativa)",
+                "F002 - Padaria Sul (Fornecedor, Sem password)");
+        List<String> result = textos(instance.listarContas(gestor));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarContasRececionista() {
+        System.out.println("listarContas (só o gestor)");
+        String expResult = "Só o gestor pode abrir este ecrã";
+        String result = null;
+        try {
+            instance.listarContas(rececionista);
+        } catch (IllegalStateException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDesativarContaDeFuncionario() {
+        System.out.println("desativarConta (conta de um funcionário)");
+        instance.desativarConta(gestor, new Conta(rececionista));
+        boolean expResult = false;
+        boolean result = rececionista.isAtivo();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReativarContaDeFuncionario() {
+        System.out.println("reativarConta (conta de um funcionário)");
+        instance.reativarConta(gestor, new Conta(desativada));
+        boolean expResult = true;
+        boolean result = desativada.isAtivo();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDesativarContaDeFornecedor() {
+        System.out.println("desativarConta (as contas dos fornecedores não se desativam)");
+        String expResult = "Só as contas dos funcionários podem ser desativadas ou reativadas.";
+        String result = null;
+        try {
+            instance.desativarConta(gestor, new Conta(fornecedorDAL.fornecedores.get(0)));
+        } catch (IllegalArgumentException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDesativarContaSemContaEscolhida() {
+        System.out.println("desativarConta (sem conta escolhida)");
+        String expResult = "Escolha uma conta.";
+        String result = null;
+        try {
+            instance.desativarConta(gestor, null);
+        } catch (IllegalArgumentException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
     }
 }

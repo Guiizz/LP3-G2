@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IAcessoCartaoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
 import java.sql.ResultSet;
@@ -25,6 +26,9 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
     private static final String LISTAR_POR_QUARTO =
             LISTAR + "WHERE a.quartoNumero = ? ORDER BY a.registadoEm DESC, a.id DESC";
     private static final String APAGAR = "DELETE FROM AcessoCartao WHERE id = ?";
+    private static final String CARTOES_DE_CLIENTES =
+            "SELECT r.cartao, p.nome, r.quartoNumero FROM Reserva r JOIN Pessoa p ON p.id = r.clienteId "
+            + "WHERE r.estado = 'EM_CURSO' AND r.cartao IS NOT NULL ORDER BY r.quartoNumero";
 
     @Override
     public void registar(AcessoCartao acesso) {
@@ -45,6 +49,19 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
     @Override
     public boolean apagar(int id) {
         return ConexaoBD.executar(APAGAR, id) > 0;
+    }
+
+    @Override
+    public List<CartaoAtivo> listarCartoesDeClientes() {
+        return ConexaoBD.select(CARTOES_DE_CLIENTES, new CartaoDeClienteMapper());
+    }
+
+    private static class CartaoDeClienteMapper implements RowMapper<CartaoAtivo> {
+        @Override
+        public CartaoAtivo map(ResultSet rs) throws SQLException {
+            return new CartaoAtivo(rs.getString("cartao"),
+                    rs.getString("nome") + " (quarto " + rs.getInt("quartoNumero") + ")");
+        }
     }
 
     private static class AcessoCartaoMapper implements RowMapper<AcessoCartao> {

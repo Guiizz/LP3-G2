@@ -1,10 +1,15 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.FornecedorDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.UtilizadorDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFornecedorDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IUtilizadorDAL;
+import pt.isep.lp3.g2.hotel4youg2.model.Conta;
+import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,6 +18,7 @@ import java.util.List;
 public class UtilizadorBLL {
 
     private final IUtilizadorDAL utilizadorDAL;
+    private final IFornecedorDAL fornecedorDAL;
 
     /**
      * Cria o BLL ligado à base de dados.
@@ -27,7 +33,12 @@ public class UtilizadorBLL {
      * @param utilizadorDAL de onde vêm as contas
      */
     public UtilizadorBLL(IUtilizadorDAL utilizadorDAL) {
+        this(utilizadorDAL, new FornecedorDAL());
+    }
+
+    public UtilizadorBLL(IUtilizadorDAL utilizadorDAL, IFornecedorDAL fornecedorDAL) {
         this.utilizadorDAL = utilizadorDAL;
+        this.fornecedorDAL = fornecedorDAL;
     }
 
     /**
@@ -35,6 +46,33 @@ public class UtilizadorBLL {
      */
     public List<Utilizador> listar() {
         return utilizadorDAL.listar();
+    }
+
+    public List<Conta> listarContas(Utilizador quemAge) {
+        Permissoes.exigirGestor(quemAge);
+        List<Conta> contas = new ArrayList<>();
+        for (Utilizador utilizador : utilizadorDAL.listar()) {
+            contas.add(new Conta(utilizador));
+        }
+        for (Fornecedor fornecedor : fornecedorDAL.listar()) {
+            contas.add(new Conta(fornecedor));
+        }
+        return contas;
+    }
+
+    public void desativarConta(Utilizador quemAge, Conta conta) {
+        desativar(quemAge, utilizadorDe(conta));
+    }
+
+    public void reativarConta(Utilizador quemAge, Conta conta) {
+        reativar(quemAge, utilizadorDe(conta));
+    }
+
+    private Utilizador utilizadorDe(Conta conta) {
+        if (conta != null && conta.isDeFornecedor()) {
+            throw new IllegalArgumentException("Só as contas dos funcionários podem ser desativadas ou reativadas.");
+        }
+        return conta == null ? null : conta.getUtilizador();
     }
 
     /**

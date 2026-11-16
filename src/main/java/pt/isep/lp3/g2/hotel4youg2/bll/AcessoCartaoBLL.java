@@ -12,6 +12,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
@@ -20,6 +21,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -131,6 +133,15 @@ public class AcessoCartaoBLL {
             throw new IllegalStateException("Entre na aplicação para ver os cartões dos funcionários.");
         }
         return funcionarioDAL.listarComContaAtiva();
+    }
+
+    public List<CartaoAtivo> listarCartoes(Utilizador quemAge) {
+        List<CartaoAtivo> cartoes = new ArrayList<>();
+        for (Funcionario funcionario : listarFuncionariosComCartao(quemAge)) {
+            cartoes.add(new CartaoAtivo(funcionario.getCartao(), funcionario.getNome()));
+        }
+        cartoes.addAll(acessoCartaoDAL.listarCartoesDeClientes());
+        return cartoes;
     }
 
     public String cartaoDoFuncionario(Utilizador quemAge) {

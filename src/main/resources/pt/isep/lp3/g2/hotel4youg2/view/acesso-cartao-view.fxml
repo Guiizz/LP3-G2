@@ -23,8 +23,7 @@
         <Label text="Cartão:"/>
         <TextField fx:id="cartaoField" promptText="ex.: C201, C000 ou F12" prefWidth="170.0"/>
         <Button text="O meu cartão" onAction="#aoUsarOMeuCartao"/>
-        <Label text="Funcionário:"/>
-        <ComboBox fx:id="funcionarioCombo" promptText="Escolher da lista" onAction="#aoEscolherFuncionario" prefWidth="260.0"/>
+        <Button text="Escolher da lista" onAction="#aoEscolherCartao"/>
     </HBox>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">

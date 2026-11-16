@@ -184,6 +184,15 @@ public class AcessoCartaoDALTest {
     }
 
     @Test
+    public void testListarCartoesDeClientes() {
+        System.out.println("listarCartoesDeClientes (um cartão por reserva em curso)");
+        int expResult = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado = 'EM_CURSO' "
+                + "AND cartao IS NOT NULL", new InteiroMapper()).get(0);
+        int result = instance.listarCartoesDeClientes().size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testApagar() {
         System.out.println("apagar");
         AcessoCartao acesso = registar(LocalHotel.RESTAURANTE, 0);

@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,4 +42,6 @@ public interface IFornecedorDAL {
      * @throws DataAccessException se não for possível alterar a base de dados
      */
     boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt);
+
+    List<Fornecedor> listar();
 }

@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 
 import java.util.List;
 
@@ -36,4 +37,6 @@ public interface IAcessoCartaoDAL {
      * @return {@code true} se a passagem existia e foi apagada
      */
     boolean apagar(int id);
+
+    List<CartaoAtivo> listarCartoesDeClientes();
 }
