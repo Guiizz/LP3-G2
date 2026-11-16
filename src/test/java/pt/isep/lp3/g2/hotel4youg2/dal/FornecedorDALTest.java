@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,19 @@ public class FornecedorDALTest {
         assertEquals("Fornecedor de teste", result.getNome());
         assertEquals("a".repeat(64), result.getPasswordHash());
         assertEquals("b".repeat(32), result.getPasswordSalt());
+    }
+
+    @Test
+    public void testListar() {
+        System.out.println("listar (traz o fornecedor criado)");
+        boolean expResult = true;
+        boolean result = false;
+        for (Fornecedor fornecedor : instance.listar()) {
+            if (fornecedor.getCodigo().equals(codigo)) {
+                result = true;
+            }
+        }
+        assertEquals(expResult, result);
     }
 
     @Test

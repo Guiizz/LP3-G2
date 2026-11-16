@@ -1,7 +1,11 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -32,11 +36,17 @@ public class ReservaDAL implements IReservaDAL {
                     + "WHERE r.quartoNumero = ? AND r.estado <> 'CANCELADA' "
                     + "AND " + CONFLITO_DE_DATAS + ")";
 
+    private static final String INSERIR_SERVICO =
+            "INSERT INTO ReservaServico (reservaId, servicoId, quantidade, precoUnitario) "
+                    + "SELECT ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM Servico WHERE id = ? AND ativo = 1)";
+
     private static final String SELECT_RESERVA =
             "SELECT id, clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, estado, "
             + "precoTotal, checkinEm, checkoutEm, cartao, earlyCheckin, lateCheckout, taxaHorario, "
             + "(SELECT COALESCE(SUM(rs.quantidade * rs.precoUnitario), 0) FROM ReservaServico rs "
-            + "WHERE rs.reservaId = Reserva.id) AS totalServicos FROM Reserva ";
+            + "WHERE rs.reservaId = Reserva.id) AS totalServicos, "
+            + "(SELECT p.nome FROM Pessoa p WHERE p.id = Reserva.clienteId) AS nomeCliente, "
+            + "(SELECT p.nif FROM Pessoa p WHERE p.id = Reserva.clienteId) AS nifCliente FROM Reserva ";
 
     private static final String PROCURAR_POR_ID = SELECT_RESERVA + "WHERE id = ?";
 
@@ -51,6 +61,9 @@ public class ReservaDAL implements IReservaDAL {
     private static final String ATUALIZAR_ESTADO = "UPDATE Reserva SET estado = ? WHERE id = ?";
 
     private static final String APAGAR = "DELETE FROM Reserva WHERE id = ?";
+
+    private static final String APAGAR_SEM_CHECKIN =
+            "DELETE FROM Reserva WHERE id = ? AND checkinEm IS NULL AND estado IN ('CONFIRMADA', 'CANCELADA')";
 
     private static final String CANCELAR =
             "UPDATE Reserva SET estado = 'CANCELADA' "
@@ -70,10 +83,59 @@ public class ReservaDAL implements IReservaDAL {
             + "WHERE r.quartoNumero = ? AND r.id <> ? AND r.estado <> 'CANCELADA' "
             + "AND " + CONFLITO_DE_DATAS + ")";
 
+    private static final String ALTERAR_HORARIO_SE_LIVRE =
+            "UPDATE Reserva SET earlyCheckin = ?, lateCheckout = ?, taxaHorario = ? "
+            + "WHERE id = ? AND estado IN ('CONFIRMADA', 'EM_CURSO') AND checkoutEm IS NULL "
+            + "AND (earlyCheckin = ? OR checkinEm IS NULL) "
+            + "AND NOT EXISTS (SELECT 1 FROM Reserva r WITH (UPDLOCK, HOLDLOCK) "
+            + "WHERE r.quartoNumero = ? AND r.id <> ? AND r.estado <> 'CANCELADA' "
+            + "AND " + CONFLITO_DE_DATAS + ")";
+
     @Override
     public boolean inserirSeLivre(Reserva reserva) {
-        try (Connection conn = ConexaoBD.abrir();
-             PreparedStatement ps = conn.prepareStatement(INSERIR_SE_LIVRE)) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            return inserirSeLivre(conn, reserva);
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao gravar a reserva", e);
+        }
+    }
+
+    @Override
+    public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try {
+                if (!inserirSeLivre(conn, reserva)) {
+                    conn.rollback();
+                    return false;
+                }
+                for (ServicoReserva servico : servicos) {
+                    try (PreparedStatement ps = conn.prepareStatement(INSERIR_SERVICO)) {
+                        ps.setInt(1, reserva.getId());
+                        ps.setInt(2, servico.getServico().getId());
+                        ps.setInt(3, servico.getQuantidade());
+                        ps.setBigDecimal(4, servico.getPrecoUnitario());
+                        ps.setInt(5, servico.getServico().getId());
+                        if (ps.executeUpdate() == 0) {
+                            throw new IllegalStateException("O serviço " + servico.getServico().getDesignacao()
+                                    + " foi desativado entretanto. Retire-o e confirme outra vez.");
+                        }
+                    }
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                reserva.setId(0);
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao gravar a reserva e os serviços", e);
+        }
+    }
+
+    private boolean inserirSeLivre(Connection conn, Reserva reserva) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(INSERIR_SE_LIVRE)) {
             ps.setInt(1, reserva.getClienteId());
             ps.setInt(2, reserva.getQuartoNumero());
             ps.setObject(3, reserva.getDataEntrada());
@@ -93,8 +155,6 @@ public class ReservaDAL implements IReservaDAL {
                 }
                 return false;
             }
-        } catch (SQLException e) {
-            throw new DataAccessException("Erro ao gravar a reserva", e);
         }
     }
 
@@ -131,6 +191,11 @@ public class ReservaDAL implements IReservaDAL {
     }
 
     @Override
+    public boolean apagarSemCheckin(int id) {
+        return ConexaoBD.executar(APAGAR_SEM_CHECKIN, id) > 0;
+    }
+
+    @Override
     public boolean cancelar(int id) {
         return ConexaoBD.executar(CANCELAR, id) > 0;
     }
@@ -152,6 +217,8 @@ public class ReservaDAL implements IReservaDAL {
             reserva.setEarlyCheckin(rs.getBoolean("earlyCheckin"));
             reserva.setLateCheckout(rs.getBoolean("lateCheckout"));
             reserva.setTaxaHorario(rs.getBigDecimal("taxaHorario"));
+            reserva.setNomeCliente(rs.getString("nomeCliente"));
+            reserva.setNifCliente(rs.getString("nifCliente"));
             return reserva;
         }
     }
@@ -163,6 +230,17 @@ public class ReservaDAL implements IReservaDAL {
                 Date.valueOf(reserva.getDataEntrada()),
                 Date.valueOf(reserva.getDataSaida()),
                 reserva.getPrecoTotal(), reserva.getId(),
+                reserva.getQuartoNumero(), reserva.getId(),
+                conflito[0], conflito[1], conflito[2], conflito[3],
+                conflito[4], conflito[5], conflito[6], conflito[7]) > 0;
+    }
+
+    @Override
+    public boolean alterarHorarioSeLivre(Reserva reserva) {
+        Object[] conflito = conflitoDeDatas(reserva);
+        return ConexaoBD.executar(ALTERAR_HORARIO_SE_LIVRE,
+                reserva.isEarlyCheckin(), reserva.isLateCheckout(), reserva.getTaxaHorario(), reserva.getId(),
+                reserva.isEarlyCheckin(),
                 reserva.getQuartoNumero(), reserva.getId(),
                 conflito[0], conflito[1], conflito[2], conflito[3],
                 conflito[4], conflito[5], conflito[6], conflito[7]) > 0;

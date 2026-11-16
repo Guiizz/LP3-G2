@@ -1,7 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IUtilizadorDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.UtilizadorDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IUtilizadorDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 

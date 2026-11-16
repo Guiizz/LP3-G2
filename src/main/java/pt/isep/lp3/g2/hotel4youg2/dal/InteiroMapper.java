@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 

@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -86,6 +87,58 @@ public class LinhaEntrega {
 
     public String getTotalTexto() {
         return euros(total);
+    }
+
+    /**
+     * @return a unidade da quantidade, por extenso (por exemplo "Caixa"), para a fatura (US54)
+     */
+    public String getUnidadeTexto() {
+        return unidade.getDescricao();
+    }
+
+    /**
+     * @return o preço unitário com 2 casas decimais e vírgula, sem moeda, para a fatura (US54)
+     */
+    public String getPrecoUnitarioTexto() {
+        return valor(precoUnitario);
+    }
+
+    /**
+     * @return o valor sem IVA com 2 casas decimais e vírgula, sem moeda, para a fatura (US54)
+     */
+    public String getValorSemIvaTexto() {
+        return valor(valorSemIva);
+    }
+
+    /**
+     * @return a taxa de IVA com o símbolo de percentagem (por exemplo "23%"), para a fatura (US54)
+     */
+    public String getTaxaIvaTexto() {
+        return taxaIva + "%";
+    }
+
+    /**
+     * @return o valor do IVA com 2 casas decimais e vírgula, sem moeda, para a fatura (US54)
+     */
+    public String getValorIvaTexto() {
+        return valor(valorIva);
+    }
+
+    /**
+     * @return o total da linha com 2 casas decimais e vírgula, sem moeda, para a fatura (US54)
+     */
+    public String getTotalLinhaTexto() {
+        return valor(total);
+    }
+
+    /**
+     * Escreve um valor com 2 casas decimais e vírgula, sem moeda (por exemplo "1499,50").
+     *
+     * @param valor o valor a escrever
+     * @return o valor como texto
+     */
+    public static String valor(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',');
     }
 
     private static String euros(BigDecimal valor) {

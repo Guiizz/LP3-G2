@@ -5,9 +5,9 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
  * Controlador do ecrã "Consultar quartos": mostra os quartos e os preços, com filtros por tipo e piso.
  */
 public class QuartosController {
-    private final QuartoBLL quartoService = new QuartoBLL();
+    private final QuartoBLL quartoBLL = new QuartoBLL();
 
     @FXML
     private ComboBox<TipoQuarto> tipoCombo;
@@ -51,7 +51,7 @@ public class QuartosController {
     @FXML
     private void atualizar() {
         try {
-            List<Quarto> quartos = quartoService.listar(tipoCombo.getValue(), pisoCombo.getValue());
+            List<Quarto> quartos = quartoBLL.listar(tipoCombo.getValue(), pisoCombo.getValue());
             quartosTabela.getItems().setAll(quartos);
             Mensagens.info(mensagemLabel, quartos.size() + " quarto(s)");
         } catch (DataAccessException e) {

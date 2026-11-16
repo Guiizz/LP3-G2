@@ -1,11 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
-import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -27,6 +29,9 @@ public class AcessoCartaoDALTest {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('AcessoCartao') IS NOT NULL "
                     + "THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 15_acessos_cartao.sql");
+            List<Integer> coluna = ConexaoBD.select("SELECT CASE WHEN COL_LENGTH('AcessoCartao', 'funcionarioId') "
+                    + "IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
+            Assumptions.assumeTrue(coluna.get(0) == 1, "Falta correr o 17_picagem_funcionarios.sql");
             List<Integer> quartos = ConexaoBD.select("SELECT TOP 1 numero FROM Quarto", new InteiroMapper());
             Assumptions.assumeTrue(!quartos.isEmpty(), "Faltam quartos na BD");
             quarto = quartos.get(0);
@@ -121,6 +126,69 @@ public class AcessoCartaoDALTest {
         registar(LocalHotel.PISCINA, 0);
         List<AcessoCartao> expResult = new ArrayList<>();
         List<AcessoCartao> result = soOsDoTeste(instance.listarPorQuarto(quarto));
+        assertEquals(expResult, result);
+    }
+
+    private Funcionario umFuncionario() {
+        List<Integer> ids = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario ORDER BY numeroFuncionario",
+                new InteiroMapper());
+        Assumptions.assumeTrue(!ids.isEmpty(), "Faltam funcionários na BD");
+        return new FuncionarioDAL().procurarPorId(ids.get(0));
+    }
+
+    private AcessoCartao registarPicagem(Funcionario funcionario, LocalHotel local) {
+        AcessoCartao picagem = new AcessoCartao(0, cartao, local, 0, 0, null);
+        picagem.setFuncionario(funcionario.getId(), funcionario.getNome());
+        instance.registar(picagem);
+        criados.add(picagem);
+        return picagem;
+    }
+
+    @Test
+    public void testRegistarEmTodosOsLocais() {
+        System.out.println("registar (a BD aceita todos os locais do hotel)");
+        for (LocalHotel local : LocalHotel.values()) {
+            registar(local, local == LocalHotel.QUARTO ? quarto : 0);
+        }
+        int expResult = LocalHotel.values().length;
+        int result = instance.listarPorCartao(cartao).size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPicagemDeFuncionario() {
+        System.out.println("registar (a picagem fica com o funcionário)");
+        AcessoCartao picagem = registarPicagem(umFuncionario(), LocalHotel.BAR);
+        List<AcessoCartao> expResult = List.of(picagem);
+        List<AcessoCartao> result = instance.listarPorCartao(cartao);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorCartaoTrazONomeDoFuncionario() {
+        System.out.println("listarPorCartao (traz o nome do funcionário)");
+        Funcionario funcionario = umFuncionario();
+        registarPicagem(funcionario, LocalHotel.COZINHA);
+        String expResult = funcionario.getNome();
+        String result = instance.listarPorCartao(cartao).get(0).getFuncionarioTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorCartaoSemFuncionario() {
+        System.out.println("listarPorCartao (o cartão de um cliente não tem funcionário)");
+        registar(LocalHotel.PISCINA, 0);
+        String expResult = "-";
+        String result = instance.listarPorCartao(cartao).get(0).getFuncionarioTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCartoesDeClientes() {
+        System.out.println("listarCartoesDeClientes (um cartão por reserva em curso)");
+        int expResult = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado = 'EM_CURSO' "
+                + "AND cartao IS NOT NULL", new InteiroMapper()).get(0);
+        int result = instance.listarCartoesDeClientes().size();
         assertEquals(expResult, result);
     }
 

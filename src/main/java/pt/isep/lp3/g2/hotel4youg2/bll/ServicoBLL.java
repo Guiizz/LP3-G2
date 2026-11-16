@@ -1,9 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.CategoriaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.ICategoriaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ICategoriaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;

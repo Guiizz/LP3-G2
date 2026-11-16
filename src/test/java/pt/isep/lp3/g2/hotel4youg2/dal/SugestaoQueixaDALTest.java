@@ -1,11 +1,12 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoSugestao;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -29,6 +30,9 @@ public class SugestaoQueixaDALTest {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('SugestaoQueixa') IS NOT NULL "
                     + "THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 06_sugestoes.sql");
+            List<Integer> coluna = ConexaoBD.select("SELECT CASE WHEN COL_LENGTH('SugestaoQueixa', 'reservaId') "
+                    + "IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
+            Assumptions.assumeTrue(coluna.get(0) == 1, "Falta correr o 19_sugestoes_reserva.sql");
             List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Cliente", new InteiroMapper());
             List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", new InteiroMapper());
             Assumptions.assumeTrue(!clientes.isEmpty() && !funcionarios.isEmpty(), "Faltam clientes ou funcionários na BD");
@@ -147,6 +151,36 @@ public class SugestaoQueixaDALTest {
         instance.inserir(doCliente);
         SugestaoQueixa expResult = doCliente;
         SugestaoQueixa result = instance.procurarPorId(doCliente.getId()).orElseThrow();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testInserirComReserva() {
+        System.out.println("inserir (com a reserva em curso, traz o quarto)");
+        List<Integer> reservas = ConexaoBD.select("SELECT TOP 1 id FROM Reserva ORDER BY id", new InteiroMapper());
+        Assumptions.assumeTrue(!reservas.isEmpty(), "Faltam reservas na BD");
+        int reservaId = reservas.get(0);
+        int quarto = ConexaoBD.select("SELECT quartoNumero FROM Reserva WHERE id = ?", new InteiroMapper(), reservaId)
+                .get(0);
+        doCliente = new SugestaoQueixa(0, sugestao.getClienteId(), TipoSugestao.QUEIXA,
+                "Teste " + System.nanoTime(), 0, null);
+        doCliente.setReserva(reservaId, quarto);
+        instance.inserir(doCliente);
+        String expResult = "Quarto " + quarto + " (reserva n.º " + reservaId + ")";
+        String result = instance.procurarPorId(doCliente.getId()).orElseThrow().getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarSemReserva() {
+        System.out.println("listar (sem reserva mostra -)");
+        String result = null;
+        for (SugestaoQueixa s : instance.listar(null)) {
+            if (s.getId() == sugestao.getId()) {
+                result = s.getReservaTexto();
+            }
+        }
+        String expResult = "-";
         assertEquals(expResult, result);
     }
 }

@@ -1,5 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFuncionarioDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 
@@ -7,6 +10,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Implementação do {@link IFuncionarioDAL} sobre as tabelas Pessoa, Funcionario e Utilizador do SQL Server.
@@ -20,15 +25,22 @@ public class FuncionarioDAL implements IFuncionarioDAL {
     private static final String PROXIMO_NUMERO = "SELECT ISNULL(MAX(numeroFuncionario), 0) + 1 FROM Funcionario";
     private static final String INSERIR_FUNCIONARIO = "INSERT INTO Funcionario (pessoaId, numeroFuncionario, dataAdmissao) VALUES (?, ?, ?)";
     private static final String INSERIR_UTILIZADOR = "INSERT INTO Utilizador (funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo) " + "VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String PROCURAR = "SELECT p.id, p.nome, p.cc, p.nif, p.morada, p.telemovel, p.dataNascimento, p.email, "
+            + "f.numeroFuncionario, f.dataAdmissao FROM Funcionario f JOIN Pessoa p ON p.id = f.pessoaId ";
+    private static final String PROCURAR_POR_NUMERO = PROCURAR + "WHERE f.numeroFuncionario = ?";
+    private static final String PROCURAR_POR_ID = PROCURAR + "WHERE f.pessoaId = ?";
+    private static final String TEM_CONTA_ATIVA = "SELECT 1 FROM Utilizador WHERE funcionarioId = ? AND ativo = 1";
+    private static final String LISTAR_COM_CONTA_ATIVA = PROCURAR
+            + "JOIN Utilizador u ON u.funcionarioId = f.pessoaId WHERE u.ativo = 1 ORDER BY f.numeroFuncionario";
 
     @Override
     public boolean existeNif(String nif) {
-        return !ConexaoBD.select(EXISTE_NIF, rs -> rs.getInt(1), nif).isEmpty();
+        return !ConexaoBD.select(EXISTE_NIF, new InteiroMapper(), nif).isEmpty();
     }
 
     @Override
     public boolean existeNomeUtilizador(String nomeUtilizador) {
-        return !ConexaoBD.select(EXISTE_NOME_UTILIZADOR, rs -> rs.getInt(1), nomeUtilizador).isEmpty();
+        return !ConexaoBD.select(EXISTE_NOME_UTILIZADOR, new InteiroMapper(), nomeUtilizador).isEmpty();
     }
 
     @Override
@@ -49,6 +61,40 @@ public class FuncionarioDAL implements IFuncionarioDAL {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Erro ao criar a conta", e);
+        }
+    }
+
+    @Override
+    public Funcionario procurarPorNumero(int numeroFuncionario) {
+        return primeiro(ConexaoBD.select(PROCURAR_POR_NUMERO, new FuncionarioMapper(), numeroFuncionario));
+    }
+
+    @Override
+    public Funcionario procurarPorId(int pessoaId) {
+        return primeiro(ConexaoBD.select(PROCURAR_POR_ID, new FuncionarioMapper(), pessoaId));
+    }
+
+    @Override
+    public boolean temContaAtiva(int pessoaId) {
+        return !ConexaoBD.select(TEM_CONTA_ATIVA, new InteiroMapper(), pessoaId).isEmpty();
+    }
+
+    @Override
+    public List<Funcionario> listarComContaAtiva() {
+        return ConexaoBD.select(LISTAR_COM_CONTA_ATIVA, new FuncionarioMapper());
+    }
+
+    private static Funcionario primeiro(List<Funcionario> funcionarios) {
+        return funcionarios.isEmpty() ? null : funcionarios.get(0);
+    }
+
+    private static class FuncionarioMapper implements RowMapper<Funcionario> {
+        @Override
+        public Funcionario map(ResultSet rs) throws SQLException {
+            return new Funcionario(rs.getInt("id"), rs.getString("nome"), rs.getString("cc"), rs.getString("nif"),
+                    rs.getString("morada"), rs.getString("telemovel"),
+                    rs.getObject("dataNascimento", LocalDate.class), rs.getString("email"),
+                    rs.getInt("numeroFuncionario"), rs.getObject("dataAdmissao", LocalDate.class));
         }
     }
 

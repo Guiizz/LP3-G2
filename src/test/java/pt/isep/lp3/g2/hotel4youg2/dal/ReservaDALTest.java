@@ -1,12 +1,13 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,7 +38,7 @@ public class ReservaDALTest {
         LocalDate entrada = LocalDate.now().plusYears(50).plusDays(marca % 300);
         reserva = new Reserva(0, cliente.getId(), 201, entrada, entrada.plusDays(2), 1,
                 EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
-        instance.inserirSeLivre(reserva);
+        Assumptions.assumeTrue(instance.inserirSeLivre(reserva), "O quarto 201 já estava ocupado nessas datas");
     }
 
     @AfterEach
@@ -69,6 +70,15 @@ public class ReservaDALTest {
         System.out.println("procurarPorId");
         Reserva expResult = reserva;
         Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testProcurarPorIdComNomeENifDoCliente() {
+        System.out.println("procurarPorId (com o nome e o NIF do cliente)");
+        String expResult = cliente.getNome() + " / " + cliente.getNif();
+        Reserva lida = instance.procurarPorId(reserva.getId());
+        String result = lida.getNomeCliente() + " / " + lida.getNifCliente();
         assertEquals(expResult, result);
     }
 
@@ -106,6 +116,48 @@ public class ReservaDALTest {
         instance.apagar(reserva.getId());
         Reserva expResult = null;
         Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
+    public void testApagarSemCheckin() {
+        System.out.println("apagarSemCheckin (confirmada)");
+        instance.apagarSemCheckin(reserva.getId());
+        Reserva expResult = null;
+        Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
+    public void testApagarSemCheckinCancelada() {
+        System.out.println("apagarSemCheckin (cancelada)");
+        instance.cancelar(reserva.getId());
+        boolean expResult = true;
+        boolean result = instance.apagarSemCheckin(reserva.getId());
+        assertEquals(expResult, result);
+        reserva.setId(0);
+    }
+
+    @Test
+    public void testApagarSemCheckinDepoisDoCheckin() {
+        System.out.println("apagarSemCheckin (com check-in não apaga)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
+        boolean expResult = false;
+        boolean result = instance.apagarSemCheckin(reserva.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarSemCheckinQuartoFicaLivre() {
+        System.out.println("apagarSemCheckin (o quarto fica livre nessas datas)");
+        instance.apagarSemCheckin(reserva.getId());
+        Reserva outra = new Reserva(0, cliente.getId(), reserva.getQuartoNumero(), reserva.getDataEntrada(),
+                reserva.getDataSaida(), 1, EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
+        outras.add(outra);
+        boolean expResult = true;
+        boolean result = instance.inserirSeLivre(outra);
         assertEquals(expResult, result);
         reserva.setId(0);
     }
@@ -165,6 +217,77 @@ public class ReservaDALTest {
         reserva.alterarDatas(novaEntrada, novaEntrada.plusDays(2));
         boolean expResult = false;
         boolean result = instance.alterarDatasSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorario() {
+        System.out.println("alterarHorarioSeLivre");
+        reserva.setLateCheckout(true);
+        reserva.setTaxaHorario(new BigDecimal("25.00"));
+        instance.alterarHorarioSeLivre(reserva);
+        Reserva expResult = reserva;
+        Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioRetirar() {
+        System.out.println("alterarHorarioSeLivre (retirar o early check-in)");
+        reserva.setEarlyCheckin(true);
+        reserva.setTaxaHorario(new BigDecimal("20.00"));
+        instance.alterarHorarioSeLivre(reserva);
+        reserva.setEarlyCheckin(false);
+        reserva.setTaxaHorario(BigDecimal.ZERO);
+        instance.alterarHorarioSeLivre(reserva);
+        Reserva expResult = reserva;
+        Reserva result = instance.procurarPorId(reserva.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioQuartoOcupado() {
+        System.out.println("alterarHorarioSeLivre (outra reserva entra no dia de saída)");
+        Reserva outra = outraReserva(reserva.getDataSaida(), reserva.getDataSaida().plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(outra), "O quarto já estava ocupado nessas datas");
+        reserva.setLateCheckout(true);
+        reserva.setTaxaHorario(new BigDecimal("25.00"));
+        boolean expResult = false;
+        boolean result = instance.alterarHorarioSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioEarlyDepoisDoCheckin() {
+        System.out.println("alterarHorarioSeLivre (early check-in depois do check-in)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
+        reserva.setEarlyCheckin(true);
+        reserva.setTaxaHorario(new BigDecimal("20.00"));
+        boolean expResult = false;
+        boolean result = instance.alterarHorarioSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioLateEmCurso() {
+        System.out.println("alterarHorarioSeLivre (late check-out com a reserva em curso)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = GETDATE() WHERE id = ?", reserva.getId());
+        reserva.setLateCheckout(true);
+        reserva.setTaxaHorario(new BigDecimal("25.00"));
+        boolean expResult = true;
+        boolean result = instance.alterarHorarioSeLivre(reserva);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAlterarHorarioDepoisDoCheckout() {
+        System.out.println("alterarHorarioSeLivre (depois do check-out)");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'CONCLUIDA', checkinEm = GETDATE(), checkoutEm = GETDATE() "
+                + "WHERE id = ?", reserva.getId());
+        reserva.setLateCheckout(true);
+        reserva.setTaxaHorario(new BigDecimal("25.00"));
+        boolean expResult = false;
+        boolean result = instance.alterarHorarioSeLivre(reserva);
         assertEquals(expResult, result);
     }
 

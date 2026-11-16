@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFornecedorDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 
 import java.sql.ResultSet;
@@ -19,6 +21,9 @@ public class FornecedorDAL implements IFornecedorDAL {
     private static final String INSERIR =
             "INSERT INTO Fornecedor (codigo, nome, passwordHash, passwordSalt) OUTPUT INSERTED.id "
             + "VALUES (?, ?, ?, ?)";
+    private static final String LISTAR =
+            "SELECT id, codigo, nome, morada1, morada2, cidade, codigoPostal, pais, codigoPais, "
+            + "passwordHash, passwordSalt FROM Fornecedor ORDER BY nome";
     private static final String DEFINIR_PASSWORD =
             "UPDATE Fornecedor SET passwordHash = ?, passwordSalt = ? WHERE id = ? AND passwordHash IS NULL";
 
@@ -42,6 +47,11 @@ public class FornecedorDAL implements IFornecedorDAL {
             return Optional.empty();
         }
         return Optional.of(fornecedores.get(0));
+    }
+
+    @Override
+    public List<Fornecedor> listar() {
+        return ConexaoBD.select(LISTAR, new FornecedorMapper());
     }
 
     private static class FornecedorMapper implements RowMapper<Fornecedor> {

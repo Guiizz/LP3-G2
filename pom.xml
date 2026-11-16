@@ -77,7 +77,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>pt.isep.lp3.g2.hotel4youg2/pt.isep.lp3.g2.hotel4youg2.HelloApplication
+                            <mainClass>pt.isep.lp3.g2.hotel4youg2/pt.isep.lp3.g2.hotel4youg2.Hotel4YouApplication
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

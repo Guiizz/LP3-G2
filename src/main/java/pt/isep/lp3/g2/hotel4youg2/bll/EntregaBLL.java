@@ -1,15 +1,16 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.EntregaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IEntregaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ErrosFicheiroException;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 
 import java.io.File;
 import java.io.InputStream;
@@ -30,6 +31,12 @@ public class EntregaBLL {
 
     /** Tamanho máximo do motivo da recusa, igual ao da coluna na base de dados (US49). */
     public static final int TAMANHO_MAXIMO_MOTIVO = 200;
+
+    /** Diferença máxima (0,05 €) aceite nas contas de uma linha por causa de arredondamentos (US53). */
+    public static final BigDecimal TOLERANCIA = new BigDecimal("0.05");
+
+    /** Opção do filtro do histórico que mostra as entregas em todos os estados (US54). */
+    public static final String TODAS = "Todas";
 
     private static final String ENTREGA_JA_DECIDIDA = "Esta entrega já foi decidida.";
 
@@ -55,50 +62,110 @@ public class EntregaBLL {
     }
 
     /**
-     * Lê o ficheiro XML da entrega. Recusa linhas com quantidade zero ou preço negativo,
-     * que o XSD aceita mas a base de dados não.
+     * Importa o ficheiro XSD que passa a validar as entregas enquanto a aplicação estiver aberta (US53).
+     * Se o ficheiro não for um XSD válido, é recusado e continua o XSD anterior.
+     *
+     * @param ficheiro o ficheiro XSD
+     * @throws IllegalArgumentException se não houver ficheiro
+     * @throws ErrosFicheiroException   se o ficheiro não for um XSD válido
+     */
+    public void importarXsd(File ficheiro) {
+        if (ficheiro == null) {
+            throw new IllegalArgumentException("Escolha um ficheiro XSD.");
+        }
+        LeitorXmlEntrega.importarXsd(ficheiro);
+    }
+
+    /**
+     * @return o nome do XSD importado, ou {@code null} se estiver a ser usado o XSD do projeto
+     */
+    public String nomeXsdEmUso() {
+        return LeitorXmlEntrega.getNomeXsdImportado();
+    }
+
+    /**
+     * Lê o ficheiro XML da entrega e valida-o com o XSD e com as regras do negócio (US53):
+     * data que existe, unidades, uma só moeda, quantidade maior que zero, preço não negativo e as contas
+     * de cada linha. Junta todos os erros e só depois recusa. Diferenças de até 0,05 € nas contas são
+     * arredondamentos: não recusam, ficam como avisos (ver {@link #verificarContas(Entrega)}).
      *
      * @param ficheiro o ficheiro XML da entrega
-     * @return a entrega lida
-     * @throws IllegalArgumentException se não houver ficheiro, o XML não for válido
-     *                                  ou alguma linha tiver quantidade ou preço inválidos
+     * @return a entrega lida, sem erros
+     * @throws IllegalArgumentException se não houver ficheiro
+     * @throws ErrosFicheiroException   com todos os erros, se o ficheiro não for válido
      */
     public Entrega lerFicheiro(File ficheiro) {
         if (ficheiro == null) {
             throw new IllegalArgumentException("Escolha um ficheiro XML.");
         }
-        return validarLinhas(leitor.ler(ficheiro));
+        List<String> erros = new ArrayList<>();
+        Entrega entrega = leitor.ler(ficheiro, erros);
+        return validar(entrega, erros);
     }
 
     /**
      * Como {@link #lerFicheiro(File)}, mas lê de um fluxo de dados já aberto.
      *
      * @param entrada o fluxo com o conteúdo do XML
-     * @return a entrega lida
-     * @throws IllegalArgumentException se o XML não for válido
-     *                                  ou alguma linha tiver quantidade ou preço inválidos
+     * @return a entrega lida, sem erros
+     * @throws ErrosFicheiroException com todos os erros, se o ficheiro não for válido
      */
     public Entrega lerFicheiro(InputStream entrada) {
-        return validarLinhas(leitor.ler(entrada));
+        List<String> erros = new ArrayList<>();
+        Entrega entrega = leitor.ler(entrada, erros);
+        return validar(entrega, erros);
     }
 
-    // o XSD aceita quantidade 0 e preços negativos, mas a BD não: recusa logo ao ler, com uma mensagem clara
-    private static Entrega validarLinhas(Entrega entrega) {
+    // junta os erros das linhas aos que o leitor já encontrou; se houver algum, recusa com todos
+    private static Entrega validar(Entrega entrega, List<String> erros) {
         for (LinhaEntrega linha : entrega.getLinhas()) {
-            String inicio = "Linha " + linha.getNumero() + " (" + linha.getDescricao() + "): ";
-            if (linha.getQuantidade() <= 0) {
-                throw new IllegalArgumentException(inicio + "a quantidade tem de ser maior que zero.");
-            }
-            if (linha.getPrecoUnitario().signum() < 0) {
-                throw new IllegalArgumentException(inicio + "o preço não pode ser negativo.");
-            }
+            validarLinha(linha, erros);
+        }
+        if (!erros.isEmpty()) {
+            throw new ErrosFicheiroException(erros);
         }
         return entrega;
     }
 
+    private static void validarLinha(LinhaEntrega linha, List<String> erros) {
+        String inicio = "Linha " + linha.getNumero() + ", campo ";
+        if (linha.getQuantidade() <= 0) {
+            erros.add(inicio + "Quantity: a quantidade tem de ser maior que zero.");
+        }
+        if (linha.getPrecoUnitario().signum() < 0) {
+            erros.add(inicio + "PricePerUnit: o preço não pode ser negativo.");
+        }
+        BigDecimal semIva = linha.getPrecoUnitario().multiply(BigDecimal.valueOf(linha.getQuantidade()));
+        if (muitoDiferente(semIva, linha.getValorSemIva())) {
+            erros.add(inicio + "MonetaryAdjustmentStartAmount: a quantidade vezes o preço dá " + euros(semIva)
+                    + ", mas o ficheiro diz " + euros(linha.getValorSemIva()) + ".");
+        }
+        BigDecimal iva = ivaEsperado(linha);
+        if (muitoDiferente(iva, linha.getValorIva())) {
+            erros.add(inicio + "TaxAmount: o IVA de " + linha.getTaxaIva() + "% devia ser " + euros(iva)
+                    + ", mas o ficheiro diz " + euros(linha.getValorIva()) + ".");
+        }
+        BigDecimal total = linha.getValorSemIva().add(linha.getValorIva());
+        if (muitoDiferente(total, linha.getTotal())) {
+            erros.add(inicio + "LineBaseAmount: o total devia ser " + euros(total)
+                    + ", mas o ficheiro diz " + euros(linha.getTotal()) + ".");
+        }
+    }
+
+    // diferença maior que a tolerância dos arredondamentos
+    private static boolean muitoDiferente(BigDecimal esperado, BigDecimal lido) {
+        return esperado.subtract(lido).abs().compareTo(TOLERANCIA) > 0;
+    }
+
+    private static BigDecimal ivaEsperado(LinhaEntrega linha) {
+        return linha.getValorSemIva().multiply(BigDecimal.valueOf(linha.getTaxaIva()))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+
     /**
-     * Confere as contas de cada linha (quantidade × preço, IVA e total).
-     * As contas erradas não impedem o registo: ficam como avisos para quem regista decidir.
+     * Confere as contas de cada linha (quantidade × preço, IVA e total). Depois de
+     * {@link #lerFicheiro(File)}, só sobram diferenças pequenas (arredondamentos), que não impedem o envio:
+     * ficam como avisos.
      *
      * @param entrega a entrega lida do ficheiro
      * @return um aviso por cada linha com contas erradas; lista vazia se estiver tudo certo
@@ -113,8 +180,7 @@ public class EntregaBLL {
                         + ", mas o ficheiro diz " + euros(linha.getValorSemIva()) + ".");
             } else if (!linha.isIvaCorreto()) {
                 avisos.add(inicio + "o IVA de " + linha.getTaxaIva() + "% devia ser "
-                        + euros(linha.getValorSemIva().multiply(BigDecimal.valueOf(linha.getTaxaIva()))
-                                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP))
+                        + euros(ivaEsperado(linha))
                         + ", mas o ficheiro diz " + euros(linha.getValorIva()) + ".");
             } else if (!linha.isTotalCorreto()) {
                 avisos.add(inicio + "o total devia ser " + euros(linha.getValorSemIva().add(linha.getValorIva()))
@@ -287,5 +353,107 @@ public class EntregaBLL {
             throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
         }
         return entregaDAL.listarResumosDoFornecedor(fornecedor.getCodigo());
+    }
+
+    /**
+     * Devolve o histórico das entregas do fornecedor, só com as do estado escolhido (US54).
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @param estado     o estado a mostrar, ou {@code null} para mostrar todas
+     * @return o resumo das entregas do fornecedor nesse estado, da mais recente para a mais antiga
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<ResumoEntrega> historico(Fornecedor fornecedor, EstadoEntrega estado) {
+        List<ResumoEntrega> todas = historico(fornecedor);
+        if (estado == null) {
+            return todas;
+        }
+        List<ResumoEntrega> escolhidas = new ArrayList<>();
+        for (ResumoEntrega resumo : todas) {
+            if (resumo.getEstado() == estado) {
+                escolhidas.add(resumo);
+            }
+        }
+        return escolhidas;
+    }
+
+    /**
+     * Devolve as entregas para o pessoal do hotel, só com as do estado escolhido (US54).
+     *
+     * @param quemAge o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @param estado  o estado a mostrar, ou {@code null} para mostrar todas
+     * @return o resumo das entregas nesse estado
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<ResumoEntregaHotel> listarParaHotel(Utilizador quemAge, EstadoEntrega estado) {
+        List<ResumoEntregaHotel> todas = listarParaHotel(quemAge);
+        if (estado == null) {
+            return todas;
+        }
+        List<ResumoEntregaHotel> escolhidas = new ArrayList<>();
+        for (ResumoEntregaHotel resumo : todas) {
+            if (resumo.getEstado() == estado) {
+                escolhidas.add(resumo);
+            }
+        }
+        return escolhidas;
+    }
+
+    /**
+     * Passa a opção escolhida no filtro do histórico para o estado da entrega (US54).
+     *
+     * @param opcao {@value #TODAS} ou o nome de um estado (PENDENTE, ACEITE ou RECUSADA)
+     * @return o estado, ou {@code null} se a opção for {@value #TODAS} ou não houver opção
+     */
+    public static EstadoEntrega estadoDoFiltro(String opcao) {
+        if (opcao == null || opcao.equals(TODAS)) {
+            return null;
+        }
+        return EstadoEntrega.valueOf(opcao);
+    }
+
+    /**
+     * Devolve a entrega completa, com as linhas, para o fornecedor a ver como uma fatura (US54).
+     * Cada fornecedor só abre as suas entregas.
+     *
+     * @param fornecedor o fornecedor com a sessão iniciada
+     * @param entregaId  o id da entrega
+     * @return a entrega com as linhas
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se a entrega não existir ou for de outro fornecedor
+     */
+    public Entrega faturaParaFornecedor(Fornecedor fornecedor, int entregaId) {
+        if (fornecedor == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as suas entregas.");
+        }
+        Entrega entrega = procurarEntrega(entregaId);
+        if (!entrega.getFornecedor().getCodigo().equals(fornecedor.getCodigo())) {
+            throw new IllegalArgumentException("Só pode ver as entregas do seu fornecedor.");
+        }
+        return entrega;
+    }
+
+    /**
+     * Devolve a entrega completa, com as linhas, para o pessoal do hotel a ver como uma fatura (US54).
+     *
+     * @param quemAge   o utilizador com a sessão iniciada (gestor ou rececionista)
+     * @param entregaId o id da entrega
+     * @return a entrega com as linhas
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se a entrega não existir
+     */
+    public Entrega faturaParaHotel(Utilizador quemAge, int entregaId) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para ver as entregas.");
+        }
+        return procurarEntrega(entregaId);
+    }
+
+    private Entrega procurarEntrega(int entregaId) {
+        Optional<Entrega> entrega = entregaDAL.procurarPorId(entregaId);
+        if (entrega.isEmpty()) {
+            throw new IllegalArgumentException("A entrega não existe.");
+        }
+        return entrega.get();
     }
 }

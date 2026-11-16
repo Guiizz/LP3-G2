@@ -1,23 +1,32 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import pt.isep.lp3.g2.hotel4youg2.bll.EntregaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
+
+import java.io.IOException;
 
 /**
  * Controlador do ecrã onde o pessoal do hotel vê as entregas dos fornecedores e aceita ou recusa
- * as que estão pendentes (US49).
+ * as que estão pendentes (US49). Filtra as entregas por estado e abre cada uma como uma fatura (US54).
  */
 public class DecidirEntregasController {
 
     private final EntregaBLL entregaBLL = new EntregaBLL();
 
+    @FXML
+    private VBox ecra;
+    @FXML
+    private ComboBox<String> filtroCombo;
     @FXML
     private TableView<ResumoEntregaHotel> tabela;
     @FXML
@@ -27,7 +36,34 @@ public class DecidirEntregasController {
 
     @FXML
     private void initialize() {
+        filtroCombo.getItems().setAll(EntregaBLL.TODAS, EstadoEntrega.PENDENTE.name(), EstadoEntrega.ACEITE.name(),
+                EstadoEntrega.RECUSADA.name());
+        // escolher o valor do filtro dispara o aoFiltrar, que já preenche a tabela
+        filtroCombo.setValue(EntregaBLL.TODAS);
+    }
+
+    @FXML
+    private void aoFiltrar() {
         atualizar();
+    }
+
+    @FXML
+    private void aoVerFatura() {
+        ResumoEntregaHotel escolhida = tabela.getSelectionModel().getSelectedItem();
+        if (escolhida == null) {
+            mostrarMensagem("Escolha primeiro uma entrega na tabela.", "red");
+            return;
+        }
+        try {
+            Entrega entrega = entregaBLL.faturaParaHotel(Sessao.getUtilizador(), escolhida.getEntregaId());
+            FaturaEntregaController.abrir(entrega, ecra);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            mostrarMensagem(e.getMessage(), "red");
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível abrir a entrega. Tente novamente.", "red");
+        } catch (IOException e) {
+            mostrarMensagem("Não foi possível abrir a fatura da entrega.", "red");
+        }
     }
 
     @FXML
@@ -88,7 +124,8 @@ public class DecidirEntregasController {
 
     private void atualizar() {
         try {
-            tabela.getItems().setAll(entregaBLL.listarParaHotel(Sessao.getUtilizador()));
+            EstadoEntrega estado = EntregaBLL.estadoDoFiltro(filtroCombo.getValue());
+            tabela.getItems().setAll(entregaBLL.listarParaHotel(Sessao.getUtilizador(), estado));
         } catch (IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {

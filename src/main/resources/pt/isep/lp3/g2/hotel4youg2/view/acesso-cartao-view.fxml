@@ -21,9 +21,14 @@
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Cartão:"/>
-        <TextField fx:id="cartaoField" promptText="ex.: C201 ou C000" prefWidth="140.0"/>
+        <TextField fx:id="cartaoField" promptText="ex.: C201, C000 ou F12" prefWidth="170.0"/>
+        <Button text="O meu cartão" onAction="#aoUsarOMeuCartao"/>
+        <Button text="Escolher da lista" onAction="#aoEscolherCartao"/>
+    </HBox>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Local:"/>
-        <ComboBox fx:id="localCombo" promptText="Escolha o local" onAction="#aoEscolherLocal" prefWidth="150.0"/>
+        <ComboBox fx:id="localCombo" promptText="Escolha o local" onAction="#aoEscolherLocal" prefWidth="190.0"/>
         <Label fx:id="quartoLabel" text="Quarto:"/>
         <TextField fx:id="quartoField" promptText="ex.: 201" prefWidth="80.0"/>
         <Button text="Registar passagem" defaultButton="true" onAction="#aoRegistarPassagem"/>
@@ -42,6 +47,9 @@
             </TableColumn>
             <TableColumn text="Local" prefWidth="200.0">
                 <cellValueFactory><PropertyValueFactory property="localTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Funcionário" prefWidth="220.0">
+                <cellValueFactory><PropertyValueFactory property="funcionarioTexto"/></cellValueFactory>
             </TableColumn>
         </columns>
         <placeholder>

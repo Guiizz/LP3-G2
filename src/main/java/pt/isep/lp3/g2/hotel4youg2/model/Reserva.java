@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -29,6 +30,8 @@ public class Reserva {
     private boolean earlyCheckin;
     private boolean lateCheckout;
     private BigDecimal taxaHorario = BigDecimal.ZERO;
+    private String nomeCliente;
+    private String nifCliente;
 
     public int getId() {
         return id;
@@ -164,11 +167,35 @@ public class Reserva {
     }
 
     /**
+     * @return {@code true} se a reserva ainda não teve check-in e está confirmada ou cancelada:
+     *         só estas podem ser apagadas pelo gestor (US57)
+     */
+    public boolean podeSerApagada() {
+        return checkinEm == null && (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.CANCELADA);
+    }
+
+    /**
      * @return {@code true} se ainda se puderem juntar ou retirar serviços extra: reserva confirmada
      *         ou em curso (US37)
      */
     public boolean aceitaServicos() {
         return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
+    }
+
+    /**
+     * @return {@code true} se ainda se pode juntar ou retirar o early check-in: reserva confirmada
+     *         e sem check-in (US58)
+     */
+    public boolean podeMudarEarlyCheckin() {
+        return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    /**
+     * @return {@code true} se ainda se pode juntar ou retirar o late check-out: reserva confirmada
+     *         ou em curso e sem check-out (US58)
+     */
+    public boolean podeMudarLateCheckout() {
+        return (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO) && checkoutEm == null;
     }
 
     public BigDecimal getTotalServicos() {
@@ -213,6 +240,60 @@ public class Reserva {
 
     public String getCartao() {
         return cartao;
+    }
+
+    public String getNomeCliente() {
+        return nomeCliente;
+    }
+
+    public void setNomeCliente(String nomeCliente) {
+        this.nomeCliente = nomeCliente;
+    }
+
+    public String getNifCliente() {
+        return nifCliente;
+    }
+
+    public void setNifCliente(String nifCliente) {
+        this.nifCliente = nifCliente;
+    }
+
+    /**
+     * @return o dia e a hora do check-in (por exemplo {@code "10/11 15:20"}), ou vazio se ainda não foi feito;
+     *         para a tabela do separador "Em curso" (US55)
+     */
+    public String getCheckinEmTexto() {
+        return checkinEm == null ? "" : checkinEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+    }
+
+    /**
+     * @return o estado para mostrar no ecrã (por exemplo {@code "Em curso"}), ou vazio se não tiver estado (US55)
+     */
+    public String getEstadoTexto() {
+        return estado == null ? "" : estado.getDescricao();
+    }
+
+    /**
+     * @return o dia e a hora do check-out (por exemplo {@code "13/11 11:00"}), ou vazio se ainda não foi feito;
+     *         para os detalhes da reserva (US56)
+     */
+    public String getCheckoutEmTexto() {
+        return checkoutEm == null ? "" : checkoutEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
+    }
+
+    /**
+     * Explica, nos detalhes da reserva, o que já não se pode mudar (US56).
+     *
+     * @return vazio se ainda se pode mudar tudo; senão, o motivo (check-in feito, reserva concluída ou cancelada)
+     */
+    public String getAvisoAlteracoes() {
+        if (podeSerAlterada()) {
+            return "";
+        }
+        if (aceitaServicos()) {
+            return "Com o check-in feito, as datas já não se alteram.";
+        }
+        return "Reserva " + getEstadoTexto().toLowerCase() + ": já não se alteram as datas nem os serviços.";
     }
 
     public void setCartao(String cartao) {

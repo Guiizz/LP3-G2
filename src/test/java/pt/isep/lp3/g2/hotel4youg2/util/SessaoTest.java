@@ -4,8 +4,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -35,14 +35,6 @@ public class SessaoTest {
     }
 
     @Test
-    public void testEstaIniciadaSemLogin() {
-        System.out.println("estaIniciada (sem login)");
-        boolean expResult = false;
-        boolean result = Sessao.estaIniciada();
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testGetUtilizadorSemLogin() {
         System.out.println("getUtilizador (sem login)");
         Utilizador expResult = null;
@@ -60,15 +52,6 @@ public class SessaoTest {
     }
 
     @Test
-    public void testEstaIniciadaDepoisDoLogin() {
-        System.out.println("estaIniciada (depois do login)");
-        Sessao.iniciar(gestor);
-        boolean expResult = true;
-        boolean result = Sessao.estaIniciada();
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testTerminar() {
         System.out.println("terminar (esquece o utilizador)");
         Sessao.iniciar(gestor);
@@ -76,7 +59,6 @@ public class SessaoTest {
         Utilizador expResult = null;
         Utilizador result = Sessao.getUtilizador();
         assertEquals(expResult, result);
-        assertEquals(false, Sessao.estaIniciada());
     }
 
     @Test
@@ -84,7 +66,7 @@ public class SessaoTest {
         System.out.println("terminar (sem sessão iniciada não dá erro)");
         Sessao.terminar();
         boolean expResult = false;
-        boolean result = Sessao.estaIniciada();
+        boolean result = Sessao.getUtilizador() != null;
         assertEquals(expResult, result);
     }
 
@@ -121,7 +103,7 @@ public class SessaoTest {
         System.out.println("iniciarFornecedor (não conta como utilizador com sessão)");
         Sessao.iniciarFornecedor(fornecedor);
         boolean expResult = false;
-        boolean result = Sessao.estaIniciada();
+        boolean result = Sessao.getUtilizador() != null;
         assertEquals(expResult, result);
     }
 

@@ -1,9 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.ServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
@@ -89,6 +90,26 @@ public class ServicoReservaBLL {
     public ServicoReserva adicionar(Utilizador quemAge, Reserva reserva, Servico servico, int quantidade) {
         exigirRececaoOuGestor(quemAge);
         exigirReservaAberta(reserva, "juntar");
+        ServicoReserva novo = novoServico(reserva.getId(), servico, quantidade);
+        if (!servicoReservaDAL.inserirSeAberta(novo)) {
+            throw new ValidacaoException("A reserva já não aceita serviços ou o serviço foi desativado. "
+                    + "Atualize a lista e tente outra vez.");
+        }
+        reserva.setTotalServicos(reserva.getTotalServicos().add(novo.getTotal()));
+        return novo;
+    }
+
+    /**
+     * Prepara um serviço para juntar a uma reserva, com o preço que tem agora na tabela de preços, sem o gravar.
+     * Serve para juntar serviços a uma reserva existente e para os escolher ao criar a reserva (US60).
+     *
+     * @param reservaId  o id da reserva (0 se a reserva ainda não foi criada)
+     * @param servico    o serviço (tem de estar ativo)
+     * @param quantidade quantas vezes (de 1 a {@value #QUANTIDADE_MAXIMA})
+     * @return o serviço da reserva, ainda por gravar
+     * @throws ValidacaoException se faltar o serviço, se estiver desativado ou se a quantidade não for válida
+     */
+    public static ServicoReserva novoServico(int reservaId, Servico servico, int quantidade) {
         if (servico == null) {
             throw new ValidacaoException("Escolha um serviço");
         }
@@ -101,13 +122,7 @@ public class ServicoReservaBLL {
         if (quantidade > QUANTIDADE_MAXIMA) {
             throw new ValidacaoException("A quantidade não pode ser maior que " + QUANTIDADE_MAXIMA);
         }
-        ServicoReserva novo = new ServicoReserva(0, reserva.getId(), servico, quantidade, servico.getPreco(), null);
-        if (!servicoReservaDAL.inserirSeAberta(novo)) {
-            throw new ValidacaoException("A reserva já não aceita serviços ou o serviço foi desativado. "
-                    + "Atualize a lista e tente outra vez.");
-        }
-        reserva.setTotalServicos(reserva.getTotalServicos().add(novo.getTotal()));
-        return novo;
+        return new ServicoReserva(0, reservaId, servico, quantidade, servico.getPreco(), null);
     }
 
     /**

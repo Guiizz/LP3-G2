@@ -1,0 +1,37 @@
+package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
+
+import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
+import pt.isep.lp3.g2.hotel4youg2.model.MovimentoStock;
+
+import java.util.List;
+
+/**
+ * Acesso à base de dados do stock de materiais e das saídas (US42 e US62).
+ */
+public interface IStockDAL {
+
+    /**
+     * @return o stock de cada material, com o fornecedor e quantas unidades entraram e saíram,
+     *         ordenado pela descrição do material
+     */
+    List<MaterialStock> listar();
+
+    /**
+     * Tira a quantidade do stock e regista o movimento de saída, numa só transação.
+     * Só tira se houver quantidade suficiente.
+     *
+     * @param materialId    o id do material
+     * @param quantidade    quantas unidades saem
+     * @param funcionarioId o id do funcionário que regista a saída
+     * @return {@code true} se a saída foi registada; {@code false} se não havia quantidade suficiente
+     */
+    boolean registarSaida(int materialId, int quantidade, int funcionarioId);
+
+    /**
+     * Lista as entradas (linhas de entregas aceites) e as saídas de um material (US62).
+     *
+     * @param materialId o id do material
+     * @return os movimentos, do mais recente para o mais antigo
+     */
+    List<MovimentoStock> listarMovimentos(int materialId);
+}

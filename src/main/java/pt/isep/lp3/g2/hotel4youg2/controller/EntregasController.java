@@ -7,7 +7,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import pt.isep.lp3.g2.hotel4youg2.bll.EntregaBLL;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;

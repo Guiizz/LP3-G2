@@ -1,7 +1,9 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IUtilizadorDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

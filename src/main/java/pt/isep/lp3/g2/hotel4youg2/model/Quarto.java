@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import java.math.BigDecimal;
 import java.util.Objects;
 

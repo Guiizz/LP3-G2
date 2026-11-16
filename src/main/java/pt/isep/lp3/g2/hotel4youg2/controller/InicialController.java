@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class InicialController {
 
-    private final LigacaoBLL ligacaoService = new LigacaoBLL();
+    private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
 
     @FXML
     private BorderPane raiz;
@@ -49,7 +49,7 @@ public class InicialController {
 
     @FXML
     private void aoTestarLigacao() {
-        estadoLabel.setText(ligacaoService.testarLigacao());
+        estadoLabel.setText(ligacaoBLL.testarLigacao());
     }
 
     @FXML
@@ -95,7 +95,7 @@ public class InicialController {
     @FXML
     private void aoAbrirStock() throws IOException {
         List<OpcaoMenu> opcoes = new ArrayList<>();
-        opcoes.add(new OpcaoMenu("Entregas (XML)", "entregas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Janela de stock", "stock-view.fxml", false));
         opcoes.add(new OpcaoMenu("Decidir entregas", "decidir-entregas-view.fxml", false));
         opcoes.add(new OpcaoMenu("Saída de materiais", "saida-stock-view.fxml", false));
         Navegador.mostrarArea("Stock", opcoes);

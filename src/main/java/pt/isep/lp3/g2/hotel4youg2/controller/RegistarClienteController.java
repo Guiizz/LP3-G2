@@ -9,8 +9,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class RegistarClienteController {
 
-    private final ClienteBLL clienteService = new ClienteBLL();
+    private final ClienteBLL clienteBLL = new ClienteBLL();
 
     @FXML
     private TextField nomeField;
@@ -71,7 +71,7 @@ public class RegistarClienteController {
             if (preencherSeForFuncionario()) {
                 return;
             }
-            Cliente cliente = clienteService.registar(
+            Cliente cliente = clienteBLL.registar(
                     nomeField.getText(),
                     nifField.getText(),
                     dataNascimentoPicker.getValue(),
@@ -97,7 +97,7 @@ public class RegistarClienteController {
         if (nifDoFuncionario != null) {
             largarFuncionario();
         }
-        Cliente funcionario = clienteService.funcionarioComNif(nif);
+        Cliente funcionario = clienteBLL.funcionarioComNif(nif);
         if (funcionario == null) {
             return false;
         }
@@ -142,7 +142,7 @@ public class RegistarClienteController {
     @FXML
     private void aoPesquisar() {
         try {
-            List<Cliente> clientes = clienteService.pesquisar(pesquisaField.getText());
+            List<Cliente> clientes = clienteBLL.pesquisar(pesquisaField.getText());
             resultadosList.getItems().setAll(clientes);
             if (clientes.isEmpty()) {
                 mostrarMensagem("Nenhum cliente encontrado", "black");
@@ -190,7 +190,7 @@ public class RegistarClienteController {
 
     private void guardarEdicao() {
         try {
-            Cliente cliente = clienteService.editar(
+            Cliente cliente = clienteBLL.editar(
                     clienteEmEdicao,
                     nomeField.getText(),
                     dataNascimentoPicker.getValue(),
@@ -214,7 +214,7 @@ public class RegistarClienteController {
      */
     private void atualizarLista() {
         try {
-            resultadosList.getItems().setAll(clienteService.pesquisar(pesquisaField.getText()));
+            resultadosList.getItems().setAll(clienteBLL.pesquisar(pesquisaField.getText()));
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível carregar os clientes. Tente novamente.", "red");
         }

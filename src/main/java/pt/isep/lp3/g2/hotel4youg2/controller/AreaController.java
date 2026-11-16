@@ -3,11 +3,14 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 
 import java.io.IOException;
 import java.util.List;
@@ -61,10 +64,30 @@ public class AreaController {
                 area.setCenter(Navegador.carregar(opcao.getFicheiro()).getRoot());
             }
         } catch (IOException e) {
-            Label erro = new Label("Não foi possível abrir " + opcao.getTexto() + ".");
-            erro.getStyleClass().add("mensagem-erro");
-            area.setCenter(erro);
+            mostrarErro(opcao, e);
         }
+    }
+
+    private void mostrarErro(OpcaoMenu opcao, IOException e) {
+        Label erro = new Label(textoDoErro(opcao, e));
+        erro.getStyleClass().add("mensagem-erro");
+        erro.setWrapText(true);
+        Button tentarOutraVez = new Button("Tentar outra vez");
+        tentarOutraVez.setOnAction(new AoEscolherOpcao(opcao));
+        VBox caixa = new VBox(10, erro, tentarOutraVez);
+        caixa.setPadding(new Insets(20));
+        area.setCenter(caixa);
+    }
+
+    static String textoDoErro(OpcaoMenu opcao, Throwable erro) {
+        Throwable causa = erro;
+        while (causa != null) {
+            if (causa instanceof DataAccessException) {
+                return causa.getMessage();
+            }
+            causa = causa.getCause();
+        }
+        return "Não foi possível abrir " + opcao.getTexto() + ".";
     }
 
     private void marcarAtiva(OpcaoMenu opcao) {

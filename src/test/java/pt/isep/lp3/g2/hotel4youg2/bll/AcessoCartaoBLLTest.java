@@ -1,24 +1,28 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.IAcessoCartaoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IReservaDAL;
-import pt.isep.lp3.g2.hotel4youg2.dal.IServicoReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IAcessoCartaoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFuncionarioDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoReserva;
-import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
-import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -35,6 +39,7 @@ public class AcessoCartaoBLLTest {
         private final List<AcessoCartao> registados = new ArrayList<>();
         private final LocalDateTime agora = LocalDateTime.of(2026, 11, 8, 14, 30);
         private int consultas;
+        private final List<CartaoAtivo> cartoesDeClientes = new ArrayList<>();
 
         @Override
         public void registar(AcessoCartao acesso) {
@@ -68,6 +73,11 @@ public class AcessoCartaoBLLTest {
         }
 
         @Override
+        public List<CartaoAtivo> listarCartoesDeClientes() {
+            return cartoesDeClientes;
+        }
+
+        @Override
         public boolean apagar(int id) {
             return false;
         }
@@ -86,6 +96,11 @@ public class AcessoCartaoBLLTest {
 
         @Override
         public boolean inserirSeLivre(Reserva reserva) {
+            return false;
+        }
+
+        @Override
+        public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
             return false;
         }
 
@@ -120,7 +135,17 @@ public class AcessoCartaoBLLTest {
         }
 
         @Override
+        public boolean apagarSemCheckin(int id) {
+            return false;
+        }
+
+        @Override
         public boolean alterarDatasSeLivre(Reserva reserva) {
+            return false;
+        }
+
+        @Override
+        public boolean alterarHorarioSeLivre(Reserva reserva) {
             return false;
         }
 
@@ -197,6 +222,55 @@ public class AcessoCartaoBLLTest {
         }
     }
 
+    private static class FuncionarioDALFalsa implements IFuncionarioDAL {
+        private final Funcionario ana = new Funcionario(7, "Ana Silva", null, "123456789", null, null, null, null,
+                12, LocalDate.of(2026, 10, 1));
+        private boolean contaAtiva = true;
+
+        @Override
+        public boolean temContaAtiva(int pessoaId) {
+            return contaAtiva && pessoaId == ana.getId();
+        }
+
+        @Override
+        public List<Funcionario> listarComContaAtiva() {
+            List<Funcionario> ativos = new ArrayList<>();
+            if (contaAtiva) {
+                ativos.add(ana);
+            }
+            return ativos;
+        }
+
+        @Override
+        public Funcionario procurarPorNumero(int numeroFuncionario) {
+            return numeroFuncionario == ana.getNumeroFuncionario() ? ana : null;
+        }
+
+        @Override
+        public Funcionario procurarPorId(int pessoaId) {
+            return pessoaId == ana.getId() ? ana : null;
+        }
+
+        @Override
+        public boolean existeNif(String nif) {
+            return false;
+        }
+
+        @Override
+        public boolean existeNomeUtilizador(String nomeUtilizador) {
+            return false;
+        }
+
+        @Override
+        public void criarConta(Funcionario funcionario, Utilizador utilizador) {
+        }
+    }
+
+    private static final String SO_PISOS_0_E_1 =
+            "Acesso recusado: o cartão F12 é de um funcionário e só abre os locais dos pisos 0 e 1.";
+    private static final String SO_QUARTO_RESTAURANTE_E_PISCINA =
+            "Acesso recusado: o cartão C201 é de um cliente e só abre o seu quarto, o restaurante e a piscina.";
+
     private static final Utilizador GESTOR = new Utilizador(1, 1, "gestor", "h", "s", Perfil.GESTOR, true);
     private static final Utilizador RECECAO = new Utilizador(2, 7, "rececao", "h", "s", Perfil.RECECIONISTA, true);
     private static final Servico JANTAR = new Servico(3, "Jantar", new BigDecimal("22.00"),
@@ -209,6 +283,7 @@ public class AcessoCartaoBLLTest {
     private AcessoCartaoDALFalsa acessoDAL;
     private ReservaDALFalsa reservaDAL;
     private ServicoReservaDALFalsa servicoReservaDAL;
+    private FuncionarioDALFalsa funcionarioDAL;
     private AcessoCartaoBLL instance;
 
     @BeforeEach
@@ -220,7 +295,9 @@ public class AcessoCartaoBLLTest {
         reservaDAL.emCurso = new Reserva(30, 15, 201, hoje.minusDays(1), hoje.plusDays(2), 1,
                 EstadoReserva.EM_CURSO, new BigDecimal("300.00"), hoje.minusDays(1).atTime(15, 30), null);
         reservaDAL.emCurso.setCartao("C201");
-        instance = new AcessoCartaoBLL(acessoDAL, reservaDAL, servicoReservaDAL, new QuartoDALFalsa());
+        funcionarioDAL = new FuncionarioDALFalsa();
+        instance = new AcessoCartaoBLL(acessoDAL, reservaDAL, servicoReservaDAL, new QuartoDALFalsa(),
+                funcionarioDAL);
     }
 
     @AfterEach
@@ -384,7 +461,7 @@ public class AcessoCartaoBLLTest {
     @Test
     public void testRegistarPassagemSemLocal() {
         System.out.println("registarPassagem (sem local)");
-        String expResult = "Escolha o local: quarto, restaurante ou piscina.";
+        String expResult = "Escolha o local.";
         try {
             instance.registarPassagem(RECECAO, "C201", null, 0);
             fail("Devia ter pedido o local");
@@ -533,6 +610,281 @@ public class AcessoCartaoBLLTest {
         try {
             instance.registarPassagem(null, "C201", LocalHotel.QUARTO, 201);
             fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    private AcessoCartao picagemDaAna(LocalHotel local) {
+        AcessoCartao picagem = new AcessoCartao(1, "F12", local, 0, 0, acessoDAL.agora);
+        picagem.setFuncionario(7, "Ana Silva");
+        return picagem;
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoBar() {
+        System.out.println("registarPassagem (o cartão do funcionário abre o bar, no piso 0)");
+        AcessoCartao expResult = picagemDaAna(LocalHotel.BAR);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "F12", LocalHotel.BAR, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNasSalasDeConferencia() {
+        System.out.println("registarPassagem (o cartão do funcionário abre as salas de conferência, no piso 0)");
+        AcessoCartao expResult = picagemDaAna(LocalHotel.SALA_CONFERENCIAS);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "F12", LocalHotel.SALA_CONFERENCIAS, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoRestaurante() {
+        System.out.println("registarPassagem (o cartão do funcionário abre o restaurante, no piso 1)");
+        AcessoCartao expResult = picagemDaAna(LocalHotel.RESTAURANTE);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "F12", LocalHotel.RESTAURANTE, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNaPiscina() {
+        System.out.println("registarPassagem (o cartão do funcionário abre a piscina, no piso 1)");
+        AcessoCartao expResult = picagemDaAna(LocalHotel.PISCINA);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "F12", LocalHotel.PISCINA, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNaCozinha() {
+        System.out.println("registarPassagem (o cartão do funcionário abre a cozinha, no piso 1)");
+        AcessoCartao expResult = picagemDaAna(LocalHotel.COZINHA);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "F12", LocalHotel.COZINHA, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNaGaragem() {
+        System.out.println("registarPassagem (o cartão do funcionário não abre a garagem, no piso -1)");
+        esperarRecusa("F12", LocalHotel.GARAGEM, 0, SO_PISOS_0_E_1);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoArmazem() {
+        System.out.println("registarPassagem (o cartão do funcionário não abre o armazém, no piso -1)");
+        esperarRecusa("F12", LocalHotel.ARMAZEM, 0, SO_PISOS_0_E_1);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoQuarto() {
+        System.out.println("registarPassagem (o cartão do funcionário não abre os quartos)");
+        esperarRecusa("F12", LocalHotel.QUARTO, 201, SO_PISOS_0_E_1);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoQuartoSemNumero() {
+        System.out.println("registarPassagem (o funcionário é recusado no quarto mesmo sem o número)");
+        esperarRecusa("F12", LocalHotel.QUARTO, 0, SO_PISOS_0_E_1);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioAceitaMinusculasEEspacos() {
+        System.out.println("registarPassagem (minúsculas e espaços no cartão do funcionário)");
+        AcessoCartao expResult = picagemDaAna(LocalHotel.BAR);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "  f12 ", LocalHotel.BAR, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioQueNaoExiste() {
+        System.out.println("registarPassagem (cartão de um funcionário que não existe)");
+        esperarRecusa("F99", LocalHotel.BAR, 0, "Acesso recusado: o cartão F99 não é de nenhum funcionário.");
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioComContaDesativada() {
+        System.out.println("registarPassagem (o cartão de uma conta desativada não abre nada)");
+        funcionarioDAL.contaAtiva = false;
+        esperarRecusa("F12", LocalHotel.BAR, 0,
+                "Acesso recusado: o cartão F12 é de um funcionário com a conta desativada.");
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioComContaDesativadaNaGaragem() {
+        System.out.println("registarPassagem (com a conta desativada, o motivo é a conta e não o piso)");
+        funcionarioDAL.contaAtiva = false;
+        esperarRecusa("F12", LocalHotel.GARAGEM, 0,
+                "Acesso recusado: o cartão F12 é de um funcionário com a conta desativada.");
+    }
+
+    @Test
+    public void testRegistarPassagemCartaoComZeroAEsquerda() {
+        System.out.println("registarPassagem (F012 não é o cartão do funcionário 12)");
+        esperarRecusa("F012", LocalHotel.BAR, 0,
+                "Acesso recusado: o cartão F012 não é válido ou é de uma reserva que já não está em curso.");
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioFicaComONome() {
+        System.out.println("registarPassagem (a picagem fica com o nome do funcionário)");
+        AcessoCartao picagem = instance.registarPassagem(RECECAO, "F12", LocalHotel.COZINHA, 0);
+        String expResult = "Ana Silva";
+        String result = picagem.getFuncionarioTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetFuncionarioTextoDoHospede() {
+        System.out.println("getFuncionarioTexto (o cartão de um cliente não tem funcionário)");
+        AcessoCartao acesso = instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
+        String expResult = "-";
+        String result = acesso.getFuncionarioTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetReservaTextoDoFuncionario() {
+        System.out.println("getReservaTexto (o cartão de um funcionário não tem reserva)");
+        AcessoCartao picagem = instance.registarPassagem(RECECAO, "F12", LocalHotel.BAR, 0);
+        String expResult = "-";
+        String result = picagem.getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemCartaoMestreTodosOsLocais() {
+        System.out.println("registarPassagem (o cartão mestre abre todos os locais)");
+        for (LocalHotel local : LocalHotel.values()) {
+            instance.registarPassagem(RECECAO, "C000", local, local == LocalHotel.QUARTO ? 201 : 0);
+        }
+        int expResult = LocalHotel.values().length;
+        int result = acessoDAL.registados.size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemCartaoMestreGaragem() {
+        System.out.println("registarPassagem (o cartão mestre abre a garagem)");
+        AcessoCartao expResult = new AcessoCartao(1, AcessoCartao.CARTAO_MESTRE, LocalHotel.GARAGEM, 0, 0,
+                acessoDAL.agora);
+        AcessoCartao result = instance.registarPassagem(RECECAO, "C000", LocalHotel.GARAGEM, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemClienteNoBar() {
+        System.out.println("registarPassagem (o cartão de um cliente não abre o bar)");
+        esperarRecusa("C201", LocalHotel.BAR, 0, SO_QUARTO_RESTAURANTE_E_PISCINA);
+    }
+
+    @Test
+    public void testRegistarPassagemClienteNaGaragem() {
+        System.out.println("registarPassagem (o cartão de um cliente não abre a garagem)");
+        esperarRecusa("C201", LocalHotel.GARAGEM, 0, SO_QUARTO_RESTAURANTE_E_PISCINA);
+    }
+
+    @Test
+    public void testRegistarPassagemClienteNaCozinhaComRefeicao() {
+        System.out.println("registarPassagem (a refeição na reserva não abre a cozinha)");
+        juntarExtra(JANTAR);
+        esperarRecusa("C201", LocalHotel.COZINHA, 0, SO_QUARTO_RESTAURANTE_E_PISCINA);
+    }
+
+    @Test
+    public void testConsultarPorCartaoDoFuncionario() {
+        System.out.println("consultarPorCartao (o gestor vê as picagens de um funcionário)");
+        AcessoCartao bar = instance.registarPassagem(RECECAO, "F12", LocalHotel.BAR, 0);
+        AcessoCartao cozinha = instance.registarPassagem(RECECAO, "F12", LocalHotel.COZINHA, 0);
+        List<AcessoCartao> expResult = List.of(bar, cozinha);
+        List<AcessoCartao> result = instance.consultarPorCartao(GESTOR, " f12 ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarFuncionariosComCartao() {
+        System.out.println("listarFuncionariosComCartao");
+        List<Funcionario> expResult = List.of(funcionarioDAL.ana);
+        List<Funcionario> result = instance.listarFuncionariosComCartao(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarFuncionariosComCartaoSemContasAtivas() {
+        System.out.println("listarFuncionariosComCartao (as contas desativadas não aparecem)");
+        funcionarioDAL.contaAtiva = false;
+        List<Funcionario> expResult = new ArrayList<>();
+        List<Funcionario> result = instance.listarFuncionariosComCartao(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarFuncionariosComCartaoSemSessao() {
+        System.out.println("listarFuncionariosComCartao (sem sessão iniciada)");
+        String expResult = "Entre na aplicação para ver os cartões dos funcionários.";
+        try {
+            instance.listarFuncionariosComCartao(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testListarCartoes() {
+        System.out.println("listarCartoes (funcionários ativos e clientes com reserva em curso)");
+        acessoDAL.cartoesDeClientes.add(new CartaoAtivo("C201", "Rui Costa (quarto 201)"));
+        List<CartaoAtivo> expResult = List.of(new CartaoAtivo("F12", "Ana Silva"),
+                new CartaoAtivo("C201", "Rui Costa (quarto 201)"));
+        List<CartaoAtivo> result = instance.listarCartoes(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCartoesSemContasAtivas() {
+        System.out.println("listarCartoes (só pessoas ativas)");
+        funcionarioDAL.contaAtiva = false;
+        List<CartaoAtivo> expResult = new ArrayList<>();
+        List<CartaoAtivo> result = instance.listarCartoes(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCartoesSemSessao() {
+        System.out.println("listarCartoes (sem sessão iniciada)");
+        String expResult = "Entre na aplicação para ver os cartões dos funcionários.";
+        try {
+            instance.listarCartoes(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testCartaoDoFuncionario() {
+        System.out.println("cartaoDoFuncionario");
+        String expResult = "F12";
+        String result = instance.cartaoDoFuncionario(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCartaoDoFuncionarioSemSessao() {
+        System.out.println("cartaoDoFuncionario (sem sessão iniciada)");
+        String expResult = "Entre na aplicação para usar o seu cartão.";
+        try {
+            instance.cartaoDoFuncionario(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testCartaoDoFuncionarioSemFuncionario() {
+        System.out.println("cartaoDoFuncionario (conta sem funcionário)");
+        String expResult = "A sua conta não tem um cartão de funcionário.";
+        try {
+            instance.cartaoDoFuncionario(GESTOR);
+            fail("Devia ter avisado que não há cartão");
         } catch (IllegalStateException expected) {
             assertEquals(expResult, expected.getMessage());
         }

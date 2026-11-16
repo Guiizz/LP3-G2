@@ -52,15 +52,6 @@ public final class Sessao {
     }
 
     /**
-     * Indica se há alguém com a sessão iniciada.
-     *
-     * @return {@code true} se há um utilizador autenticado
-     */
-    public static boolean estaIniciada() {
-        return utilizador != null;
-    }
-
-    /**
      * Termina a sessão: deixa de haver um utilizador autenticado.
      */
     public static void terminar() {

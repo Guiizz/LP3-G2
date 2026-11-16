@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import java.util.Objects;
 
 /**
@@ -62,6 +63,20 @@ public class Utilizador {
 
     public void setPerfil(Perfil perfil) {
         this.perfil = perfil;
+    }
+
+    /**
+     * @return o perfil como texto, para a coluna da tabela das contas (US50)
+     */
+    public String getPerfilTexto() {
+        return perfil.name();
+    }
+
+    /**
+     * @return {@code "Ativa"} ou {@code "Desativada"}, para a coluna da tabela das contas (US50)
+     */
+    public String getEstadoTexto() {
+        return ativo ? "Ativa" : "Desativada";
     }
 
     public boolean isAtivo() {

@@ -6,18 +6,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.AcessoCartaoBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
-import pt.isep.lp3.g2.hotel4youg2.model.LocalHotel;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
+
+import java.io.IOException;
 
 /**
  * Controlador do ecrã "Acesso com cartão" (US39): regista a passagem de um cartão num local do hotel e mostra as passagens desse cartão.
+ * Também aceita os cartões dos funcionários (US52).
  */
 public class AcessoCartaoController {
 
-    private final AcessoCartaoBLL acessoBLL = new AcessoCartaoBLL();
+    private final AcessoCartaoBLL acessoCartaoBLL = new AcessoCartaoBLL();
 
     @FXML
     private TextField cartaoField;
@@ -39,15 +43,43 @@ public class AcessoCartaoController {
     }
 
     @FXML
+    private void aoEscolherCartao() {
+        try {
+            CartaoAtivo escolhido = EscolherPessoaController.escolher("Escolher cartão",
+                    acessoCartaoBLL.listarCartoes(Sessao.getUtilizador()));
+            if (escolhido != null) {
+                cartaoField.setText(escolhido.getCartao());
+                Mensagens.info(mensagemLabel, "");
+                atualizarTabela();
+            }
+        } catch (IOException | IllegalStateException | DataAccessException e) {
+            mostrarErro("Não foi possível abrir a lista de cartões. Tente novamente.");
+        }
+    }
+
+    @FXML
     private void aoEscolherLocal() {
         mostrarQuarto(localCombo.getValue() == LocalHotel.QUARTO);
+    }
+
+    @FXML
+    private void aoUsarOMeuCartao() {
+        try {
+            cartaoField.setText(acessoCartaoBLL.cartaoDoFuncionario(Sessao.getUtilizador()));
+            Mensagens.info(mensagemLabel, "");
+            atualizarTabela();
+        } catch (IllegalStateException e) {
+            mostrarErro(e.getMessage());
+        } catch (DataAccessException e) {
+            mostrarErro("Não foi possível encontrar o seu cartão. Tente novamente.");
+        }
     }
 
     @FXML
     private void aoRegistarPassagem() {
         try {
             int quarto = lerQuarto();
-            AcessoCartao acesso = acessoBLL.registarPassagem(Sessao.getUtilizador(), cartaoField.getText(),
+            AcessoCartao acesso = acessoCartaoBLL.registarPassagem(Sessao.getUtilizador(), cartaoField.getText(),
                     localCombo.getValue(), quarto);
             Mensagens.sucesso(mensagemLabel, "Acesso permitido: cartão " + acesso.getCartao() + " em "
                     + acesso.getLocalTexto() + " às " + acesso.getRegistadoEmTexto() + ".");
@@ -79,7 +111,7 @@ public class AcessoCartaoController {
 
     private void atualizarTabela() {
         try {
-            tabela.getItems().setAll(acessoBLL.listarPorCartao(cartaoField.getText()));
+            tabela.getItems().setAll(acessoCartaoBLL.listarPorCartao(cartaoField.getText()));
         } catch (DataAccessException e) {
             tabela.getItems().clear();
         }

@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -43,6 +44,24 @@ public class ResumoEntregaTest {
         System.out.println("getCarregadaEmTexto (verão)");
         String expResult = "05/07/2026 09:05:07 (Europe/Lisbon)";
         String result = resumo(LocalDateTime.of(2026, 7, 5, 9, 5, 7)).getCarregadaEmTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetEntregaId() {
+        System.out.println("getEntregaId");
+        ResumoEntrega instance = new ResumoEntrega(12, "OC-1", 2, LocalDateTime.of(2026, 11, 5, 21, 24, 38),
+                new BigDecimal("1012.91"), EstadoEntrega.ACEITE, null);
+        int expResult = 12;
+        int result = instance.getEntregaId();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetEntregaIdSemId() {
+        System.out.println("getEntregaId (resumo criado sem id)");
+        int expResult = 0;
+        int result = resumo(LocalDateTime.of(2026, 11, 5, 21, 24, 38)).getEntregaId();
         assertEquals(expResult, result);
     }
 }

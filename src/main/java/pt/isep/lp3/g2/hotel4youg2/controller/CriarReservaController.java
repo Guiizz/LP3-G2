@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
@@ -10,26 +11,33 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.ClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
-import pt.isep.lp3.g2.hotel4youg2.bll.ValidacaoException;
-import pt.isep.lp3.g2.hotel4youg2.dal.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.bll.ServicoReservaBLL;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.Servico;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Controlador do ecrã para criar uma reserva (US27): escolher o cliente pelo NIF,
- * pesquisar quartos livres, ver o preço e confirmar. Depois de criada, pode juntar-lhe serviços (US37).
+ * pesquisar quartos livres, juntar logo os serviços extra (US60), ver o preço e confirmar.
+ * Depois de criada, pode juntar-lhe mais serviços (US37).
  */
 public class CriarReservaController {
 
-    private final ClienteBLL clienteService = new ClienteBLL();
-    private final ReservaBLL reservaService = new ReservaBLL();
+    private final ClienteBLL clienteBLL = new ClienteBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
+    private final ServicoReservaBLL servicoReservaBLL = new ServicoReservaBLL();
+    private final List<ServicoReserva> servicosEscolhidos = new ArrayList<>();
 
     @FXML
     private TextField nifField;
@@ -47,6 +55,12 @@ public class CriarReservaController {
     private CheckBox lateCheckBox;
     @FXML
     private TableView<Quarto> quartosTabela;
+    @FXML
+    private ComboBox<Servico> servicoCombo;
+    @FXML
+    private Spinner<Integer> quantidadeSpinner;
+    @FXML
+    private TableView<ServicoReserva> servicosTabela;
     @FXML
     private Label precoLabel;
     @FXML
@@ -66,11 +80,33 @@ public class CriarReservaController {
     private boolean latePesquisado;
 
     @FXML
+    private void initialize() {
+        try {
+            servicoCombo.getItems().setAll(servicoReservaBLL.listarServicosAtivos());
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível carregar os serviços extra. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
+    private void aoEscolherCliente() {
+        try {
+            Cliente escolhido = EscolherPessoaController.escolher("Escolher cliente", clienteBLL.pesquisar(""));
+            if (escolhido != null) {
+                nifField.setText(escolhido.getNif());
+                aoProcurarCliente();
+            }
+        } catch (IOException | DataAccessException e) {
+            mostrarMensagem("Não foi possível abrir a lista de clientes. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
     private void aoProcurarCliente() {
         cliente = null;
         clienteLabel.setText("");
         try {
-            cliente = clienteService.pesquisarPorNif(nifField.getText());
+            cliente = clienteBLL.pesquisarPorNif(nifField.getText());
             if (cliente == null) {
                 mostrarMensagem("Cliente não encontrado. Registe-o primeiro em Clientes.", "red");
             } else {
@@ -95,12 +131,12 @@ public class CriarReservaController {
             int hospedes = hospedesSpinner.getValue();
             boolean early = earlyCheckBox.isSelected();
             boolean late = lateCheckBox.isSelected();
-            List<Quarto> opcoes = reservaService.opcoesDisponiveis(entrada, saida, hospedes, early, late);
+            List<Quarto> opcoes = reservaBLL.opcoesDisponiveis(entrada, saida, hospedes, early, late);
             String aviso = null;
             if (opcoes.isEmpty() && (early || late)) {
-                List<Quarto> standard = reservaService.opcoesDisponiveis(entrada, saida, hospedes, false, false);
+                List<Quarto> standard = reservaBLL.opcoesDisponiveis(entrada, saida, hospedes, false, false);
                 if (!standard.isEmpty()) {
-                    HorarioReserva horario = reservaService.horario();
+                    HorarioReserva horario = reservaBLL.horario();
                     aviso = "Nenhum quarto permite o early check-in ou o late check-out nestas datas. "
                             + "Pode fazer a reserva nas horas standard (check-in às " + horario.getHoraCheckin()
                             + " e check-out às " + horario.getHoraCheckout() + ").";
@@ -140,12 +176,8 @@ public class CriarReservaController {
             return;
         }
         try {
-            BigDecimal preco = reservaService.calcularPreco(quarto, entradaPesquisada, saidaPesquisada);
-            BigDecimal taxa = reservaService.calcularTaxa(earlyPesquisado, latePesquisado);
             quartoEscolhido = quarto;
-            precoLabel.setText(quarto.getTipo() + " com vista " + quarto.getVista() + ": " + preco + " € ("
-                    + quarto.getValorNoite() + " € por noite) + taxa de horário " + taxa + " € = "
-                    + preco.add(taxa) + " €");
+            mostrarTotal();
             mostrarMensagem("", "black");
         } catch (ValidacaoException e) {
             limparQuartoEscolhido();
@@ -158,18 +190,65 @@ public class CriarReservaController {
     }
 
     @FXML
+    private void aoJuntarServico() {
+        try {
+            servicosEscolhidos.add(ServicoReservaBLL.novoServico(0, servicoCombo.getValue(),
+                    quantidadeSpinner.getValue()));
+            servicosTabela.getItems().setAll(servicosEscolhidos);
+            mostrarTotal();
+            mostrarMensagem("", "black");
+        } catch (ValidacaoException e) {
+            mostrarMensagem(e.getMessage(), "red");
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível ler as taxas de horário. Tente novamente.", "red");
+        }
+    }
+
+    @FXML
+    private void aoRetirarServico() {
+        ServicoReserva escolhido = servicosTabela.getSelectionModel().getSelectedItem();
+        if (escolhido == null) {
+            mostrarMensagem("Escolha o serviço a retirar na lista.", "red");
+            return;
+        }
+        servicosEscolhidos.remove(escolhido);
+        servicosTabela.getItems().setAll(servicosEscolhidos);
+        try {
+            mostrarTotal();
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível ler as taxas de horário. Tente novamente.", "red");
+        }
+    }
+
+    private void mostrarTotal() {
+        if (quartoEscolhido == null) {
+            precoLabel.setText("");
+            return;
+        }
+        BigDecimal preco = reservaBLL.calcularPreco(quartoEscolhido, entradaPesquisada, saidaPesquisada);
+        BigDecimal taxa = reservaBLL.calcularTaxa(earlyPesquisado, latePesquisado);
+        BigDecimal servicos = ServicoReservaBLL.somar(servicosEscolhidos);
+        precoLabel.setText(quartoEscolhido.getTipo() + " com vista " + quartoEscolhido.getVista() + ": " + preco
+                + " € (" + quartoEscolhido.getValorNoite() + " € por noite) + taxa de horário " + taxa
+                + " € + serviços " + servicos + " € = " + preco.add(taxa).add(servicos) + " €");
+    }
+
+    @FXML
     private void aoConfirmar() {
         try {
-            Reserva reserva = reservaService.criar(cliente, quartoEscolhido.getTipo(), quartoEscolhido.getVista(),
-                    entradaPesquisada, saidaPesquisada, hospedesPesquisados, earlyPesquisado, latePesquisado);
+            Reserva reserva = reservaBLL.criar(cliente, quartoEscolhido.getTipo(), quartoEscolhido.getVista(),
+                    entradaPesquisada, saidaPesquisada, hospedesPesquisados, earlyPesquisado, latePesquisado,
+                    servicosEscolhidos);
             mostrarMensagem("Reserva n.º " + reserva.getId() + " criada para " + cliente.getNome()
                     + ": foi atribuído o quarto " + reserva.getQuartoNumero() + " (" + reserva.getTotal() + " €)",
                     "green");
             reservaCriada = reserva;
             servicosButton.setDisable(false);
+            servicosEscolhidos.clear();
+            servicosTabela.getItems().clear();
             limparQuartoEscolhido();
             quartosTabela.getItems().clear();
-        } catch (ValidacaoException e) {
+        } catch (ValidacaoException | IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível gravar a reserva. Tente novamente.", "red");

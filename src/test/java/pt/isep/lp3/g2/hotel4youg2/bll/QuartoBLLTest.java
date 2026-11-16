@@ -3,12 +3,12 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.IQuartoDAL;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IQuartoDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Tarifa;
-import pt.isep.lp3.g2.hotel4youg2.model.TipoQuarto;
-import pt.isep.lp3.g2.hotel4youg2.model.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

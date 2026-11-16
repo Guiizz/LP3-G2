@@ -8,11 +8,21 @@ import java.util.Objects;
  */
 public class Funcionario extends Pessoa {
 
+    /** Letra com que começa o cartão de um funcionário, seguida do número de funcionário (US52). */
+    public static final String PREFIXO_CARTAO = "F";
+
     private int numeroFuncionario;
     private LocalDate dataAdmissao;
 
     public int getNumeroFuncionario() {
         return numeroFuncionario;
+    }
+
+    /**
+     * @return o número do cartão do funcionário, por exemplo {@code "F12"} (US52)
+     */
+    public String getCartao() {
+        return PREFIXO_CARTAO + numeroFuncionario;
     }
 
     public void setNumeroFuncionario(int numeroFuncionario) {
@@ -64,5 +74,10 @@ public class Funcionario extends Pessoa {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), numeroFuncionario, dataAdmissao);
+    }
+
+    @Override
+    public String toString() {
+        return getCartao() + " - " + getNome();
     }
 }

@@ -42,13 +42,45 @@ Todos dentro de `pt.isep.lp3.g2.hotel4youg2`:
 
 | Pacote | Função |
 |---|---|
-| `model` | Entidades do negócio e enumerações |
-| `dal` | Acesso a dados: a ligação (`ConexaoBD`), as interfaces `I...DAL` e as classes `...DAL` que falam com a base de dados |
-| `bll` | Regras de negócio e validações (classes `...BLL`) |
-| `controller` | Controladores JavaFX, que ligam os ecrãs à BLL |
-| `util` | Classes de apoio |
+| (raiz) | Arranque da aplicação: `Launcher` e `Hotel4YouApplication` |
+| `model` | Entidades do negócio (`Reserva`, `Cliente`, `Quarto`...) |
+| `model.enums` | Enumerações (`EstadoReserva`, `Perfil`, `TipoQuarto`, `Vista`...) |
+| `dal` | Acesso a dados: a ligação (`ConexaoBD`), os mappers e as classes `...DAL` que falam com a base de dados |
+| `dal.interfaces` | Interfaces da DAL (`I...DAL`) e o `RowMapper` |
+| `bll` | Regras de negócio e validações (classes `...BLL` e `Permissoes`) |
+| `exception` | Exceções da aplicação (`ValidacaoException` e `DataAccessException`) |
+| `controller` | Controladores JavaFX, que ligam os ecrãs à BLL, e a navegação (`Navegador`, `Mensagens`) |
+| `util` | Classes de apoio (`Sessao`, `PasswordUtils`) |
 
-Os ecrãs (FXML) estão em `src/main/resources/pt/isep/lp3/g2/hotel4youg2/view`.
+Os recursos estão em `src/main/resources/pt/isep/lp3/g2/hotel4youg2`:
+
+| Pasta | O que tem |
+|---|---|
+| `view` | Ecrãs FXML |
+| `css` | Folha de estilos (`hotel4you.css`) |
+| `images` | Ícones e logótipo |
+| `xml` | XSD das entregas (`Hotel4You.xsd`) |
+
+Os scripts da base de dados estão em `Scrum/Base de Dados`, numerados pela ordem em que se correm (`NN_descricao.sql`).
+
+## Regras de nomes
+Seguir sempre estas regras nas classes e nos ficheiros novos:
+
+| O quê | Nome | Pasta | Exemplo |
+|---|---|---|---|
+| Entidade | `Xxx` | `model` | `Reserva` |
+| Enumeração | `Xxx` | `model.enums` | `EstadoReserva` |
+| Interface da DAL | `IXxxDAL` | `dal.interfaces` | `IReservaDAL` |
+| Acesso a dados | `XxxDAL` | `dal` | `ReservaDAL` |
+| Regras de negócio | `XxxBLL` | `bll` | `ReservaBLL` |
+| Exceção | `XxxException` | `exception` | `ValidacaoException` |
+| Controlador | `XxxController` | `controller` | `GerirReservasController` |
+| Ecrã | `xxx-view.fxml`, com o mesmo nome do controlador | `view` | `gerir-reservas-view.fxml` |
+| Teste | `XxxTest`, no mesmo pacote da classe testada | `src/test/java` | `ReservaBLLTest` |
+| Script SQL | `NN_descricao.sql`, com o número reservado no Sprint Planning | `Scrum/Base de Dados` | `15_acessos_cartao.sql` |
+
+Nos campos, o nome segue o tipo: um `ReservaBLL` chama-se `reservaBLL` e um `IReservaDAL` chama-se `reservaDAL`.
+Os controladores só falam com a BLL, e a BLL só fala com a base de dados através das interfaces da DAL.
 
 ## Bibliotecas externas (justificação)
 | Biblioteca | Para que serve | Porquê |

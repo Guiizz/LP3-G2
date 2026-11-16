@@ -24,6 +24,7 @@
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <TextField fx:id="nifField" promptText="9 algarismos" prefWidth="150.0" onAction="#aoProcurarCliente"/>
         <Button text="Procurar" onAction="#aoProcurarCliente"/>
+        <Button text="Escolher da lista" onAction="#aoEscolherCliente"/>
         <Label fx:id="clienteLabel" style="-fx-font-weight: bold;"/>
     </HBox>
 

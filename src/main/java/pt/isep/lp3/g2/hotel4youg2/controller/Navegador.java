@@ -27,6 +27,7 @@ public final class Navegador {
     private static final String ESTILO = "/pt/isep/lp3/g2/hotel4youg2/css/hotel4you.css";
     private static BorderPane janelaPrincipal;
     private static final Deque<Node> anteriores = new ArrayDeque<>();
+    private static final Deque<BorderPane> ondeVoltar = new ArrayDeque<>();
 
     private Navegador(){
 
@@ -39,7 +40,7 @@ public final class Navegador {
      */
     public static void iniciar(BorderPane principal) {
         janelaPrincipal = principal;
-        anteriores.clear();
+        esquecerAnteriores();
     }
 
     /**
@@ -78,28 +79,44 @@ public final class Navegador {
      * @throws IOException se não for possível ler o FXML
      */
     public static void mostrar(String ficheiro) throws IOException {
-        anteriores.clear();
+        esquecerAnteriores();
         janelaPrincipal.setCenter(carregar(ficheiro).getRoot());
     }
 
     /**
-     * Mostra um ecrã de detalhe no centro da janela principal, guardando o atual para se poder
-     * voltar a ele com {@link #voltar()}.
+     * Mostra um ecrã de detalhe no lugar do ecrã atual, dentro do mesmo {@code BorderPane}
+     * (numa área do menu, o submenu continua à vista). O ecrã atual fica guardado para se
+     * poder voltar a ele com {@link #voltar()} (US56).
      *
-     * @param ecra o ecrã de detalhe, já carregado
+     * @param atual   o ecrã que está aberto, por exemplo a lista das reservas
+     * @param detalhe o ecrã de detalhe, já carregado
+     * @throws IllegalArgumentException se o ecrã atual não estiver dentro de um {@code BorderPane}
      */
-    public static void mostrarDetalhe(Parent ecra) {
-        anteriores.push(janelaPrincipal.getCenter());
-        janelaPrincipal.setCenter(ecra);
+    public static void mostrarDetalhe(Node atual, Parent detalhe) {
+        if (!(atual.getParent() instanceof BorderPane onde)) {
+            throw new IllegalArgumentException("O ecrã atual não está dentro de um BorderPane");
+        }
+        anteriores.push(atual);
+        ondeVoltar.push(onde);
+        onde.setCenter(detalhe);
     }
 
     /**
-     * Volta ao ecrã que estava antes do último {@link #mostrarDetalhe(Parent)}. Se não houver nenhum, não faz nada.
+     * Volta ao ecrã que estava antes do último {@link #mostrarDetalhe(Node, Parent)}, tal como
+     * ficou (o mesmo separador, a mesma pesquisa). Se não houver nenhum, não faz nada.
      */
     public static void voltar() {
         if (!anteriores.isEmpty()) {
-            janelaPrincipal.setCenter(anteriores.pop());
+            ondeVoltar.pop().setCenter(anteriores.pop());
         }
+    }
+
+    /**
+     * Esquece os ecrãs guardados para voltar, quando se abre outro ecrã ou se termina a sessão.
+     */
+    private static void esquecerAnteriores() {
+        anteriores.clear();
+        ondeVoltar.clear();
     }
 
     /**
@@ -154,7 +171,7 @@ public final class Navegador {
                 outraJanela.close();
             }
         }
-        anteriores.clear();
+        esquecerAnteriores();
         janela.getScene().setRoot(carregar("login-view.fxml").getRoot());
         janela.setTitle("Hotel4You · Entrar");
     }
@@ -171,7 +188,7 @@ public final class Navegador {
         FXMLLoader loader = carregar("area-view.fxml");
         AreaController controlador = loader.getController();
         controlador.configurar(titulo, opcoes);
-        anteriores.clear();
+        esquecerAnteriores();
         janelaPrincipal.setCenter(loader.getRoot());
     }
 

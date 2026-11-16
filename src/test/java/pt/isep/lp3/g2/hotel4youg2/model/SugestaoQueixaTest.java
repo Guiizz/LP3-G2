@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -166,6 +167,41 @@ public class SugestaoQueixaTest {
         int expResult = outra.hashCode();
         int result = instance.hashCode();
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetReservaTextoSemReserva() {
+        System.out.println("getReservaTexto (sem reserva em curso)");
+        String expResult = "-";
+        String result = instance.getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetReservaTexto() {
+        System.out.println("getReservaTexto (com reserva em curso)");
+        instance.setReserva(30, 201);
+        String expResult = "Quarto 201 (reserva n.º 30)";
+        String result = instance.getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testSetReserva() {
+        System.out.println("setReserva");
+        instance.setReserva(30, 201);
+        int expResult = 201;
+        int result = instance.getQuartoNumero();
+        assertEquals(expResult, result);
+        assertEquals(30, instance.getReservaId());
+    }
+
+    @Test
+    public void testEqualsOutraReserva() {
+        System.out.println("equals (reserva diferente)");
+        SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.QUEIXA, "Ar condicionado avariado", 2, QUANDO);
+        outra.setReserva(30, 201);
+        assertNotEquals(outra, instance);
     }
 
     @Test

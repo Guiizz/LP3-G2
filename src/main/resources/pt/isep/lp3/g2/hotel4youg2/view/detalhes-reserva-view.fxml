@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.DetalhesReservaController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="← Voltar" onAction="#aoVoltar"/>
+        <Label fx:id="tituloLabel" styleClass="titulo"/>
+        <Label fx:id="estadoLabel" styleClass="mensagem-aviso"/>
+    </HBox>
+
+    <GridPane hgap="12.0" vgap="6.0">
+        <Label text="Cliente:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <Label fx:id="clienteLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label text="NIF:" GridPane.rowIndex="0" GridPane.columnIndex="2"/>
+        <Label fx:id="nifLabel" GridPane.rowIndex="0" GridPane.columnIndex="3"/>
+
+        <Label text="Quarto:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <Label fx:id="quartoLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label text="Hóspedes:" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+        <Label fx:id="hospedesLabel" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+        <Label text="Entrada:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <Label fx:id="entradaLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label text="Saída:" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+        <Label fx:id="saidaLabel" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+        <Label text="Early check-in:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <Label fx:id="earlyLabel" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label text="Late check-out:" GridPane.rowIndex="3" GridPane.columnIndex="2"/>
+        <Label fx:id="lateLabel" GridPane.rowIndex="3" GridPane.columnIndex="3"/>
+
+        <Label text="Cartão:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <Label fx:id="cartaoLabel" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        <Label text="Check-in:" GridPane.rowIndex="4" GridPane.columnIndex="2"/>
+        <Label fx:id="checkinLabel" GridPane.rowIndex="4" GridPane.columnIndex="3"/>
+
+        <Label text="Check-out:" GridPane.rowIndex="5" GridPane.columnIndex="2"/>
+        <Label fx:id="checkoutLabel" GridPane.rowIndex="5" GridPane.columnIndex="3"/>
+    </GridPane>
+
+    <Label text="Serviços extra" styleClass="titulo"/>
+    <TableView fx:id="servicosTabela" prefHeight="150.0" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Serviço" prefWidth="200.0">
+                <cellValueFactory><PropertyValueFactory property="nomeServico"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Preço" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="precoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Total" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="totalTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <placeholder><Label text="Sem serviços extra."/></placeholder>
+    </TableView>
+
+    <HBox spacing="20.0" alignment="CENTER_RIGHT">
+        <Label fx:id="precoQuartoLabel"/>
+        <Label fx:id="totalServicosLabel"/>
+        <Label fx:id="taxasLabel"/>
+        <Label fx:id="totalLabel" style="-fx-font-weight: bold;"/>
+    </HBox>
+
+    <HBox fx:id="datasBox" spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Nova entrada:"/>
+        <DatePicker fx:id="novaEntradaPicker" prefWidth="130.0"/>
+        <Label text="Nova saída:"/>
+        <DatePicker fx:id="novaSaidaPicker" prefWidth="130.0"/>
+        <Button text="Alterar datas" onAction="#aoAlterarDatas"/>
+    </HBox>
+
+    <Button fx:id="servicosButton" text="Serviços…" onAction="#aoServicos"/>
+
+    <Label fx:id="avisoLabel" styleClass="mensagem-aviso" wrapText="true"/>
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>

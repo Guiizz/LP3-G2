@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,62 @@ public class LinhaEntregaTest {
         System.out.println("Unidade.doXml");
         Unidade expResult = Unidade.KILOGRAM;
         Unidade result = Unidade.doXml("Kilogram");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetUnidadeTexto() {
+        System.out.println("getUnidadeTexto");
+        String expResult = "Caixa";
+        String result = instance.getUnidadeTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetPrecoUnitarioTexto() {
+        System.out.println("getPrecoUnitarioTexto");
+        String expResult = "2,51";
+        String result = instance.getPrecoUnitarioTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetValorSemIvaTexto() {
+        System.out.println("getValorSemIvaTexto");
+        String expResult = "125,50";
+        String result = instance.getValorSemIvaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetTaxaIvaTexto() {
+        System.out.println("getTaxaIvaTexto");
+        String expResult = "23%";
+        String result = instance.getTaxaIvaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetValorIvaTexto() {
+        System.out.println("getValorIvaTexto");
+        String expResult = "28,87";
+        String result = instance.getValorIvaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetTotalLinhaTexto() {
+        System.out.println("getTotalLinhaTexto");
+        String expResult = "154,37";
+        String result = instance.getTotalLinhaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testValor() {
+        System.out.println("valor (sempre com 2 casas decimais e vírgula)");
+        String expResult = "9025,00";
+        String result = LinhaEntrega.valor(new BigDecimal("9025"));
         assertEquals(expResult, result);
     }
 }

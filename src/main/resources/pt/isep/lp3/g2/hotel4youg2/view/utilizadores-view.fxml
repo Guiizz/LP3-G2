@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -18,9 +19,15 @@
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colunaNome" text="Utilizador" prefWidth="180.0"/>
-            <TableColumn fx:id="colunaPerfil" text="Perfil" prefWidth="130.0"/>
-            <TableColumn fx:id="colunaEstado" text="Estado" prefWidth="100.0"/>
+            <TableColumn text="Conta" prefWidth="280.0">
+                <cellValueFactory><PropertyValueFactory property="nome"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="tipo"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Estado" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>
+            </TableColumn>
         </columns>
     </TableView>
 

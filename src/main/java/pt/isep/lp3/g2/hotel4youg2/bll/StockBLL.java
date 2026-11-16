@@ -1,14 +1,18 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
-import pt.isep.lp3.g2.hotel4youg2.dal.IStockDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.StockDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IStockDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
+import pt.isep.lp3.g2.hotel4youg2.model.MovimentoStock;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoMovimento;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Regras de negócio do stock de materiais (US42): consultar o que existe e registar as saídas.
+ * Regras de negócio do stock de materiais (US42 e US62): consultar o que existe, ver o histórico
+ * de entradas e saídas de cada material e registar as saídas.
  * O stock só aumenta quando uma entrega é aceite (US49) e só diminui com as saídas registadas aqui.
  */
 public class StockBLL {
@@ -44,6 +48,52 @@ public class StockBLL {
     }
 
     /**
+     * Procura materiais pelo código, pela descrição ou pelo fornecedor, sem distinguir maiúsculas (US62).
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param termo   o texto a procurar; vazio ou {@code null} mostra todos
+     * @return os materiais encontrados, com o que entrou, o que saiu e o stock efetivo
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
+    public List<MaterialStock> pesquisar(Utilizador quemAge, String termo) {
+        exigirSessaoParaConsultar(quemAge);
+        String procurado = termo == null ? "" : termo.trim().toLowerCase();
+        List<MaterialStock> encontrados = new ArrayList<>();
+        for (MaterialStock material : stockDAL.listar()) {
+            String texto = (material.getCodigo() + " " + material.getDescricao() + " " + material.getFornecedor())
+                    .toLowerCase();
+            if (texto.contains(procurado)) {
+                encontrados.add(material);
+            }
+        }
+        return encontrados;
+    }
+
+    /**
+     * Devolve o histórico de entradas e saídas de um material, do mais recente para o mais antigo (US62).
+     *
+     * @param quemAge  o utilizador com a sessão iniciada
+     * @param material o material escolhido na tabela
+     * @param tipo     só as entradas ou só as saídas, ou {@code null} para todos os movimentos
+     * @return os movimentos do material, com a data, a quantidade e o funcionário
+     * @throws IllegalStateException    se não houver sessão iniciada
+     * @throws IllegalArgumentException se não for escolhido nenhum material
+     */
+    public List<MovimentoStock> historico(Utilizador quemAge, MaterialStock material, TipoMovimento tipo) {
+        exigirSessaoParaConsultar(quemAge);
+        if (material == null) {
+            throw new IllegalArgumentException("Escolha o material na tabela.");
+        }
+        List<MovimentoStock> movimentos = new ArrayList<>();
+        for (MovimentoStock movimento : stockDAL.listarMovimentos(material.getMaterialId())) {
+            if (tipo == null || movimento.getTipo() == tipo) {
+                movimentos.add(movimento);
+            }
+        }
+        return movimentos;
+    }
+
+    /**
      * Regista a saída de um material do stock. Fica guardado o funcionário que a registou.
      * Não é possível tirar mais do que existe.
      *
@@ -74,6 +124,12 @@ public class StockBLL {
             throw new IllegalArgumentException("A quantidade tem de ser um número inteiro maior que zero.");
         }
         return Integer.parseInt(texto);
+    }
+
+    private void exigirSessaoParaConsultar(Utilizador quemAge) {
+        if (quemAge == null) {
+            throw new IllegalStateException("Entre na aplicação para consultar o stock.");
+        }
     }
 
     private void exigirSessao(Utilizador quemAge) {

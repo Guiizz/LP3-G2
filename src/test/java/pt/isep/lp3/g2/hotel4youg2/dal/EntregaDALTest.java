@@ -1,16 +1,17 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
-import pt.isep.lp3.g2.hotel4youg2.model.EstadoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.LinhaEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntregaHotel;
-import pt.isep.lp3.g2.hotel4youg2.model.Unidade;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoEntrega;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -336,5 +337,22 @@ public class EntregaDALTest {
         assertEquals("Fornecedor de teste", aceite.getFornecedor());
         assertEquals(100, pendente.getTotalUnidades());
         assertEquals(700, aceite.getTotalUnidades());
+    }
+
+    @Test
+    public void testProcurarPorIdTrazMoedaETotal() {
+        System.out.println("procurarPorId (moeda e total guardado, US54)");
+        Entrega result = instance.procurarPorId(entrega.getId()).orElseThrow();
+        assertEquals("EUR", result.getMoeda());
+        assertEquals(0, new BigDecimal("1012.91").compareTo(result.getTotalRegistado()));
+        assertEquals(true, result.isTotalCerto());
+    }
+
+    @Test
+    public void testListarResumosDoFornecedorTrazOId() {
+        System.out.println("listarResumosDoFornecedor (com o id para abrir a fatura, US54)");
+        int expResult = entrega.getId();
+        int result = instance.listarResumosDoFornecedor(codigoFornecedor).get(0).getEntregaId();
+        assertEquals(expResult, result);
     }
 }

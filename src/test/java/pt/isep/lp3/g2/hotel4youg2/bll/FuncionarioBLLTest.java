@@ -3,13 +3,15 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.IFuncionarioDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFuncionarioDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
-import pt.isep.lp3.g2.hotel4youg2.model.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -42,6 +44,26 @@ public class FuncionarioBLLTest {
             contasCriadas++;
             funcionarioGravado = funcionario;
             contaGravada = utilizador;
+        }
+
+        @Override
+        public Funcionario procurarPorNumero(int numeroFuncionario) {
+            return null;
+        }
+
+        @Override
+        public Funcionario procurarPorId(int pessoaId) {
+            return null;
+        }
+
+        @Override
+        public boolean temContaAtiva(int pessoaId) {
+            return false;
+        }
+
+        @Override
+        public List<Funcionario> listarComContaAtiva() {
+            return new ArrayList<>();
         }
     }
 
