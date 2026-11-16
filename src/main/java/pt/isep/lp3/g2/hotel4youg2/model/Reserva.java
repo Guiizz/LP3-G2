@@ -246,10 +246,17 @@ public class Reserva {
         this.nifCliente = nifCliente;
     }
 
+    /**
+     * @return o dia e a hora do check-in (por exemplo {@code "10/11 15:20"}), ou vazio se ainda não foi feito;
+     *         para a tabela do separador "Em curso" (US55)
+     */
     public String getCheckinEmTexto() {
         return checkinEm == null ? "" : checkinEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
     }
 
+    /**
+     * @return o estado para mostrar no ecrã (por exemplo {@code "Em curso"}), ou vazio se não tiver estado (US55)
+     */
     public String getEstadoTexto() {
         return estado == null ? "" : estado.getDescricao();
     }
