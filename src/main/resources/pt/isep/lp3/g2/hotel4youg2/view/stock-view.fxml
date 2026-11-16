@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.StockController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Janela de stock" styleClass="titulo"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Material:"/>
+        <TextField fx:id="pesquisaField" promptText="Pesquisar pelo material, código ou fornecedor" prefWidth="320.0"
+                   onKeyReleased="#aoPesquisar"/>
+    </HBox>
+
+    <TableView fx:id="materiaisTabela" VBox.vgrow="ALWAYS" onMouseClicked="#aoEscolherMaterial" minHeight="160.0">
+        <placeholder>
+            <Label text="Não há materiais em stock com esse nome."/>
+        </placeholder>
+        <columns>
+            <TableColumn text="Código" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="codigo"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Material" prefWidth="230.0">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Fornecedor" prefWidth="150.0">
+                <cellValueFactory><PropertyValueFactory property="fornecedor"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Unidade" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="unidade"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Entrou" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="entrou"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Usado / saiu" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="saiu"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Stock efetivo" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label fx:id="materialLabel" text="Histórico: escolha um material na tabela" style="-fx-font-weight: bold;"/>
+    </HBox>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Ver:"/>
+        <ComboBox fx:id="tipoCombo" promptText="Entradas e saídas" onAction="#aoFiltrar" prefWidth="170.0"/>
+        <Button text="Limpar filtro" onAction="#aoLimparFiltro"/>
+    </HBox>
+
+    <TableView fx:id="movimentosTabela" VBox.vgrow="ALWAYS" minHeight="140.0">
+        <placeholder>
+            <Label text="Sem movimentos para mostrar."/>
+        </placeholder>
+        <columns>
+            <TableColumn text="Data" prefWidth="140.0">
+                <cellValueFactory><PropertyValueFactory property="registadoEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="tipo"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Funcionário" prefWidth="220.0">
+                <cellValueFactory><PropertyValueFactory property="funcionario"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>
