@@ -252,6 +252,9 @@ public class GerirReservasController {
         }
     }
 
+    /**
+     * Volta a ler as reservas da base de dados e limpa a mensagem; é chamado ao voltar dos detalhes (US56).
+     */
     public void atualizar() {
         mensagemLabel.setText("");
         carregar();

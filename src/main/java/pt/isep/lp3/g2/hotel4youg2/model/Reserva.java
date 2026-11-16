@@ -261,10 +261,19 @@ public class Reserva {
         return estado == null ? "" : estado.getDescricao();
     }
 
+    /**
+     * @return o dia e a hora do check-out (por exemplo {@code "13/11 11:00"}), ou vazio se ainda não foi feito;
+     *         para os detalhes da reserva (US56)
+     */
     public String getCheckoutEmTexto() {
         return checkoutEm == null ? "" : checkoutEm.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"));
     }
 
+    /**
+     * Explica, nos detalhes da reserva, o que já não se pode mudar (US56).
+     *
+     * @return vazio se ainda se pode mudar tudo; senão, o motivo (check-in feito, reserva concluída ou cancelada)
+     */
     public String getAvisoAlteracoes() {
         if (podeSerAlterada()) {
             return "";
