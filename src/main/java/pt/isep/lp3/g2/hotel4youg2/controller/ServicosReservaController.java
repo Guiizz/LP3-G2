@@ -6,13 +6,16 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TableView;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ServicoReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
+import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
@@ -31,6 +34,7 @@ import java.util.Optional;
 public class ServicosReservaController {
 
     private final ServicoReservaBLL servicoReservaBLL = new ServicoReservaBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
     private Reserva reserva;
 
     @FXML
@@ -48,9 +52,15 @@ public class ServicosReservaController {
     @FXML
     private Button retirarButton;
     @FXML
+    private CheckBox earlyCheckBox;
+    @FXML
+    private CheckBox lateCheckBox;
+    @FXML
     private Label quartoLabel;
     @FXML
     private Label servicosLabel;
+    @FXML
+    private Label taxaLabel;
     @FXML
     private Label totalLabel;
     @FXML
@@ -77,6 +87,15 @@ public class ServicosReservaController {
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível carregar os serviços. Tente novamente.", "red");
         }
+        try {
+            HorarioReserva horario = reservaBLL.horario();
+            earlyCheckBox.setText("Early check-in (a partir das " + horario.getHoraEarlyCheckin() + ", +"
+                    + euros(horario.getTaxaEarlyCheckin()) + ")");
+            lateCheckBox.setText("Late check-out (até às " + horario.getHoraLateCheckout() + ", +"
+                    + euros(horario.getTaxaLateCheckout()) + ")");
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível carregar as taxas de early check-in e late check-out.", "red");
+        }
     }
 
     /**
@@ -97,7 +116,42 @@ public class ServicosReservaController {
         if (!aberta) {
             mostrarMensagem("Esta reserva já não aceita serviços.", "darkorange");
         }
+        mostrarHorario();
         carregar();
+    }
+
+    @FXML
+    private void aoMudarHorario() {
+        boolean tinhaEarly = reserva.isEarlyCheckin();
+        boolean tinhaLate = reserva.isLateCheckout();
+        try {
+            reservaBLL.alterarHorario(Sessao.getUtilizador(), reserva, earlyCheckBox.isSelected(),
+                    lateCheckBox.isSelected());
+            carregar();
+            mostrarMensagem(textoDaMudanca(tinhaEarly, tinhaLate), "green");
+        } catch (ValidacaoException | IllegalStateException e) {
+            mostrarMensagem(e.getMessage(), "red");
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível alterar o early check-in ou o late check-out. Tente novamente.", "red");
+        }
+        mostrarHorario();
+    }
+
+    private void mostrarHorario() {
+        earlyCheckBox.setSelected(reserva.isEarlyCheckin());
+        lateCheckBox.setSelected(reserva.isLateCheckout());
+        earlyCheckBox.setDisable(!reserva.podeMudarEarlyCheckin());
+        lateCheckBox.setDisable(!reserva.podeMudarLateCheckout());
+    }
+
+    private String textoDaMudanca(boolean tinhaEarly, boolean tinhaLate) {
+        if (tinhaEarly != reserva.isEarlyCheckin()) {
+            return reserva.isEarlyCheckin() ? "Early check-in junto à reserva." : "Early check-in retirado da reserva.";
+        }
+        if (tinhaLate != reserva.isLateCheckout()) {
+            return reserva.isLateCheckout() ? "Late check-out junto à reserva." : "Late check-out retirado da reserva.";
+        }
+        return "";
     }
 
     @FXML
@@ -161,6 +215,7 @@ public class ServicosReservaController {
             reserva.setTotalServicos(ServicoReservaBLL.somar(servicos));
             quartoLabel.setText(euros(reserva.getPrecoTotal()));
             servicosLabel.setText(euros(reserva.getTotalServicos()));
+            taxaLabel.setText(euros(reserva.getTaxaHorario()));
             totalLabel.setText(euros(reserva.getTotal()));
         } catch (ValidacaoException e) {
             mostrarMensagem(e.getMessage(), "red");

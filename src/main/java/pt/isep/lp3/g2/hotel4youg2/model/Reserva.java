@@ -178,6 +178,14 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO;
     }
 
+    public boolean podeMudarEarlyCheckin() {
+        return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
+    }
+
+    public boolean podeMudarLateCheckout() {
+        return (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.EM_CURSO) && checkoutEm == null;
+    }
+
     public BigDecimal getTotalServicos() {
         return totalServicos;
     }

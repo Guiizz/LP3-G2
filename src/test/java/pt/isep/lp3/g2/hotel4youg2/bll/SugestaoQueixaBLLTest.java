@@ -292,6 +292,11 @@ public class SugestaoQueixaBLLTest {
         }
 
         @Override
+        public boolean alterarHorarioSeLivre(Reserva reserva) {
+            return false;
+        }
+
+        @Override
         public boolean registarCheckin(Reserva reserva) {
             return false;
         }

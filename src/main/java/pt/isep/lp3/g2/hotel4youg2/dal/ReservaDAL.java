@@ -83,6 +83,14 @@ public class ReservaDAL implements IReservaDAL {
             + "WHERE r.quartoNumero = ? AND r.id <> ? AND r.estado <> 'CANCELADA' "
             + "AND " + CONFLITO_DE_DATAS + ")";
 
+    private static final String ALTERAR_HORARIO_SE_LIVRE =
+            "UPDATE Reserva SET earlyCheckin = ?, lateCheckout = ?, taxaHorario = ? "
+            + "WHERE id = ? AND estado IN ('CONFIRMADA', 'EM_CURSO') AND checkoutEm IS NULL "
+            + "AND (earlyCheckin = ? OR checkinEm IS NULL) "
+            + "AND NOT EXISTS (SELECT 1 FROM Reserva r WITH (UPDLOCK, HOLDLOCK) "
+            + "WHERE r.quartoNumero = ? AND r.id <> ? AND r.estado <> 'CANCELADA' "
+            + "AND " + CONFLITO_DE_DATAS + ")";
+
     @Override
     public boolean inserirSeLivre(Reserva reserva) {
         try (Connection conn = ConexaoBD.abrir()) {
@@ -222,6 +230,17 @@ public class ReservaDAL implements IReservaDAL {
                 Date.valueOf(reserva.getDataEntrada()),
                 Date.valueOf(reserva.getDataSaida()),
                 reserva.getPrecoTotal(), reserva.getId(),
+                reserva.getQuartoNumero(), reserva.getId(),
+                conflito[0], conflito[1], conflito[2], conflito[3],
+                conflito[4], conflito[5], conflito[6], conflito[7]) > 0;
+    }
+
+    @Override
+    public boolean alterarHorarioSeLivre(Reserva reserva) {
+        Object[] conflito = conflitoDeDatas(reserva);
+        return ConexaoBD.executar(ALTERAR_HORARIO_SE_LIVRE,
+                reserva.isEarlyCheckin(), reserva.isLateCheckout(), reserva.getTaxaHorario(), reserva.getId(),
+                reserva.isEarlyCheckin(),
                 reserva.getQuartoNumero(), reserva.getId(),
                 conflito[0], conflito[1], conflito[2], conflito[3],
                 conflito[4], conflito[5], conflito[6], conflito[7]) > 0;
