@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controlador da janela "Escolher da lista" (US63): mostra uma lista com pesquisa (clientes ou cartões)
+ * e devolve o que foi escolhido, para não ser preciso saber de cor NIFs e números.
+ */
 public class EscolherPessoaController {
 
     @FXML
@@ -24,6 +28,16 @@ public class EscolherPessoaController {
     private List<?> pessoas = new ArrayList<>();
     private Object escolhida;
 
+    /**
+     * Abre a janela de escolha em pop-up e espera que seja fechada. A pesquisa procura no texto
+     * de cada elemento ({@code toString()}).
+     *
+     * @param titulo  o título da janela, por exemplo "Escolher cliente"
+     * @param pessoas os elementos a mostrar
+     * @param <T>     o tipo dos elementos (por exemplo {@code Cliente} ou {@code CartaoAtivo})
+     * @return o elemento escolhido, ou {@code null} se a janela foi fechada sem escolher
+     * @throws IOException se não for possível ler o FXML
+     */
     @SuppressWarnings("unchecked")
     public static <T> T escolher(String titulo, List<T> pessoas) throws IOException {
         FXMLLoader loader = Navegador.carregar("escolher-pessoa-view.fxml");

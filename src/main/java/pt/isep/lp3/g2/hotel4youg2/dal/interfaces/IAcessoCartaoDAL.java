@@ -38,5 +38,8 @@ public interface IAcessoCartaoDAL {
      */
     boolean apagar(int id);
 
+    /**
+     * @return os cartões dos clientes com uma reserva em curso, com o nome e o quarto, pelo número do quarto (US63)
+     */
     List<CartaoAtivo> listarCartoesDeClientes();
 }

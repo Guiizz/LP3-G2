@@ -142,6 +142,14 @@ public class AcessoCartaoBLL {
         return funcionarioDAL.listarComContaAtiva();
     }
 
+    /**
+     * Lista os cartões que abrem portas neste momento, para escolher da lista no ecrã dos acessos (US63):
+     * primeiro os dos funcionários com a conta ativa, depois os dos clientes com uma reserva em curso.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return os cartões, cada um com o nome do titular
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<CartaoAtivo> listarCartoes(Utilizador quemAge) {
         List<CartaoAtivo> cartoes = new ArrayList<>();
         for (Funcionario funcionario : listarFuncionariosComCartao(quemAge)) {

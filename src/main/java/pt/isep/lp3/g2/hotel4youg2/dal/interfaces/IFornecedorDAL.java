@@ -43,5 +43,9 @@ public interface IFornecedorDAL {
      */
     boolean definirPassword(int fornecedorId, String passwordHash, String passwordSalt);
 
+    /**
+     * @return todos os fornecedores, pelo nome, para a lista das contas (US63)
+     * @throws DataAccessException se não for possível ler a base de dados
+     */
     List<Fornecedor> listar();
 }

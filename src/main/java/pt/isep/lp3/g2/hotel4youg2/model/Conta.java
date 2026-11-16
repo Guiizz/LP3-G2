@@ -1,10 +1,18 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+/**
+ * Linha da tabela das contas (US63): a conta de um funcionário (gestor ou rececionista) ou de um fornecedor,
+ * com o tipo e o estado.
+ */
 public class Conta {
 
+    /** Tipo das contas dos fornecedores. */
     public static final String FORNECEDOR = "Fornecedor";
+    /** Estado de uma conta que pode entrar na aplicação. */
     public static final String ATIVA = "Ativa";
+    /** Estado de uma conta de funcionário que o gestor desativou. */
     public static final String DESATIVADA = "Desativada";
+    /** Estado de um fornecedor que ainda não definiu a password. */
     public static final String SEM_PASSWORD = "Sem password";
 
     private final String nome;
@@ -12,6 +20,11 @@ public class Conta {
     private final String estado;
     private final Utilizador utilizador;
 
+    /**
+     * Cria a linha da conta de um funcionário.
+     *
+     * @param utilizador a conta do funcionário
+     */
     public Conta(Utilizador utilizador) {
         this.nome = utilizador.getNomeUtilizador();
         this.tipo = utilizador.getPerfil().name().charAt(0) + utilizador.getPerfil().name().substring(1).toLowerCase();
@@ -19,6 +32,11 @@ public class Conta {
         this.utilizador = utilizador;
     }
 
+    /**
+     * Cria a linha da conta de um fornecedor.
+     *
+     * @param fornecedor o fornecedor
+     */
     public Conta(Fornecedor fornecedor) {
         this.nome = fornecedor.getCodigo() + " - " + fornecedor.getNome();
         this.tipo = FORNECEDOR;
@@ -42,6 +60,9 @@ public class Conta {
         return utilizador;
     }
 
+    /**
+     * @return {@code true} se a conta for de um fornecedor (estas não se desativam no ecrã das contas)
+     */
     public boolean isDeFornecedor() {
         return utilizador == null;
     }
