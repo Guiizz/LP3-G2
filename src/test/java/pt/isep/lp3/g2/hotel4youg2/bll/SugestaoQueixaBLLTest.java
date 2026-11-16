@@ -3,8 +3,10 @@ package pt.isep.lp3.g2.hotel4youg2.bll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.ISugestaoQueixaDAL;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
@@ -79,17 +81,20 @@ public class SugestaoQueixaBLLTest {
             "912345678", null, "ana@exemplo.pt");
 
     private SugestaoQueixaDALFalsa sugestaoDAL;
+    private ReservaDALFalsa reservaDAL;
     private SugestaoQueixaBLL instance;
 
     @BeforeEach
     public void setUp() {
         sugestaoDAL = new SugestaoQueixaDALFalsa();
-        instance = new SugestaoQueixaBLL(sugestaoDAL);
+        reservaDAL = new ReservaDALFalsa();
+        instance = new SugestaoQueixaBLL(sugestaoDAL, reservaDAL, new ClienteDALFalsa());
     }
 
     @AfterEach
     public void tearDown() {
         sugestaoDAL.registadas.clear();
+        reservaDAL.reservas.clear();
     }
 
     @Test
@@ -229,15 +234,10 @@ public class SugestaoQueixaBLLTest {
     }
 
     private static class ReservaDALFalsa implements IReservaDAL {
-        private Reserva emCurso;
-        private String cartaoPedido;
+        final List<Reserva> reservas = new ArrayList<>();
 
         @Override
         public Reserva procurarEmCursoPorCartao(String cartao) {
-            cartaoPedido = cartao;
-            if (emCurso != null && cartao.equals(emCurso.getCartao())) {
-                return emCurso;
-            }
             return null;
         }
 
@@ -263,7 +263,13 @@ public class SugestaoQueixaBLLTest {
 
         @Override
         public List<Reserva> listarPorCliente(int clienteId) {
-            return new ArrayList<>();
+            List<Reserva> doCliente = new ArrayList<>();
+            for (Reserva reserva : reservas) {
+                if (reserva.getClienteId() == clienteId) {
+                    doCliente.add(reserva);
+                }
+            }
+            return doCliente;
         }
 
         @Override
@@ -307,55 +313,122 @@ public class SugestaoQueixaBLLTest {
         }
     }
 
-    private ReservaDALFalsa reservasComCartao() {
-        ReservaDALFalsa reservas = new ReservaDALFalsa();
+    private static class ClienteDALFalsa implements IClienteDAL {
+        @Override
+        public int inserirCliente(Cliente c) {
+            return 0;
+        }
+
+        @Override
+        public boolean existeNif(String nif) {
+            return CLIENTE.getNif().equals(nif);
+        }
+
+        @Override
+        public List<Cliente> pesquisarClientes(String termo) {
+            return List.of(CLIENTE);
+        }
+
+        @Override
+        public Cliente procurarPorNif(String nif) {
+            return CLIENTE.getNif().equals(nif) ? CLIENTE : null;
+        }
+
+        @Override
+        public boolean atualizarCliente(Cliente c) {
+            return false;
+        }
+
+        @Override
+        public Cliente procurarFuncionarioNaoCliente(String nif) {
+            return null;
+        }
+
+        @Override
+        public boolean tornarCliente(Cliente c) {
+            return false;
+        }
+    }
+
+    private void juntarReserva(int id, int quarto, EstadoReserva estado) {
         LocalDate hoje = LocalDate.now();
-        reservas.emCurso = new Reserva(30, CLIENTE.getId(), 201, hoje.minusDays(1), hoje.plusDays(2), 1,
-                EstadoReserva.EM_CURSO, new BigDecimal("300.00"), hoje.minusDays(1).atTime(15, 30), null);
-        reservas.emCurso.setCartao("C201");
-        return reservas;
+        reservaDAL.reservas.add(new Reserva(id, CLIENTE.getId(), quarto, hoje.minusDays(1), hoje.plusDays(2), 1,
+                estado, new BigDecimal("300.00"), hoje.minusDays(1).atTime(15, 30), null));
     }
 
     @Test
-    public void testRegistarPeloCartao() {
-        System.out.println("registarPeloCartao");
-        ReservaDALFalsa reservas = reservasComCartao();
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservas);
-        SugestaoQueixa result = instance.registarPeloCartao(reservas.emCurso.getCartao(), TipoSugestao.SUGESTAO,
-                "Mais almofadas no quarto");
-        SugestaoQueixa expResult = new SugestaoQueixa(result.getId(), reservas.emCurso.getClienteId(),
-                TipoSugestao.SUGESTAO, "Mais almofadas no quarto", 0, result.getRegistadaEm());
+    public void testRegistarFicaComAReservaEmCurso() {
+        System.out.println("registar (na receção, fica com a reserva em curso do cliente)");
+        juntarReserva(30, 201, EstadoReserva.EM_CURSO);
+        String expResult = "Quarto 201 (reserva n.º 30)";
+        String result = instance.registar(RECECAO, CLIENTE, TipoSugestao.QUEIXA, "Barulho no corredor.")
+                .getReservaTexto();
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testRegistarPeloCartaoFicaGuardada() {
-        System.out.println("registarPeloCartao (fica guardada para o gestor)");
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservasComCartao());
-        SugestaoQueixa expResult = instance.registarPeloCartao("C201", TipoSugestao.QUEIXA, "Ar condicionado avariado");
+    public void testRegistarPeloNif() {
+        System.out.println("registarPeloNif");
+        juntarReserva(30, 201, EstadoReserva.EM_CURSO);
+        SugestaoQueixa result = instance.registarPeloNif("123456789", TipoSugestao.SUGESTAO, "Mais almofadas no quarto");
+        SugestaoQueixa expResult = new SugestaoQueixa(1, CLIENTE.getId(), TipoSugestao.SUGESTAO,
+                "Mais almofadas no quarto", 0, LocalDateTime.of(2026, 10, 29, 18, 30));
+        expResult.setReserva(30, 201);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPeloNifComOQuarto() {
+        System.out.println("registarPeloNif (o gestor vê o quarto e a reserva em curso)");
+        juntarReserva(30, 201, EstadoReserva.EM_CURSO);
+        String expResult = "Quarto 201 (reserva n.º 30)";
+        String result = instance.registarPeloNif("123456789", TipoSugestao.QUEIXA, "Ar condicionado avariado")
+                .getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPeloNifSemReservaEmCurso() {
+        System.out.println("registarPeloNif (sem reserva em curso fica sem quarto)");
+        juntarReserva(25, 105, EstadoReserva.CONCLUIDA);
+        juntarReserva(31, 202, EstadoReserva.CONFIRMADA);
+        String expResult = "-";
+        String result = instance.registarPeloNif("123456789", TipoSugestao.SUGESTAO, "Mais toalhas")
+                .getReservaTexto();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPeloNifFicaGuardada() {
+        System.out.println("registarPeloNif (fica guardada para o gestor)");
+        SugestaoQueixa expResult = instance.registarPeloNif("123456789", TipoSugestao.QUEIXA, "Ar condicionado avariado");
         List<SugestaoQueixa> result = instance.listar(GESTOR, TipoSugestao.QUEIXA);
         assertEquals(List.of(expResult), result);
     }
 
     @Test
-    public void testRegistarPeloCartaoAceitaMinusculasEEspacos() {
-        System.out.println("registarPeloCartao (minúsculas e espaços)");
-        ReservaDALFalsa reservas = reservasComCartao();
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservas);
-        instance.registarPeloCartao("  c201 ", TipoSugestao.SUGESTAO, "Mais toalhas");
-        String expResult = "C201";
-        String result = reservas.cartaoPedido;
+    public void testRegistarPeloNifSemFuncionario() {
+        System.out.println("registarPeloNif (enviada pelo cliente, sem funcionário)");
+        int expResult = 0;
+        int result = instance.registarPeloNif("123456789", TipoSugestao.SUGESTAO, "Mais toalhas").getRegistadaPor();
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testRegistarPeloCartaoInvalido() {
-        System.out.println("registarPeloCartao (cartão inválido ou reserva terminada)");
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservasComCartao());
-        String expResult = "O cartão C999 não é válido ou é de uma reserva que já não está em curso.";
+    public void testRegistarPeloNifComEspacos() {
+        System.out.println("registarPeloNif (espaços à volta do NIF)");
+        int expResult = CLIENTE.getId();
+        int result = instance.registarPeloNif("  123456789 ", TipoSugestao.SUGESTAO, "Mais toalhas").getClienteId();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPeloNifNaoRegistado() {
+        System.out.println("registarPeloNif (NIF que não é de um cliente registado)");
+        String expResult = "O NIF 987654321 não é de um cliente registado no hotel.";
         try {
-            instance.registarPeloCartao("C999", TipoSugestao.QUEIXA, "Barulho");
-            fail("Devia ter recusado um cartão sem reserva em curso");
+            instance.registarPeloNif("987654321", TipoSugestao.QUEIXA, "Barulho");
+            fail("Devia ter recusado um NIF que não é de um cliente");
         } catch (IllegalArgumentException expected) {
             assertEquals(expResult, expected.getMessage());
             assertEquals(0, sugestaoDAL.registadas.size());
@@ -363,35 +436,46 @@ public class SugestaoQueixaBLLTest {
     }
 
     @Test
-    public void testRegistarPeloCartaoSemCartao() {
-        System.out.println("registarPeloCartao (sem cartão)");
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservasComCartao());
+    public void testRegistarPeloNifInvalido() {
+        System.out.println("registarPeloNif (NIF com letras)");
+        String expResult = "O NIF tem de ter exatamente 9 dígitos";
         try {
-            instance.registarPeloCartao("   ", TipoSugestao.QUEIXA, "Barulho");
-            fail("Devia ter recusado sem cartão");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva o número do cartão.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testRegistarPeloCartaoSemTipo() {
-        System.out.println("registarPeloCartao (sem tipo)");
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservasComCartao());
-        try {
-            instance.registarPeloCartao("C201", null, "Barulho");
-            fail("Devia ter recusado sem tipo");
-        } catch (IllegalArgumentException expected) {
+            instance.registarPeloNif("12345678A", TipoSugestao.QUEIXA, "Barulho");
+            fail("Devia ter recusado um NIF com letras");
+        } catch (ValidacaoException expected) {
+            assertEquals(expResult, expected.getMessage());
             assertEquals(0, sugestaoDAL.registadas.size());
         }
     }
 
     @Test
-    public void testRegistarPeloCartaoSemDescricao() {
-        System.out.println("registarPeloCartao (sem descrição)");
-        instance = new SugestaoQueixaBLL(sugestaoDAL, reservasComCartao());
+    public void testRegistarPeloNifSemNif() {
+        System.out.println("registarPeloNif (sem NIF)");
         try {
-            instance.registarPeloCartao("C201", TipoSugestao.SUGESTAO, "   ");
+            instance.registarPeloNif("   ", TipoSugestao.QUEIXA, "Barulho");
+            fail("Devia ter recusado sem NIF");
+        } catch (ValidacaoException expected) {
+            assertEquals("O NIF é obrigatório", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testRegistarPeloNifSemTipo() {
+        System.out.println("registarPeloNif (sem tipo)");
+        try {
+            instance.registarPeloNif("123456789", null, "Barulho");
+            fail("Devia ter recusado sem tipo");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Escolha o tipo: sugestão ou queixa.", expected.getMessage());
+            assertEquals(0, sugestaoDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testRegistarPeloNifSemDescricao() {
+        System.out.println("registarPeloNif (sem descrição)");
+        try {
+            instance.registarPeloNif("123456789", TipoSugestao.SUGESTAO, "   ");
             fail("Devia ter recusado sem descrição");
         } catch (IllegalArgumentException expected) {
             assertEquals("A descrição é obrigatória.", expected.getMessage());

@@ -93,7 +93,7 @@ public class LoginController {
         try {
             Stage janela = new Stage();
             janela.setTitle("Hotel4You · Sugestão ou queixa");
-            Scene cena = new Scene(Navegador.carregar("sugestao-cartao-view.fxml").getRoot());
+            Scene cena = new Scene(Navegador.carregar("sugestao-cliente-view.fxml").getRoot());
             Navegador.aplicarEstilo(cena);
             janela.setScene(cena);
             janela.initOwner(nomeUtilizadorField.getScene().getWindow());

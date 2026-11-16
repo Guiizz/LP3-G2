@@ -35,6 +35,9 @@
             <TableColumn text="Cliente" prefWidth="150.0">
                 <cellValueFactory><PropertyValueFactory property="nomeCliente"/></cellValueFactory>
             </TableColumn>
+            <TableColumn text="Quarto / reserva" prefWidth="170.0">
+                <cellValueFactory><PropertyValueFactory property="reservaTexto"/></cellValueFactory>
+            </TableColumn>
             <TableColumn text="Descrição" prefWidth="330.0">
                 <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
             </TableColumn>
