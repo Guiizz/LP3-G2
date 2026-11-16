@@ -65,6 +65,12 @@ public interface IReservaDAL {
      */
     boolean cancelar(int id);
 
+    /**
+     * Apaga a reserva e os seus serviços, só se ainda não teve check-in (confirmada ou cancelada) (US57).
+     *
+     * @param id o id da reserva
+     * @return {@code true} se foi apagada; {@code false} se não existe ou entretanto teve check-in
+     */
     boolean apagarSemCheckin(int id);
 
     /**

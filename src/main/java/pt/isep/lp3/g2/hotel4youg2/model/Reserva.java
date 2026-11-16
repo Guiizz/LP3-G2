@@ -166,6 +166,10 @@ public class Reserva {
         return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
+    /**
+     * @return {@code true} se a reserva ainda não teve check-in e está confirmada ou cancelada:
+     *         só estas podem ser apagadas pelo gestor (US57)
+     */
     public boolean podeSerApagada() {
         return checkinEm == null && (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.CANCELADA);
     }
