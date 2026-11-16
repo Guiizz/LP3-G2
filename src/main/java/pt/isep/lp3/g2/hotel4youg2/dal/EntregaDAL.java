@@ -44,11 +44,11 @@ public class EntregaDAL implements IEntregaDAL {
             "INSERT INTO Material (fornecedorId, codigo, descricao) OUTPUT INSERTED.id VALUES (?, ?, ?)";
     private static final String ATUALIZAR_MATERIAL = "UPDATE Material SET descricao = ? WHERE id = ?";
     private static final String INSERIR_ENTREGA =
-            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, registadaPor, decididaPor, "
-            + "decididaEm) OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, ?, SYSDATETIME())";
+            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, moeda, registadaPor, "
+            + "decididaPor, decididaEm) OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, ?, ?, SYSDATETIME())";
     private static final String INSERIR_ENTREGA_PENDENTE =
-            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, estado) "
-            + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, 'PENDENTE')";
+            "INSERT INTO Entrega (fornecedorId, numeroEncomenda, dataEncomenda, total, moeda, estado) "
+            + "OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, 'PENDENTE')";
     private static final String INSERIR_LINHA =
             "INSERT INTO LinhaEntrega (entregaId, numeroLinha, materialId, quantidade, unidade, unidades, "
             + "precoUnitario, valorSemIva, taxaIva, valorIva, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -120,12 +120,13 @@ public class EntregaDAL implements IEntregaDAL {
             conn.setAutoCommit(false);
             try {
                 int fornecedorId = gravarFornecedor(conn, entrega.getFornecedor());
-                Object[] params = new Object[4 + extra.length];
+                Object[] params = new Object[5 + extra.length];
                 params[0] = fornecedorId;
                 params[1] = entrega.getNumeroEncomenda();
                 params[2] = Date.valueOf(entrega.getDataEncomenda());
                 params[3] = entrega.getTotal();
-                System.arraycopy(extra, 0, params, 4, extra.length);
+                params[4] = entrega.getMoeda();
+                System.arraycopy(extra, 0, params, 5, extra.length);
                 int entregaId = inserir(conn, sqlEntrega, params);
                 for (LinhaEntrega linha : entrega.getLinhas()) {
                     int materialId = gravarMaterial(conn, fornecedorId, linha);

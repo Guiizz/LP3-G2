@@ -8,6 +8,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
 import pt.isep.lp3.g2.hotel4youg2.bll.EntregaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ErrosFicheiroException;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.ResumoEntrega;
@@ -15,10 +16,11 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
- * Controlador do ecrã do fornecedor: carrega o ficheiro XML de uma entrega e mostra o histórico
- * das suas entregas com o estado de cada uma (US38).
+ * Controlador do ecrã do fornecedor: importa o XSD, carrega o ficheiro XML de uma entrega e mostra
+ * o histórico das suas entregas com o estado de cada uma (US38 e US53).
  */
 public class FornecedorController {
 
@@ -29,6 +31,8 @@ public class FornecedorController {
     private BorderPane raiz;
     @FXML
     private Label fornecedorLabel;
+    @FXML
+    private Label xsdLabel;
     @FXML
     private Label ficheiroLabel;
     @FXML
@@ -47,7 +51,31 @@ public class FornecedorController {
         if (fornecedor != null) {
             fornecedorLabel.setText(fornecedor.toString());
         }
+        mostrarXsdEmUso();
         atualizarHistorico();
+    }
+
+    @FXML
+    private void aoImportarXsd() {
+        FileChooser escolha = new FileChooser();
+        escolha.setTitle("Escolher o XSD das entregas");
+        escolha.getExtensionFilters().add(new FileChooser.ExtensionFilter("Ficheiros XSD", "*.xsd"));
+        File ficheiro = escolha.showOpenDialog(tabela.getScene().getWindow());
+        if (ficheiro == null) {
+            return;
+        }
+        try {
+            entregaBLL.importarXsd(ficheiro);
+            limpar();
+            ficheiroLabel.setText("Nenhum ficheiro escolhido");
+            mostrarMensagem("XSD " + ficheiro.getName() + " importado. Os próximos ficheiros XML são validados com ele.",
+                    "green");
+        } catch (ErrosFicheiroException e) {
+            mostrarMensagem("XSD recusado. Continua o XSD anterior." + emLista(e.getErros()), "red");
+        } catch (IllegalArgumentException e) {
+            mostrarMensagem(e.getMessage(), "red");
+        }
+        mostrarXsdEmUso();
     }
 
     @FXML
@@ -66,9 +94,17 @@ public class FornecedorController {
             resumoLabel.setText("Encomenda " + entregaLida.getNumeroEncomenda() + " com "
                     + entregaLida.getLinhas().size() + " linhas, total " + entregaLida.getTotal() + " €.");
             carregarButton.setDisable(false);
-            mostrarMensagem("Ficheiro válido. Carregue em \"Carregar entrega\" para o enviar ao hotel.", "green");
+            List<String> avisos = entregaBLL.verificarContas(entregaLida);
+            if (avisos.isEmpty()) {
+                mostrarMensagem("Ficheiro válido. Carregue em \"Carregar entrega\" para o enviar ao hotel.", "green");
+            } else {
+                mostrarMensagem("Ficheiro válido, com diferenças de cêntimos (arredondamentos):" + emLista(avisos)
+                        + "\nPode carregar a entrega na mesma.", "darkorange");
+            }
+        } catch (ErrosFicheiroException e) {
+            mostrarMensagem("Ficheiro recusado. Nada foi guardado. Corrija:" + emLista(e.getErros()), "red");
         } catch (IllegalArgumentException e) {
-            mostrarMensagem("Ficheiro recusado. " + e.getMessage(), "red");
+            mostrarMensagem(e.getMessage(), "red");
         }
     }
 
@@ -100,6 +136,24 @@ public class FornecedorController {
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível obter o histórico.", "red");
         }
+    }
+
+    private void mostrarXsdEmUso() {
+        String nome = entregaBLL.nomeXsdEmUso();
+        if (nome == null) {
+            xsdLabel.setText("XSD em uso: o do projeto (Hotel4You.xsd)");
+        } else {
+            xsdLabel.setText("XSD em uso: " + nome);
+        }
+    }
+
+    // um erro por linha, com um ponto à frente
+    private static String emLista(List<String> erros) {
+        StringBuilder texto = new StringBuilder();
+        for (String erro : erros) {
+            texto.append("\n• ").append(erro);
+        }
+        return texto.toString();
     }
 
     private void limpar() {

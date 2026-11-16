@@ -18,6 +18,7 @@ public class Entrega {
     private LocalDate dataEncomenda;
     private Fornecedor fornecedor;
     private EstadoEntrega estado = EstadoEntrega.PENDENTE;
+    private String moeda = "EUR";
     private final List<LinhaEntrega> linhas = new ArrayList<>();
 
     /**
@@ -64,6 +65,17 @@ public class Entrega {
 
     public void setEstado(EstadoEntrega estado) {
         this.estado = estado;
+    }
+
+    /**
+     * @return a moeda dos valores da entrega (código de 3 letras, por exemplo "EUR")
+     */
+    public String getMoeda() {
+        return moeda;
+    }
+
+    public void setMoeda(String moeda) {
+        this.moeda = moeda;
     }
 
     public List<LinhaEntrega> getLinhas() {
