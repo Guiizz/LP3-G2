@@ -38,7 +38,7 @@ public class ReservaDALTest {
         LocalDate entrada = LocalDate.now().plusYears(50).plusDays(marca % 300);
         reserva = new Reserva(0, cliente.getId(), 201, entrada, entrada.plusDays(2), 1,
                 EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);
-        instance.inserirSeLivre(reserva);
+        Assumptions.assumeTrue(instance.inserirSeLivre(reserva), "O quarto 201 já estava ocupado nessas datas");
     }
 
     @AfterEach

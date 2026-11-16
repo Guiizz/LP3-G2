@@ -16,6 +16,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -122,6 +123,11 @@ public class ReservaBLL {
      */
     public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
                          int hospedes, boolean earlyCheckin, boolean lateCheckout) {
+        return criar(cliente, tipo, vista, entrada, saida, hospedes, earlyCheckin, lateCheckout, new ArrayList<>());
+    }
+
+    public Reserva criar(Cliente cliente, TipoQuarto tipo, Vista vista, LocalDate entrada, LocalDate saida,
+                         int hospedes, boolean earlyCheckin, boolean lateCheckout, List<ServicoReserva> servicos) {
         if (cliente == null) {
             throw new ValidacaoException("Escolha o cliente pelo NIF");
         }
@@ -130,6 +136,7 @@ public class ReservaBLL {
         }
         validarDatas(entrada, saida);
         validarHospedes(hospedes);
+        List<ServicoReserva> extras = servicos == null ? new ArrayList<>() : servicos;
         BigDecimal taxa = calcularTaxa(earlyCheckin, lateCheckout);
         for (Quarto quarto : quartoDAL.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
             if (quarto.getTipo() == tipo && quarto.getVista() == vista && quarto.getCapacidade() >= hospedes) {
@@ -138,7 +145,8 @@ public class ReservaBLL {
                 reserva.setEarlyCheckin(earlyCheckin);
                 reserva.setLateCheckout(lateCheckout);
                 reserva.setTaxaHorario(taxa);
-                if (reservaDAL.inserirSeLivre(reserva)) {
+                if (reservaDAL.inserirComServicosSeLivre(reserva, extras)) {
+                    reserva.setTotalServicos(ServicoReservaBLL.somar(extras));
                     return reserva;
                 }
             }

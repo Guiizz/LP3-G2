@@ -93,6 +93,11 @@ public class AcessoCartaoBLLTest {
         }
 
         @Override
+        public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
+            return false;
+        }
+
+        @Override
         public Reserva procurarPorId(int id) {
             return null;
         }

@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.util.List;
 
@@ -19,6 +20,8 @@ public interface IReservaDAL {
      *         em datas que se sobrepõem
      */
     boolean inserirSeLivre(Reserva reserva);
+
+    boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos);
 
     /**
      * @param id o id da reserva

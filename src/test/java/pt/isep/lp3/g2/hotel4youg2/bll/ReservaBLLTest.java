@@ -19,6 +19,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
+import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
+import pt.isep.lp3.g2.hotel4youg2.model.Servico;
+import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,6 +42,7 @@ public class ReservaBLLTest {
     private static class ReservaDALFalsa implements IReservaDAL {
         private boolean quartoLivre = true;
         private Reserva gravada;
+        private List<ServicoReserva> servicosGravados;
         private boolean podeCancelarNaBD = true;
         private Integer canceladaId;
         private boolean podeApagarNaBD = true;
@@ -80,6 +84,15 @@ public class ReservaBLLTest {
             reserva.setId(1);
             gravada = reserva;
             return true;
+        }
+
+        @Override
+        public boolean inserirComServicosSeLivre(Reserva reserva, List<ServicoReserva> servicos) {
+            boolean gravou = inserirSeLivre(reserva);
+            if (gravou) {
+                servicosGravados = new ArrayList<>(servicos);
+            }
+            return gravou;
         }
 
         @Override
@@ -1289,6 +1302,59 @@ public class ReservaBLLTest {
             fail("Devia ter recusado o que a BD recusou");
         } catch (ValidacaoException e) {
             assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    private List<ServicoReserva> servicosEscolhidos() {
+        Categoria refeicao = new Categoria(1, "Refeição");
+        List<ServicoReserva> servicos = new ArrayList<>();
+        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(1, "Pequeno-almoço", new BigDecimal("12.00"), refeicao, true), 2));
+        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(2, "Jantar", new BigDecimal("22.00"), refeicao, true), 1));
+        return servicos;
+    }
+
+    @Test
+    public void testCriarComServicosGravaOsServicos() {
+        System.out.println("criar (com serviços extra, ficam gravados com a reserva)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        List<ServicoReserva> expResult = servicosEscolhidos();
+        instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false, expResult);
+        List<ServicoReserva> result = repositorio.servicosGravados;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarComServicosSomaAoTotal() {
+        System.out.println("criar (o total inclui os serviços extra)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        Reserva reserva = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+                false, false, servicosEscolhidos());
+        BigDecimal expResult = new BigDecimal("246.00");
+        BigDecimal result = reserva.getTotal();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarSemServicos() {
+        System.out.println("criar (sem serviços extra)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false);
+        int expResult = 0;
+        int result = repositorio.servicosGravados.size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarQuartoOcupadoNaoGravaServicos() {
+        System.out.println("criar (sem quarto livre, nenhum serviço fica gravado)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        repositorio.quartoLivre = false;
+        try {
+            instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false,
+                    servicosEscolhidos());
+            fail("Devia ter recusado sem quarto livre");
+        } catch (ValidacaoException expected) {
+            assertEquals(null, repositorio.servicosGravados);
         }
     }
 }
