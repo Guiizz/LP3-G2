@@ -8,6 +8,10 @@ import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
 import pt.isep.lp3.g2.hotel4youg2.model.MovimentoStock;
+import pt.isep.lp3.g2.hotel4youg2.model.SaidaStock;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.MotivoSaida;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoMovimento;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,6 +34,9 @@ public class StockDALTest {
             List<Integer> tabelas = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('Stock') IS NOT NULL "
                     + "AND OBJECT_ID('MovimentoStock') IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabelas.get(0) == 1, "Falta correr o 16_movimentos_stock.sql");
+            List<Integer> tipoSaida = ConexaoBD.select("SELECT CASE WHEN COL_LENGTH('MovimentoStock', 'tipo') "
+                    + "IS NOT NULL THEN 1 ELSE 0 END", new InteiroMapper());
+            Assumptions.assumeTrue(tipoSaida.get(0) == 1, "Falta correr o 24_tipo_saida_materiais.sql");
             List<Integer> funcionarios = ConexaoBD.select("SELECT TOP 1 pessoaId FROM Funcionario", new InteiroMapper());
             Assumptions.assumeTrue(!funcionarios.isEmpty(), "Faltam funcionários na BD");
             funcionarioId = funcionarios.get(0);
@@ -85,14 +92,14 @@ public class StockDALTest {
     public void testRegistarSaida() {
         System.out.println("registarSaida");
         boolean expResult = true;
-        boolean result = instance.registarSaida(materialId, 3, funcionarioId);
+        boolean result = instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         assertEquals(expResult, result);
     }
 
     @Test
     public void testRegistarSaidaTiraDoStock() {
         System.out.println("registarSaida (tira do stock)");
-        instance.registarSaida(materialId, 3, funcionarioId);
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 7;
         int result = quantidadeEmStock();
         assertEquals(expResult, result);
@@ -101,7 +108,7 @@ public class StockDALTest {
     @Test
     public void testRegistarSaidaGuardaOFuncionario() {
         System.out.println("registarSaida (fica registado o funcionário)");
-        instance.registarSaida(materialId, 3, funcionarioId);
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = funcionarioId;
         int result = ConexaoBD.select("SELECT funcionarioId FROM MovimentoStock WHERE materialId = ? AND quantidade = 3",
                 new InteiroMapper(), materialId).get(0);
@@ -111,7 +118,7 @@ public class StockDALTest {
     @Test
     public void testRegistarSaidaGuardaAData() {
         System.out.println("registarSaida (data posta pela BD)");
-        instance.registarSaida(materialId, 3, funcionarioId);
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 1;
         int result = ConexaoBD.select("SELECT CASE WHEN ABS(DATEDIFF(MINUTE, registadoEm, SYSDATETIME())) < 5 "
                 + "THEN 1 ELSE 0 END FROM MovimentoStock WHERE materialId = ?", new InteiroMapper(), materialId).get(0);
@@ -121,7 +128,7 @@ public class StockDALTest {
     @Test
     public void testRegistarSaidaDeTudo() {
         System.out.println("registarSaida (pode tirar tudo o que existe)");
-        instance.registarSaida(materialId, 10, funcionarioId);
+        instance.registarSaida(materialId, 10, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 0;
         int result = quantidadeEmStock();
         assertEquals(expResult, result);
@@ -131,14 +138,14 @@ public class StockDALTest {
     public void testRegistarSaidaAMaisDevolveFalso() {
         System.out.println("registarSaida (mais do que existe)");
         boolean expResult = false;
-        boolean result = instance.registarSaida(materialId, 11, funcionarioId);
+        boolean result = instance.registarSaida(materialId, 11, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         assertEquals(expResult, result);
     }
 
     @Test
     public void testRegistarSaidaAMaisNaoMudaOStock() {
         System.out.println("registarSaida (mais do que existe não muda o stock)");
-        instance.registarSaida(materialId, 11, funcionarioId);
+        instance.registarSaida(materialId, 11, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 10;
         int result = quantidadeEmStock();
         assertEquals(expResult, result);
@@ -147,7 +154,7 @@ public class StockDALTest {
     @Test
     public void testRegistarSaidaAMaisNaoRegistaMovimento() {
         System.out.println("registarSaida (mais do que existe não fica registado)");
-        instance.registarSaida(materialId, 11, funcionarioId);
+        instance.registarSaida(materialId, 11, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 0;
         int result = contarMovimentos();
         assertEquals(expResult, result);
@@ -196,8 +203,8 @@ public class StockDALTest {
     @Test
     public void testListarTrazOQueSaiu() {
         System.out.println("listar (o que saiu)");
-        instance.registarSaida(materialId, 3, funcionarioId);
-        instance.registarSaida(materialId, 2, funcionarioId);
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 5;
         int result = oMaterialDoTeste().getSaiu();
         assertEquals(expResult, result);
@@ -216,9 +223,9 @@ public class StockDALTest {
     public void testListarMovimentos() {
         System.out.println("listarMovimentos (do mais recente para o mais antigo)");
         registarEntrega("ACEITE", 5);
-        instance.registarSaida(materialId, 3, funcionarioId);
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         List<MovimentoStock> movimentos = instance.listarMovimentos(materialId);
-        String expResult = "[Saída 3, Entrada 5]";
+        String expResult = "[Saída definitiva 3, Entrada 5]";
         List<String> result = new ArrayList<>();
         for (MovimentoStock movimento : movimentos) {
             result.add(movimento.getTipo() + " " + movimento.getQuantidade());
@@ -256,12 +263,132 @@ public class StockDALTest {
     public void testRegistarSaidaFalhaDesfazOStock() {
         System.out.println("registarSaida (se o movimento falhar, o stock volta atrás)");
         try {
-            instance.registarSaida(materialId, 3, -1);
+            instance.registarSaida(materialId, 3, -1, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         } catch (DataAccessException esperado) {
             System.out.println("o movimento foi recusado pela BD");
         }
         int expResult = 10;
         int result = quantidadeEmStock();
+        assertEquals(expResult, result);
+    }
+
+    private SaidaStock aSaidaPorDevolver() {
+        for (SaidaStock saida : instance.listarPorDevolver()) {
+            if (saida.getMaterialId() == materialId) {
+                return saida;
+            }
+        }
+        return null;
+    }
+
+    private String textoGuardado(String coluna) {
+        return ConexaoBD.select("SELECT " + coluna + " FROM MovimentoStock WHERE materialId = ?", new TextoMapper(),
+                materialId).get(0);
+    }
+
+    @Test
+    public void testRegistarSaidaGuardaOTipoEOMotivo() {
+        System.out.println("registarSaida (guarda o tipo, o motivo e o texto)");
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "caiu ao chão");
+        assertEquals("DEFINITIVA", textoGuardado("tipo"));
+        assertEquals("OUTRO", textoGuardado("motivo"));
+        assertEquals("caiu ao chão", textoGuardado("descricaoMotivo"));
+    }
+
+    @Test
+    public void testRegistarSaidaTemporariaSemMotivo() {
+        System.out.println("registarSaida (temporária, sem motivo da lista)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        assertEquals("TEMPORARIA", textoGuardado("tipo"));
+        assertEquals(null, textoGuardado("motivo"));
+        assertEquals(8, quantidadeEmStock());
+    }
+
+    @Test
+    public void testListarPorDevolver() {
+        System.out.println("listarPorDevolver (a temporária aparece com o motivo e o funcionário)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        SaidaStock result = aSaidaPorDevolver();
+        assertEquals(2, result.getQuantidade());
+        assertEquals("M-1", result.getCodigo());
+        assertEquals("Reparação", result.getMotivo());
+        assertEquals(nomeDoFuncionario(), result.getFuncionario());
+    }
+
+    @Test
+    public void testListarPorDevolverSemDefinitivas() {
+        System.out.println("listarPorDevolver (as definitivas não aparecem)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ROUBADO, null);
+        SaidaStock expResult = null;
+        SaidaStock result = aSaidaPorDevolver();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDevolver() {
+        System.out.println("devolver (o material volta ao stock)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        boolean devolvida = instance.devolver(aSaidaPorDevolver().getId(), funcionarioId);
+        assertEquals(true, devolvida);
+        assertEquals(10, quantidadeEmStock());
+        assertEquals(null, aSaidaPorDevolver());
+    }
+
+    @Test
+    public void testDevolverDuasVezes() {
+        System.out.println("devolver (a segunda vez não soma outra vez ao stock)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        int saidaId = aSaidaPorDevolver().getId();
+        instance.devolver(saidaId, funcionarioId);
+        boolean result = instance.devolver(saidaId, funcionarioId);
+        assertEquals(false, result);
+        assertEquals(10, quantidadeEmStock());
+    }
+
+    @Test
+    public void testDevolverDefinitiva() {
+        System.out.println("devolver (uma saída definitiva não volta)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
+        int saidaId = ConexaoBD.select("SELECT id FROM MovimentoStock WHERE materialId = ?", new InteiroMapper(),
+                materialId).get(0);
+        boolean result = instance.devolver(saidaId, funcionarioId);
+        assertEquals(false, result);
+        assertEquals(8, quantidadeEmStock());
+    }
+
+    @Test
+    public void testListarNaoContaAsDevolvidas() {
+        System.out.println("listar (uma saída temporária devolvida já não conta como saída)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
+        instance.devolver(aSaidaPorDevolver().getId(), funcionarioId);
+        int expResult = 3;
+        int result = oMaterialDoTeste().getSaiu();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarMovimentosComTiposEDevolucao() {
+        System.out.println("listarMovimentos (saída temporária, devolução e definitiva em separado)");
+        instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        instance.devolver(aSaidaPorDevolver().getId(), funcionarioId);
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ROUBADO, null);
+        List<TipoMovimento> result = new ArrayList<>();
+        for (MovimentoStock movimento : instance.listarMovimentos(materialId)) {
+            result.add(movimento.getTipo());
+        }
+        assertEquals(3, result.size());
+        assertEquals(true, result.contains(TipoMovimento.SAIDA_TEMPORARIA));
+        assertEquals(true, result.contains(TipoMovimento.DEVOLUCAO));
+        assertEquals(true, result.contains(TipoMovimento.SAIDA_DEFINITIVA));
+    }
+
+    @Test
+    public void testListarMovimentosTrazOMotivo() {
+        System.out.println("listarMovimentos (com o motivo da saída)");
+        instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "caiu ao chão");
+        String expResult = "Outro: caiu ao chão";
+        String result = instance.listarMovimentos(materialId).get(0).getMotivo();
         assertEquals(expResult, result);
     }
 }
