@@ -17,43 +17,35 @@
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
     </padding>
 
-    <Label text="Registar acesso com cartão" styleClass="titulo"/>
+    <Label text="O meu cartão" styleClass="titulo"/>
 
-    <HBox spacing="10.0" alignment="CENTER_LEFT">
-        <Label text="Cartão:"/>
-        <TextField fx:id="cartaoField" promptText="ex.: C201, C000 ou F12" prefWidth="170.0"/>
-        <Button text="O meu cartão" onAction="#aoUsarOMeuCartao"/>
-        <Button text="Escolher da lista" onAction="#aoEscolherCartao"/>
-    </HBox>
+    <Label fx:id="cartaoLabel"/>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Local:"/>
         <ComboBox fx:id="localCombo" promptText="Escolha o local" onAction="#aoEscolherLocal" prefWidth="190.0"/>
         <Label fx:id="quartoLabel" text="Quarto:"/>
         <TextField fx:id="quartoField" promptText="ex.: 201" prefWidth="80.0"/>
-        <Button text="Registar passagem" defaultButton="true" onAction="#aoRegistarPassagem"/>
+        <Button text="Picar" defaultButton="true" onAction="#aoPicar"/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true" maxWidth="700"/>
 
-    <Label text="Passagens deste cartão"/>
+    <Label text="As minhas passagens"/>
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Data e hora" prefWidth="150.0">
-                <cellValueFactory><PropertyValueFactory property="registadoEmTexto"/></cellValueFactory>
+            <TableColumn text="Data" prefWidth="110.0">
+                <cellValueFactory><PropertyValueFactory property="dataTexto"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Cartão" prefWidth="100.0">
-                <cellValueFactory><PropertyValueFactory property="cartao"/></cellValueFactory>
+            <TableColumn text="Hora" prefWidth="80.0">
+                <cellValueFactory><PropertyValueFactory property="horaTexto"/></cellValueFactory>
             </TableColumn>
             <TableColumn text="Local" prefWidth="200.0">
                 <cellValueFactory><PropertyValueFactory property="localTexto"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Funcionário" prefWidth="220.0">
-                <cellValueFactory><PropertyValueFactory property="funcionarioTexto"/></cellValueFactory>
-            </TableColumn>
         </columns>
         <placeholder>
-            <Label text="Ainda não há passagens registadas para este cartão."/>
+            <Label text="Ainda não picou o seu cartão."/>
         </placeholder>
     </TableView>
 </VBox>

@@ -69,6 +69,7 @@ public class LoginController {
             Scene cena = new Scene(Navegador.carregar("fornecedor-view.fxml").getRoot(), 1100, 700);
             Navegador.aplicarEstilo(cena);
             stage.setScene(cena);
+            stage.centerOnScreen();
             stage.setTitle("Hotel4You · Fornecedor " + fornecedor.getNome());
         } catch (IllegalArgumentException e) {
             erroLabel.setText(e.getMessage());
@@ -85,6 +86,7 @@ public class LoginController {
         Scene cena = new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700);
         Navegador.aplicarEstilo(cena);
         stage.setScene(cena);
+        stage.centerOnScreen();
         stage.setTitle("Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
     }
 

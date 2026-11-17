@@ -21,11 +21,12 @@ import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Regras de negócio dos acessos com cartão (US39, US41 e US52): decide se um cartão abre um local
+ * Regras de negócio dos acessos com cartão (US39, US41, US52 e US74): decide se um cartão abre um local
  * do hotel, regista as passagens permitidas e deixa o gestor consultá-las.
  * O cartão de um cliente só funciona enquanto a sua reserva estiver em curso; o cartão de um
  * funcionário ({@value Funcionario#PREFIXO_CARTAO} e o número de funcionário) só abre os locais
@@ -129,46 +130,19 @@ public class AcessoCartaoBLL {
     }
 
     /**
-     * Lista os funcionários com a conta ativa, que são os que têm um cartão que funciona (US52).
+     * Devolve o cartão de quem tem a sessão iniciada, para o ecrã "O meu cartão" (US52 e US74):
+     * o gestor usa o cartão mestre e cada funcionário usa o seu cartão de funcionário.
      *
      * @param quemAge o utilizador com a sessão iniciada
-     * @return os funcionários com a conta ativa, pelo número de funcionário
-     * @throws IllegalStateException se não houver sessão iniciada
+     * @return o número do cartão, por exemplo {@code "F12"} ou {@value AcessoCartao#CARTAO_MESTRE}
+     * @throws IllegalStateException se não houver sessão iniciada ou se a conta não tiver cartão
      */
-    public List<Funcionario> listarFuncionariosComCartao(Utilizador quemAge) {
-        if (quemAge == null) {
-            throw new IllegalStateException("Entre na aplicação para ver os cartões dos funcionários.");
-        }
-        return funcionarioDAL.listarComContaAtiva();
-    }
-
-    /**
-     * Lista os cartões que abrem portas neste momento, para escolher da lista no ecrã dos acessos (US63):
-     * primeiro os dos funcionários com a conta ativa, depois os dos clientes com uma reserva em curso.
-     *
-     * @param quemAge o utilizador com a sessão iniciada
-     * @return os cartões, cada um com o nome do titular
-     * @throws IllegalStateException se não houver sessão iniciada
-     */
-    public List<CartaoAtivo> listarCartoes(Utilizador quemAge) {
-        List<CartaoAtivo> cartoes = new ArrayList<>();
-        for (Funcionario funcionario : listarFuncionariosComCartao(quemAge)) {
-            cartoes.add(new CartaoAtivo(funcionario.getCartao(), funcionario.getNome()));
-        }
-        cartoes.addAll(acessoCartaoDAL.listarCartoesDeClientes());
-        return cartoes;
-    }
-
-    /**
-     * Devolve o cartão do funcionário com a sessão iniciada, para o botão "O meu cartão" (US52).
-     *
-     * @param quemAge o utilizador com a sessão iniciada
-     * @return o número do cartão, por exemplo {@code "F12"}
-     * @throws IllegalStateException se não houver sessão iniciada ou se a conta não for de um funcionário
-     */
-    public String cartaoDoFuncionario(Utilizador quemAge) {
+    public String cartaoDoUtilizador(Utilizador quemAge) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para usar o seu cartão.");
+        }
+        if (Permissoes.eGestor(quemAge)) {
+            return AcessoCartao.CARTAO_MESTRE;
         }
         Funcionario funcionario = funcionarioDAL.procurarPorId(quemAge.getFuncionarioId());
         if (funcionario == null) {
@@ -177,53 +151,42 @@ public class AcessoCartaoBLL {
         return funcionario.getCartao();
     }
 
-    /**
-     * Lista as passagens de um cartão, para mostrar no ecrã onde se registam os acessos.
-     *
-     * @param cartao o número do cartão
-     * @return as passagens do cartão, da mais recente para a mais antiga
-     */
-    public List<AcessoCartao> listarPorCartao(String cartao) {
-        return acessoCartaoDAL.listarPorCartao(normalizar(cartao));
+    public List<LocalHotel> locaisDoCartao(Utilizador quemAge) {
+        boolean mestre = AcessoCartao.CARTAO_MESTRE.equals(cartaoDoUtilizador(quemAge));
+        List<LocalHotel> locais = new ArrayList<>();
+        for (LocalHotel local : LocalHotel.values()) {
+            if (mestre || local.getPiso() == 0 || local.getPiso() == 1) {
+                locais.add(local);
+            }
+        }
+        return locais;
     }
 
-    /**
-     * Consulta onde e quando um cartão foi usado (US41). Só o gestor pode consultar.
-     *
-     * @param quemAge o utilizador com a sessão iniciada
-     * @param cartao  o número do cartão
-     * @return as passagens do cartão, da mais recente para a mais antiga
-     * @throws IllegalStateException    se quem age não for o gestor
-     * @throws IllegalArgumentException se não for escrito nenhum cartão
-     */
-    public List<AcessoCartao> consultarPorCartao(Utilizador quemAge, String cartao) {
-        Permissoes.exigirGestor(quemAge);
-        String numero = normalizar(cartao);
-        if (numero.isEmpty()) {
-            throw new IllegalArgumentException("Escreva o número do cartão.");
-        }
-        return acessoCartaoDAL.listarPorCartao(numero);
+    public AcessoCartao picar(Utilizador quemAge, LocalHotel local, int quartoNumero) {
+        return registarPassagem(quemAge, cartaoDoUtilizador(quemAge), local, quartoNumero);
     }
 
-    /**
-     * Consulta que cartões entraram num quarto e quando (US41). Só o gestor pode consultar.
-     *
-     * @param quemAge o utilizador com a sessão iniciada
-     * @param quarto  o número do quarto, como foi escrito no ecrã
-     * @return as passagens no quarto, incluindo as do cartão mestre, da mais recente para a mais antiga
-     * @throws IllegalStateException    se quem age não for o gestor
-     * @throws IllegalArgumentException se o quarto estiver vazio ou não for um número inteiro
-     */
-    public List<AcessoCartao> consultarPorQuarto(Utilizador quemAge, String quarto) {
+    public List<AcessoCartao> listarAsMinhasPassagens(Utilizador quemAge) {
+        return acessoCartaoDAL.listarPorCartao(cartaoDoUtilizador(quemAge));
+    }
+
+    public List<AcessoCartao> consultar(Utilizador quemAge, String cartao, String quarto, LocalHotel local,
+                                        LocalDate dia) {
         Permissoes.exigirGestor(quemAge);
-        String numero = quarto == null ? "" : quarto.trim();
-        if (numero.isEmpty()) {
-            throw new IllegalArgumentException("Indique o número do quarto.");
+        String numeroQuarto = quarto == null ? "" : quarto.trim();
+        int quartoNumero = 0;
+        if (!numeroQuarto.isEmpty()) {
+            if (!numeroQuarto.matches("[1-9]\\d{0,8}")) {
+                throw new IllegalArgumentException("O quarto tem de ser um número inteiro, por exemplo 201.");
+            }
+            quartoNumero = Integer.parseInt(numeroQuarto);
         }
-        if (!numero.matches("\\d{1,9}")) {
-            throw new IllegalArgumentException("O número do quarto tem de ser um número inteiro.");
-        }
-        return acessoCartaoDAL.listarPorQuarto(Integer.parseInt(numero));
+        return acessoCartaoDAL.listar(normalizar(cartao), quartoNumero, local, dia);
+    }
+
+    public List<CartaoAtivo> listarCartoesUsados(Utilizador quemAge) {
+        Permissoes.exigirGestor(quemAge);
+        return acessoCartaoDAL.listarCartoesUsados();
     }
 
     private AcessoCartao registarPicagem(String cartao, LocalHotel local) {
