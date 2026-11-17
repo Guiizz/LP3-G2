@@ -63,8 +63,7 @@ public class ReservaDAL implements IReservaDAL {
     private static final String APAGAR = "DELETE FROM Reserva WHERE id = ?";
 
     private static final String APAGAR_SEM_CHECKIN =
-            "DELETE FROM Reserva WHERE id = ? AND checkinEm IS NULL AND estado IN ('CONFIRMADA', 'CANCELADA')";
-
+            "DELETE FROM Reserva WHERE id = ? AND checkinEm IS NULL AND estado = 'CONFIRMADA'";
     private static final String CANCELAR =
             "UPDATE Reserva SET estado = 'CANCELADA' "
                     + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";

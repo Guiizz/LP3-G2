@@ -132,12 +132,11 @@ public class ReservaDALTest {
 
     @Test
     public void testApagarSemCheckinCancelada() {
-        System.out.println("apagarSemCheckin (cancelada)");
+        System.out.println("apagarSemCheckin (cancelada não apaga, fica no histórico)");
         instance.cancelar(reserva.getId());
-        boolean expResult = true;
+        boolean expResult = false;
         boolean result = instance.apagarSemCheckin(reserva.getId());
         assertEquals(expResult, result);
-        reserva.setId(0);
     }
 
     @Test

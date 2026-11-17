@@ -1402,13 +1402,16 @@ public class ReservaBLLTest {
 
     @Test
     public void testApagarCancelada() {
-        System.out.println("apagar (cancelada)");
+        System.out.println("apagar (cancelada, aparece o motivo)");
         Reserva reserva = reservaConfirmada();
         reserva.cancelar();
-        instance.apagar(GESTOR, reserva);
-        Integer expResult = 5;
-        Integer result = repositorio.apagadaId;
-        assertEquals(expResult, result);
+        String expResult = "A reserva 5 não pode ser apagada: só se apagam as reservas por fazer, e esta está cancelada";
+        try {
+            instance.apagar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva do histórico");
+        } catch (IllegalStateException e) {
+            assertEquals(expResult, e.getMessage());
+        }
     }
 
     @Test
@@ -1448,8 +1451,7 @@ public class ReservaBLLTest {
     @Test
     public void testApagarEmCurso() {
         System.out.println("apagar (em curso, aparece o motivo)");
-        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (em curso)";
-        try {
+        String expResult = "A reserva 5 não pode ser apagada: só se apagam as reservas por fazer, e esta está em curso";        try {
             instance.apagar(GESTOR, reservaEmCurso());
             fail("Devia ter recusado uma reserva com check-in");
         } catch (IllegalStateException e) {
@@ -1462,8 +1464,7 @@ public class ReservaBLLTest {
         System.out.println("apagar (concluída, aparece o motivo)");
         Reserva reserva = reservaEmCurso();
         reserva.setEstado(EstadoReserva.CONCLUIDA);
-        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (concluída)";
-        try {
+        String expResult = "A reserva 5 não pode ser apagada: só se apagam as reservas por fazer, e esta está concluída";        try {
             instance.apagar(GESTOR, reserva);
             fail("Devia ter recusado uma reserva concluída");
         } catch (IllegalStateException e) {
@@ -1475,8 +1476,7 @@ public class ReservaBLLTest {
     public void testApagarCheckinNoutroComputador() {
         System.out.println("apagar (check-in feito entretanto noutro computador)");
         repositorio.podeApagarNaBD = false;
-        String expResult = "A reserva 5 já não pode ser apagada: não existe ou entretanto teve check-in";
-        try {
+        String expResult = "A reserva 5 já não pode ser apagada: não existe ou já não está por fazer";        try {
             instance.apagar(GESTOR, reservaConfirmada());
             fail("Devia ter recusado o que a BD recusou");
         } catch (ValidacaoException e) {

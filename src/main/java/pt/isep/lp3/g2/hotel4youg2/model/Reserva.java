@@ -171,7 +171,7 @@ public class Reserva {
      *         só estas podem ser apagadas pelo gestor (US57)
      */
     public boolean podeSerApagada() {
-        return checkinEm == null && (estado == EstadoReserva.CONFIRMADA || estado == EstadoReserva.CANCELADA);
+        return estado == EstadoReserva.CONFIRMADA && checkinEm == null;
     }
 
     /**
