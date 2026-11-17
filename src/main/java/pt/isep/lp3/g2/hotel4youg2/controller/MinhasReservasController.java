@@ -12,6 +12,7 @@ import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
@@ -81,6 +82,21 @@ public class MinhasReservasController {
             DetalhesReservaController.abrirSoParaVer(escolhida, ecra);
         } catch (IOException e) {
             Mensagens.erro(mensagemLabel, "Não foi possível abrir os detalhes da reserva.");
+        }
+    }
+
+    @FXML
+    private void aoPedirExtra() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null || escolhida.getEstado() != EstadoReserva.EM_CURSO) {
+            Mensagens.erro(mensagemLabel, "Escolha uma reserva no separador Em curso para pedir um extra.");
+            return;
+        }
+        try {
+            mensagemLabel.setText("");
+            PedirExtraController.abrir(escolhida, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir o pedido de extras.");
         }
     }
 
