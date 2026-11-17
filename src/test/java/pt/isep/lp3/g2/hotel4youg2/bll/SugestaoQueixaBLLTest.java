@@ -288,6 +288,11 @@ public class SugestaoQueixaBLLTest {
         }
 
         @Override
+        public int cancelarSemCheckin(LocalDate hoje) {
+            return 0;
+        }
+
+        @Override
         public boolean apagarSemCheckin(int id) {
             return false;
         }

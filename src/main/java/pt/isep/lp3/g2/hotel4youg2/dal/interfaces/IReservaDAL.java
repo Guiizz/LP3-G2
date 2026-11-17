@@ -4,6 +4,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -73,6 +74,8 @@ public interface IReservaDAL {
      * @return {@code true} se foi cancelada; {@code false} se não existe, já foi cancelada ou já teve check-in
      */
     boolean cancelar(int id);
+
+    int cancelarSemCheckin(LocalDate hoje);
 
     /**
      * Apaga a reserva e os seus serviços, só se ainda estiver por fazer: confirmada e sem check-in (US57 e US79).

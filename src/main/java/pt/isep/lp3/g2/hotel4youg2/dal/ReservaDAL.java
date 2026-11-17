@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -68,6 +69,10 @@ public class ReservaDAL implements IReservaDAL {
     private static final String CANCELAR =
             "UPDATE Reserva SET estado = 'CANCELADA' "
                     + "WHERE id = ? AND estado = 'CONFIRMADA' AND checkinEm IS NULL";
+
+    private static final String CANCELAR_SEM_CHECKIN =
+            "UPDATE Reserva SET estado = 'CANCELADA' "
+                    + "WHERE estado = 'CONFIRMADA' AND checkinEm IS NULL AND dataEntrada < ?";
 
     private static final String REGISTAR_CHECKIN =
             "UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = ?, cartao = ? "
@@ -198,6 +203,11 @@ public class ReservaDAL implements IReservaDAL {
     @Override
     public boolean cancelar(int id) {
         return ConexaoBD.executar(CANCELAR, id) > 0;
+    }
+
+    @Override
+    public int cancelarSemCheckin(LocalDate hoje) {
+        return ConexaoBD.executar(CANCELAR_SEM_CHECKIN, Date.valueOf(hoje));
     }
 
     private static class ReservaMapper implements RowMapper<Reserva> {
