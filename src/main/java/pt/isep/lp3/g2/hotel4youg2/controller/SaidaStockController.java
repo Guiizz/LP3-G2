@@ -8,13 +8,14 @@ import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.StockBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
+import pt.isep.lp3.g2.hotel4youg2.model.SaidaStock;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.MotivoSaida;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 /**
  * Controlador do ecrã "Saída de materiais" (US42): mostra o stock de cada material e regista as saídas,
- * com o tipo (temporária ou definitiva) e o motivo (US77).
+ * com o tipo (temporária ou definitiva) e o motivo, e dá como devolvidas as saídas temporárias (US77).
  */
 public class SaidaStockController {
 
@@ -30,6 +31,8 @@ public class SaidaStockController {
     private ComboBox<MotivoSaida> motivoCombo;
     @FXML
     private TextField motivoField;
+    @FXML
+    private TableView<SaidaStock> porDevolverTabela;
     @FXML
     private Label mensagemLabel;
 
@@ -71,6 +74,20 @@ public class SaidaStockController {
         atualizar();
     }
 
+    @FXML
+    private void aoDevolver() {
+        SaidaStock saida = porDevolverTabela.getSelectionModel().getSelectedItem();
+        try {
+            stockBLL.devolver(Sessao.getUtilizador(), saida);
+            mostrarMensagem(saida.getQuantidade() + " × " + saida.getMaterial() + " voltou ao stock.", "green");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            mostrarMensagem(e.getMessage(), "red");
+        } catch (DataAccessException e) {
+            mostrarMensagem("Não foi possível devolver a saída. Tente novamente.", "red");
+        }
+        atualizar();
+    }
+
     private void limparFormulario() {
         quantidadeField.clear();
         tipoCombo.setValue(null);
@@ -81,11 +98,14 @@ public class SaidaStockController {
     private void atualizar() {
         try {
             tabela.getItems().setAll(stockBLL.listar(Sessao.getUtilizador()));
+            porDevolverTabela.getItems().setAll(stockBLL.listarPorDevolver(Sessao.getUtilizador()));
         } catch (IllegalStateException e) {
             tabela.getItems().clear();
+            porDevolverTabela.getItems().clear();
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             tabela.getItems().clear();
+            porDevolverTabela.getItems().clear();
             mostrarMensagem("Não foi possível carregar o stock. Tente novamente.", "red");
         }
     }

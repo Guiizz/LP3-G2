@@ -60,7 +60,7 @@
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Ver:"/>
-        <ComboBox fx:id="tipoCombo" promptText="Entradas e saídas" onAction="#aoFiltrar" prefWidth="170.0"/>
+        <ComboBox fx:id="tipoCombo" promptText="Todos os movimentos" onAction="#aoFiltrar" prefWidth="170.0"/>
         <Button text="Limpar filtro" onAction="#aoLimparFiltro"/>
     </HBox>
 
@@ -72,14 +72,17 @@
             <TableColumn text="Data" prefWidth="140.0">
                 <cellValueFactory><PropertyValueFactory property="registadoEmTexto"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Tipo" prefWidth="90.0">
+            <TableColumn text="Tipo" prefWidth="130.0">
                 <cellValueFactory><PropertyValueFactory property="tipo"/></cellValueFactory>
             </TableColumn>
             <TableColumn text="Quantidade" prefWidth="100.0">
                 <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Funcionário" prefWidth="220.0">
+            <TableColumn text="Funcionário" prefWidth="180.0">
                 <cellValueFactory><PropertyValueFactory property="funcionario"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Motivo" prefWidth="200.0">
+                <cellValueFactory><PropertyValueFactory property="motivo"/></cellValueFactory>
             </TableColumn>
         </columns>
     </TableView>
