@@ -262,6 +262,7 @@ public class GerirReservasController {
 
     private void carregar() {
         try {
+            reservaBLL.cancelarSemCheckin();
             todas = reservaBLL.listar();
         } catch (DataAccessException e) {
             todas = new ArrayList<>();

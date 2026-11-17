@@ -79,8 +79,6 @@ public class ReservaBLL {
      * Devolve as opções de quarto disponíveis para o pedido do cliente: um quarto de cada
      * combinação de tipo e vista que esteja livre nas datas e onde caibam os hóspedes.
      * Com early check-in ou late check-out, o quarto também tem de estar livre nessas horas.
-     * Antes, cancela as reservas confirmadas cuja data de entrada já passou sem check-in, para que
-     * esses quartos fiquem livres (US87).
      *
      * @param entrada      a data de entrada
      * @param saida        a data de saída
@@ -94,7 +92,6 @@ public class ReservaBLL {
                                           boolean earlyCheckin, boolean lateCheckout) {
         validarDatas(entrada, saida);
         validarHospedes(hospedes);
-        cancelarSemCheckin();
         List<Quarto> opcoes = new ArrayList<>();
         List<String> tiposJaVistos = new ArrayList<>();
         for (Quarto quarto : quartoDAL.listarDisponiveis(entrada, saida, earlyCheckin, lateCheckout)) {
@@ -245,18 +242,20 @@ public class ReservaBLL {
     }
 
     /**
-     * Lista todas as reservas, para o ecrã "Gerir reservas". Antes, cancela as reservas confirmadas
-     * cuja data de entrada já passou sem check-in, que passam para o histórico (US87).
+     * Lista todas as reservas, para o ecrã "Gerir reservas".
      *
      * @return todas as reservas, da entrada mais recente para a mais antiga
      */
     public List<Reserva> listar() {
-        cancelarSemCheckin();
         return reservaDAL.listar();
     }
 
-    private void cancelarSemCheckin() {
-        reservaDAL.cancelarSemCheckin(LocalDate.now());
+    public int cancelarSemCheckin() {
+        return cancelarSemCheckin(LocalDate.now());
+    }
+
+    public int cancelarSemCheckin(LocalDate hoje) {
+        return reservaDAL.cancelarSemCheckin(hoje);
     }
 
     /**
@@ -310,8 +309,7 @@ public class ReservaBLL {
     }
 
     /**
-     * Lista as reservas de um cliente (US33). Antes, cancela as reservas confirmadas cuja data de
-     * entrada já passou sem check-in (US87).
+     * Lista as reservas de um cliente (US33).
      *
      * @param cliente o cliente, procurado pelo NIF
      * @return as reservas do cliente, da entrada mais recente para a mais antiga
@@ -321,7 +319,6 @@ public class ReservaBLL {
         if (cliente == null) {
             throw new ValidacaoException("Escolha o cliente pelo NIF");
         }
-        cancelarSemCheckin();
         List<Reserva> reservas = reservaDAL.listarPorCliente(cliente.getId());
         reservas.sort(new MaisRecentePrimeiro());
         return reservas;
