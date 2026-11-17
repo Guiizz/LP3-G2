@@ -5,6 +5,7 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.PedidoExtra;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoPedido;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.MotivoSaida;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 
 import java.sql.Connection;
@@ -46,7 +47,7 @@ public class PedidoExtraDAL implements IPedidoExtraDAL {
             "UPDATE Stock SET quantidade = quantidade - ? WHERE materialId = ? AND quantidade >= ?";
     private static final String REGISTAR_SAIDA =
             "INSERT INTO MovimentoStock (materialId, quantidade, funcionarioId, tipo, motivo, descricaoMotivo, "
-            + "reservaId) VALUES (?, ?, ?, ?, NULL, ?, ?)";
+            + "reservaId) VALUES (?, ?, ?, ?, ?, ?, ?)";
     private static final String RECUSAR =
             "UPDATE PedidoExtra SET estado = 'RECUSADO', motivoRecusa = ?, decididoEm = SYSDATETIME(), "
             + "decididoPor = ? WHERE id = ? AND estado = 'PENDENTE'";
@@ -108,8 +109,10 @@ public class PedidoExtraDAL implements IPedidoExtraDAL {
                     conn.rollback();
                     return false;
                 }
+                String motivo = tipo == TipoSaida.DEFINITIVA ? MotivoSaida.CONSUMO_RESERVA.name() : null;
                 executar(conn, REGISTAR_SAIDA, pedido.getMaterialId(), pedido.getQuantidade(), funcionarioId,
-                        tipo.name(), "Pedido extra da reserva " + pedido.getReservaId(), pedido.getReservaId());
+                        tipo.name(), motivo, "Pedido extra da reserva " + pedido.getReservaId(),
+                        pedido.getReservaId());
                 conn.commit();
                 return true;
             } catch (SQLException | RuntimeException e) {

@@ -39,7 +39,7 @@ public class SaidaStockController {
     @FXML
     private void initialize() {
         tipoCombo.getItems().setAll(TipoSaida.values());
-        motivoCombo.getItems().setAll(MotivoSaida.values());
+        motivoCombo.getItems().setAll(MotivoSaida.escolhiveis());
         aoEscolherTipo();
         atualizar();
     }

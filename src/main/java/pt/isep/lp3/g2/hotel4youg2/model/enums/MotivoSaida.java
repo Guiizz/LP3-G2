@@ -1,5 +1,8 @@
 package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Motivo de uma saída definitiva de material (US77). No "Outro" é obrigatório escrever o motivo.
  */
@@ -7,12 +10,23 @@ public enum MotivoSaida {
     ESTRAGADO("Estragado"),
     ROUBADO("Roubado"),
     DEVOLVIDO_FORNECEDOR("Devolvido ao fornecedor"),
-    OUTRO("Outro");
+    OUTRO("Outro"),
+    CONSUMO_RESERVA("Consumo da reserva");
 
     private final String descricao;
 
     MotivoSaida(String descricao) {
         this.descricao = descricao;
+    }
+
+    public static List<MotivoSaida> escolhiveis() {
+        List<MotivoSaida> motivos = new ArrayList<>();
+        for (MotivoSaida motivo : values()) {
+            if (motivo != CONSUMO_RESERVA) {
+                motivos.add(motivo);
+            }
+        }
+        return motivos;
     }
 
     /**

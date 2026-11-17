@@ -2,6 +2,8 @@ package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -78,6 +80,23 @@ public class MotivoSaidaTest {
         System.out.println("TipoSaida.toString (texto da lista no ecrã)");
         String expResult = "Definitiva";
         String result = TipoSaida.DEFINITIVA.toString();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEscolhiveis() {
+        System.out.println("escolhiveis (o consumo da reserva não se escolhe à mão)");
+        List<MotivoSaida> expResult = List.of(MotivoSaida.ESTRAGADO, MotivoSaida.ROUBADO,
+                MotivoSaida.DEVOLVIDO_FORNECEDOR, MotivoSaida.OUTRO);
+        List<MotivoSaida> result = MotivoSaida.escolhiveis();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDescreverConsumoDaReserva() {
+        System.out.println("descrever (saída de um pedido extra)");
+        String expResult = "Consumo da reserva: Pedido extra da reserva 30";
+        String result = MotivoSaida.descrever(MotivoSaida.CONSUMO_RESERVA, "Pedido extra da reserva 30");
         assertEquals(expResult, result);
     }
 }
