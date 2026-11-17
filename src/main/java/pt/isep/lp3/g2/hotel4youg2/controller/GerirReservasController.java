@@ -305,7 +305,8 @@ public class GerirReservasController {
         boolean emCurso = separador == SeparadorReserva.EM_CURSO;
         boolean gestor = Permissoes.eGestor(Sessao.getUtilizador());
         mostrarSe(cancelarButton, porFazer && gestor);
-        mostrarSe(apagarButton, porFazer && gestor);        mostrarSe(checkinButton, porFazer);
+        mostrarSe(apagarButton, porFazer && gestor);
+        mostrarSe(checkinButton, porFazer);
         mostrarSe(checkoutButton, emCurso);
         mostrarSe(historicoLabel, separador == SeparadorReserva.HISTORICO);
     }
