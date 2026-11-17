@@ -341,6 +341,56 @@ public class ReservaDALTest {
         assertEquals(expResult, result);
     }
 
+    @Test
+    public void testCancelarSemCheckin() {
+        System.out.println("cancelarSemCheckin (a entrada já passou sem check-in)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva passada = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(passada), "O quarto estava ocupado nessas datas");
+        instance.cancelarSemCheckin(antiga.plusDays(1));
+        EstadoReserva expResult = EstadoReserva.CANCELADA;
+        EstadoReserva result = instance.procurarPorId(passada.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinNoProprioDia() {
+        System.out.println("cancelarSemCheckin (no dia de entrada ainda não cancela)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva doDia = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(doDia), "O quarto estava ocupado nessas datas");
+        instance.cancelarSemCheckin(antiga);
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.procurarPorId(doDia.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinNaoMexeNasFuturas() {
+        System.out.println("cancelarSemCheckin (as reservas futuras ficam confirmadas)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva passada = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(passada), "O quarto estava ocupado nessas datas");
+        instance.cancelarSemCheckin(antiga.plusDays(1));
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.procurarPorId(reserva.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinComCheckinFeito() {
+        System.out.println("cancelarSemCheckin (com check-in feito não cancela)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva emCurso = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(emCurso), "O quarto estava ocupado nessas datas");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = '1990-01-01T15:00:00' WHERE id = ?",
+                emCurso.getId());
+        instance.cancelarSemCheckin(antiga.plusDays(1));
+        EstadoReserva expResult = EstadoReserva.EM_CURSO;
+        EstadoReserva result = instance.procurarPorId(emCurso.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
     private Reserva outraReserva(LocalDate entrada, LocalDate saida) {
         Reserva outra = new Reserva(0, cliente.getId(), reserva.getQuartoNumero(), entrada, saida, 1,
                 EstadoReserva.CONFIRMADA, new BigDecimal("100.00"), null, null);

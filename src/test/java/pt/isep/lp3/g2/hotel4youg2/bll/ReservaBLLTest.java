@@ -60,6 +60,7 @@ public class ReservaBLLTest {
         private boolean podeFazerCheckoutNaBD = true;
         private Reserva comCheckout;
         private List<Reserva> todas = new ArrayList<>();
+        private LocalDate canceladasAte;
 
         @Override
         public boolean apagarSemCheckin(int id) {
@@ -77,6 +78,20 @@ public class ReservaBLLTest {
             }
             canceladaId = id;
             return true;
+        }
+
+        @Override
+        public int cancelarSemCheckin(LocalDate hoje) {
+            canceladasAte = hoje;
+            int canceladas = 0;
+            for (Reserva reserva : todas) {
+                if (reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getCheckinEm() == null
+                        && reserva.getDataEntrada().isBefore(hoje)) {
+                    reserva.setEstado(EstadoReserva.CANCELADA);
+                    canceladas++;
+                }
+            }
+            return canceladas;
         }
 
         @Override
@@ -1272,8 +1287,8 @@ public class ReservaBLLTest {
     }
 
     private void juntarReservasDosSeparadores() {
-        repositorio.todas.add(reservaDe(1, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 20), 201, "Ana Silva", "234567891"));
-        repositorio.todas.add(reservaDe(2, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 5), 305, "Rui Costa", "245678912"));
+        repositorio.todas.add(reservaDe(1, EstadoReserva.CONFIRMADA, LocalDate.now().plusDays(33), 201, "Ana Silva", "234567891"));
+        repositorio.todas.add(reservaDe(2, EstadoReserva.CONFIRMADA, LocalDate.now().plusDays(18), 305, "Rui Costa", "245678912"));
         repositorio.todas.add(reservaDe(3, EstadoReserva.EM_CURSO, LocalDate.of(2026, 11, 10), 204, "João Reis", "267891234"));
         repositorio.todas.add(reservaDe(4, EstadoReserva.CONCLUIDA, LocalDate.of(2026, 11, 2), 202, "Pedro Alves", "289123456"));
         repositorio.todas.add(reservaDe(5, EstadoReserva.CANCELADA, LocalDate.of(2026, 11, 6), 103, "Inês Faria", "291234567"));
@@ -1372,7 +1387,7 @@ public class ReservaBLLTest {
     @Test
     public void testListarClienteSemNome() {
         System.out.println("listar (reserva sem nome nem NIF do cliente)");
-        repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 1), 101, null, null));
+        repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.now().plusDays(14), 101, null, null));
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(0));
         List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "101");
@@ -1535,5 +1550,71 @@ public class ReservaBLLTest {
         } catch (ValidacaoException expected) {
             assertEquals(null, repositorio.servicosGravados);
         }
+    }
+
+    @Test
+    public void testListarCancelaReservaSemCheckin() {
+        System.out.println("listar (a entrada foi ontem e não houve check-in: passa a cancelada)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        EstadoReserva expResult = EstadoReserva.CANCELADA;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCanceladaVaiParaOHistorico() {
+        System.out.println("listar (a reserva cancelada sozinha aparece no histórico)");
+        Reserva semCheckin = reservaDaAna(1, LocalDate.now().minusDays(3), EstadoReserva.CONFIRMADA);
+        repositorio.todas.add(semCheckin);
+        List<Reserva> expResult = List.of(semCheckin);
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarNaoCancelaNoDiaDeEntrada() {
+        System.out.println("listar (no próprio dia de entrada a reserva continua confirmada)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now(), EstadoReserva.CONFIRMADA));
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarNaoMexeNasReservasEmCurso() {
+        System.out.println("listar (as reservas em curso sem check-out não mudam)");
+        Reserva emCurso = reservaDaAna(1, LocalDate.now().minusDays(5), EstadoReserva.EM_CURSO);
+        emCurso.setCheckinEm(LocalDate.now().minusDays(5).atTime(15, 0));
+        repositorio.todas.add(emCurso);
+        EstadoReserva expResult = EstadoReserva.EM_CURSO;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarCancelaComODiaDeHoje() {
+        System.out.println("listar (usa o dia de hoje para cancelar)");
+        LocalDate expResult = LocalDate.now();
+        instance.listar();
+        LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarDoClienteCancelaPrimeiro() {
+        System.out.println("consultarDoCliente (cancela primeiro as reservas sem check-in)");
+        LocalDate expResult = LocalDate.now();
+        instance.consultarDoCliente(cliente);
+        LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testOpcoesDisponiveisCancelaPrimeiro() {
+        System.out.println("opcoesDisponiveis (cancela primeiro, para o quarto ficar livre)");
+        LocalDate expResult = LocalDate.now();
+        instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 1, false, false);
+        LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
     }
 }
