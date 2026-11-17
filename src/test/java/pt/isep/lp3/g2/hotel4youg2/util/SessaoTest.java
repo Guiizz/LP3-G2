@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.util;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
@@ -114,6 +115,35 @@ public class SessaoTest {
         Sessao.terminar();
         Fornecedor expResult = null;
         Fornecedor result = Sessao.getFornecedor();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIniciarCliente() {
+        System.out.println("iniciarCliente");
+        ContaCliente conta = new ContaCliente(5, 15, "123456789", "Rui Costa", "hash", "salt", false);
+        Sessao.iniciarCliente(conta);
+        ContaCliente expResult = conta;
+        ContaCliente result = Sessao.getContaCliente();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testIniciarClienteNaoTemFuncionario() {
+        System.out.println("iniciarCliente (o cliente não fica com uma sessão de funcionário)");
+        Sessao.iniciarCliente(new ContaCliente(5, 15, "123456789", "Rui Costa", "hash", "salt", false));
+        Utilizador expResult = null;
+        Utilizador result = Sessao.getUtilizador();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testTerminarEsqueceOCliente() {
+        System.out.println("terminar (esquece o cliente)");
+        Sessao.iniciarCliente(new ContaCliente(5, 15, "123456789", "Rui Costa", "hash", "salt", false));
+        Sessao.terminar();
+        ContaCliente expResult = null;
+        ContaCliente result = Sessao.getContaCliente();
         assertEquals(expResult, result);
     }
 }

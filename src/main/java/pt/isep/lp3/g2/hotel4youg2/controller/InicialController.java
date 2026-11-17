@@ -57,6 +57,7 @@ public class InicialController {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Pesquisar cliente", "pesquisar-cliente-view.fxml", false));
         opcoes.add(new OpcaoMenu("Registar cliente", "registar-cliente-view.fxml", true));
+        opcoes.add(new OpcaoMenu("Conta do cliente", "conta-cliente-view.fxml", true));
         opcoes.add(new OpcaoMenu("Registar sugestão ou queixa", "sugestoes-view.fxml", true));
         Navegador.mostrarArea("Clientes", opcoes);
     }
