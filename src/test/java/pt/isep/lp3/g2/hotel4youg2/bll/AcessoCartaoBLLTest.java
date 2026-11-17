@@ -140,11 +140,16 @@ public class AcessoCartaoBLLTest {
         @Override
         public List<Reserva> listarPorCliente(int clienteId) {
             List<Reserva> resultado = new ArrayList<>();
+            if (outraEmCurso != null && outraEmCurso.getClienteId() == clienteId) {
+                resultado.add(outraEmCurso);
+            }
             if (emCurso != null && emCurso.getClienteId() == clienteId) {
                 resultado.add(emCurso);
             }
             return resultado;
         }
+
+        private Reserva outraEmCurso;
 
         @Override
         public boolean atualizarEstado(int id, EstadoReserva estado) {
@@ -1004,29 +1009,123 @@ public class AcessoCartaoBLLTest {
         }
     }
 
+    private Reserva segundaReservaDoRui() {
+        LocalDate hoje = LocalDate.now();
+        Reserva segunda = new Reserva(31, 15, 202, hoje, hoje.plusDays(3), 2, EstadoReserva.EM_CURSO,
+                new BigDecimal("450.00"), hoje.atTime(15, 0), null);
+        segunda.setCartao("C202");
+        reservaDAL.outraEmCurso = segunda;
+        return segunda;
+    }
+
     @Test
-    public void testReservaComCartao() {
-        System.out.println("reservaComCartao (a reserva em curso do cliente)");
-        Reserva expResult = reservaDAL.emCurso;
-        Reserva result = instance.reservaComCartao(RUI);
+    public void testReservasComCartao() {
+        System.out.println("reservasComCartao (a reserva em curso do cliente)");
+        List<Reserva> expResult = List.of(reservaDAL.emCurso);
+        List<Reserva> result = instance.reservasComCartao(RUI);
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testReservaComCartaoSemReservaEmCurso() {
-        System.out.println("reservaComCartao (sem reserva em curso não há cartão)");
-        Reserva expResult = null;
-        Reserva result = instance.reservaComCartao(SEM_RESERVAS);
+    public void testReservasComCartaoDuasEmCurso() {
+        System.out.println("reservasComCartao (duas reservas em curso, pela data de entrada)");
+        Reserva segunda = segundaReservaDoRui();
+        List<Reserva> expResult = List.of(reservaDAL.emCurso, segunda);
+        List<Reserva> result = instance.reservasComCartao(RUI);
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testReservaComCartaoDepoisDoCheckout() {
-        System.out.println("reservaComCartao (depois do check-out o cartão deixa de existir)");
+    public void testReservasComCartaoSemReservaEmCurso() {
+        System.out.println("reservasComCartao (sem reserva em curso não há cartão)");
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = instance.reservasComCartao(SEM_RESERVAS);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReservasComCartaoDepoisDoCheckout() {
+        System.out.println("reservasComCartao (depois do check-out o cartão deixa de existir)");
         reservaDAL.emCurso.setEstado(EstadoReserva.CONCLUIDA);
-        Reserva expResult = null;
-        Reserva result = instance.reservaComCartao(RUI);
+        List<Reserva> expResult = new ArrayList<>();
+        List<Reserva> result = instance.reservasComCartao(RUI);
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarComoClienteComOCartaoEscolhido() {
+        System.out.println("picarComoCliente (com duas reservas, pica com o cartão escolhido)");
+        Reserva segunda = segundaReservaDoRui();
+        AcessoCartao expResult = new AcessoCartao(1, "C202", LocalHotel.QUARTO, 202, 31, acessoDAL.agora);
+        AcessoCartao result = instance.picarComoCliente(RUI, segunda, LocalPicagem.quarto(202));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarComoClienteComOPrimeiroCartao() {
+        System.out.println("picarComoCliente (com duas reservas, o C201 continua a abrir o 201)");
+        segundaReservaDoRui();
+        AcessoCartao expResult = doRui(LocalHotel.QUARTO, 201);
+        AcessoCartao result = instance.picarComoCliente(RUI, reservaDAL.emCurso, LocalPicagem.quarto(201));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarComoClienteCartaoEscolhidoNoutroQuarto() {
+        System.out.println("picarComoCliente (o cartão escolhido usa as regras da sua reserva)");
+        Reserva segunda = segundaReservaDoRui();
+        String expResult = "Acesso recusado: o cartão C202 só abre o quarto 202.";
+        try {
+            instance.picarComoCliente(RUI, segunda, LocalPicagem.quarto(201));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            assertEquals(expResult, expected.getMessage());
+            assertEquals(0, acessoDAL.registados.size());
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteCartaoEscolhidoSemPiscina() {
+        System.out.println("picarComoCliente (a piscina da primeira reserva não serve ao segundo cartão)");
+        juntarExtra(PISCINA);
+        Reserva segunda = segundaReservaDoRui();
+        String expResult = "Acesso recusado: a reserva do cartão C202 não inclui a piscina.";
+        try {
+            instance.picarComoCliente(RUI, segunda, new LocalPicagem(LocalHotel.PISCINA, 0));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteDuasReservasSemEscolher() {
+        System.out.println("picarComoCliente (com duas reservas tem de escolher o cartão)");
+        segundaReservaDoRui();
+        String expResult = "Tem mais do que uma reserva em curso: escolha o cartão.";
+        try {
+            instance.picarComoCliente(RUI, LocalPicagem.quarto(201));
+            fail("Devia ter pedido o cartão");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteCartaoDeOutraPessoa() {
+        System.out.println("picarComoCliente (não pode usar o cartão de outra pessoa)");
+        LocalDate hoje = LocalDate.now();
+        Reserva deOutro = new Reserva(40, 99, 305, hoje, hoje.plusDays(1), 1, EstadoReserva.EM_CURSO,
+                new BigDecimal("120.00"), hoje.atTime(15, 0), null);
+        deOutro.setCartao("C305");
+        String expResult = "Acesso recusado: o cartão C305 não é de uma reserva sua em curso.";
+        try {
+            instance.picarComoCliente(RUI, deOutro, LocalPicagem.quarto(305));
+            fail("Devia ter recusado o cartão");
+        } catch (ValidacaoException expected) {
+            assertEquals(expResult, expected.getMessage());
+            assertEquals(0, acessoDAL.registados.size());
+        }
     }
 
     @Test

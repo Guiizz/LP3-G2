@@ -17,6 +17,10 @@
     </padding>
 
     <Label text="O meu cartão" styleClass="titulo"/>
+    <HBox fx:id="escolherCartaoBox" spacing="10.0" alignment="CENTER_LEFT" visible="false" managed="false">
+        <Label text="Cartão:"/>
+        <ComboBox fx:id="cartaoCombo" prefWidth="220.0" onAction="#aoEscolherCartao"/>
+    </HBox>
     <Label fx:id="cartaoLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" wrapText="true"/>
 
     <HBox fx:id="picarBox" spacing="10.0" alignment="CENTER_LEFT">
