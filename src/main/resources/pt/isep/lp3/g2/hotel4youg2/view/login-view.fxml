@@ -5,20 +5,21 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 
-<VBox alignment="CENTER"
-      xmlns="http://javafx.com/javafx/17"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.LoginController">
-
-    <padding>
-        <Insets top="20" right="30" bottom="20" left="30"/>
-    </padding>
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.LoginController">
 
     <VBox alignment="CENTER" spacing="10.0" maxWidth="300.0">
+
+        <padding>
+            <Insets top="20" right="0" bottom="20" left="0"/>
+        </padding>
+
         <ImageView fitWidth="160" preserveRatio="true" smooth="true">
             <image><Image url="@../images/logo.png"/></image>
         </ImageView>
@@ -45,4 +46,4 @@
         <Label fx:id="erroLabel" wrapText="true" maxWidth="300" styleClass="mensagem-erro"/>
         <Button text="Sugestão ou queixa (cliente)" maxWidth="Infinity" onAction="#aoSugestaoCliente"/>
     </VBox>
-</VBox>
+</StackPane>

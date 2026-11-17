@@ -69,8 +69,12 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Criar reserva", "criar-reserva-view.fxml", true));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
         opcoes.add(new OpcaoMenu("Reservas de um cliente", "consultar-reservas-view.fxml", false));
-        opcoes.add(new OpcaoMenu("Acesso com cartão", "acesso-cartao-view.fxml", false));
         Navegador.mostrarArea("Reservas", opcoes);
+    }
+
+    @FXML
+    private void aoAbrirOMeuCartao() throws IOException {
+        Navegador.mostrar("acesso-cartao-view.fxml");
     }
 
     @FXML
