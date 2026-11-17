@@ -13,7 +13,9 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
 import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
+import pt.isep.lp3.g2.hotel4youg2.model.LocalPicagem;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
@@ -39,6 +41,9 @@ public class AcessoCartaoBLL {
 
     /** Início da designação do serviço extra que dá acesso à piscina. */
     public static final String SERVICO_PISCINA = "Piscina";
+
+    public static final String SEM_RESERVA_EM_CURSO =
+            "Não tem nenhuma reserva em curso, por isso não tem cartão. O cartão é entregue no check-in.";
 
     private static final String CARTAO_DE_FUNCIONARIO = Funcionario.PREFIXO_CARTAO + "[1-9]\\d{0,8}";
 
@@ -92,7 +97,7 @@ public class AcessoCartaoBLL {
      *                                  funcionário, funcionário com a conta desativada ou fora dos
      *                                  pisos 0 e 1
      */
-    public AcessoCartao registarPassagem(Utilizador quemAge, String cartao, LocalHotel local, int quartoNumero) {
+    AcessoCartao registarPassagem(Utilizador quemAge, String cartao, LocalHotel local, int quartoNumero) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para registar a passagem de cartões.");
         }
@@ -159,22 +164,91 @@ public class AcessoCartaoBLL {
         return cartoes;
     }
 
-    /**
-     * Devolve o cartão do funcionário com a sessão iniciada, para o botão "O meu cartão" (US52).
-     *
-     * @param quemAge o utilizador com a sessão iniciada
-     * @return o número do cartão, por exemplo {@code "F12"}
-     * @throws IllegalStateException se não houver sessão iniciada ou se a conta não for de um funcionário
-     */
-    public String cartaoDoFuncionario(Utilizador quemAge) {
+    public String cartaoDe(Utilizador quemAge) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para usar o seu cartão.");
+        }
+        if (Permissoes.eGestor(quemAge)) {
+            return AcessoCartao.CARTAO_MESTRE;
         }
         Funcionario funcionario = funcionarioDAL.procurarPorId(quemAge.getFuncionarioId());
         if (funcionario == null) {
             throw new IllegalStateException("A sua conta não tem um cartão de funcionário.");
         }
         return funcionario.getCartao();
+    }
+
+    public AcessoCartao picar(Utilizador quemAge, LocalPicagem local) {
+        String cartao = cartaoDe(quemAge);
+        if (local == null) {
+            throw new IllegalArgumentException("Escolha o local.");
+        }
+        if (!cartao.equals(AcessoCartao.CARTAO_MESTRE)) {
+            return registarPicagem(cartao, local.getLocal());
+        }
+        exigirQuartoQueExiste(local);
+        AcessoCartao acesso = new AcessoCartao(0, cartao, local.getLocal(), local.getQuartoNumero(), 0, null);
+        Funcionario gestor = funcionarioDAL.procurarPorId(quemAge.getFuncionarioId());
+        if (gestor != null) {
+            acesso.setFuncionario(gestor.getId(), gestor.getNome());
+        }
+        acessoCartaoDAL.registar(acesso);
+        return acesso;
+    }
+
+    public Reserva reservaComCartao(ContaCliente conta) {
+        if (conta == null) {
+            throw new IllegalStateException("Entre na sua conta para usar o cartão.");
+        }
+        for (Reserva reserva : reservaDAL.listarPorCliente(conta.getClienteId())) {
+            if (reserva.cartaoDaAcesso() && reserva.getCartao() != null) {
+                return reserva;
+            }
+        }
+        return null;
+    }
+
+    public AcessoCartao picarComoCliente(ContaCliente conta, LocalPicagem local) {
+        Reserva reserva = reservaComCartao(conta);
+        if (local == null) {
+            throw new IllegalArgumentException("Escolha o local.");
+        }
+        if (reserva == null) {
+            throw new ValidacaoException(SEM_RESERVA_EM_CURSO);
+        }
+        exigirQuartoQueExiste(local);
+        String cartao = reserva.getCartao();
+        exigirAcesso(cartao, reserva, local.getLocal(), local.getQuartoNumero());
+        AcessoCartao acesso = new AcessoCartao(0, cartao, local.getLocal(), local.getQuartoNumero(),
+                reserva.getId(), null);
+        acessoCartaoDAL.registar(acesso);
+        return acesso;
+    }
+
+    public List<AcessoCartao> listarPicagensDoCliente(ContaCliente conta) {
+        if (conta == null) {
+            throw new IllegalStateException("Entre na sua conta para ver as suas picagens.");
+        }
+        return acessoCartaoDAL.listarPorCliente(conta.getClienteId());
+    }
+
+    public List<LocalPicagem> listarLocais() {
+        List<LocalPicagem> locais = new ArrayList<>();
+        for (Quarto quarto : quartoDAL.listarTodos()) {
+            locais.add(LocalPicagem.quarto(quarto.getNumero()));
+        }
+        for (LocalHotel local : LocalHotel.values()) {
+            if (local != LocalHotel.QUARTO) {
+                locais.add(new LocalPicagem(local, 0));
+            }
+        }
+        return locais;
+    }
+
+    private void exigirQuartoQueExiste(LocalPicagem local) {
+        if (local.getLocal() == LocalHotel.QUARTO && !quartoExiste(local.getQuartoNumero())) {
+            throw new IllegalArgumentException("O quarto " + local.getQuartoNumero() + " não existe.");
+        }
     }
 
     /**

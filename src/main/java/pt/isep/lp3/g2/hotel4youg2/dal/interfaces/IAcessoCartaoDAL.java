@@ -30,6 +30,8 @@ public interface IAcessoCartaoDAL {
      */
     List<AcessoCartao> listarPorQuarto(int quartoNumero);
 
+    List<AcessoCartao> listarPorCliente(int clienteId);
+
     /**
      * Apaga uma passagem (usado nos testes para limpar o que gravaram).
      *
