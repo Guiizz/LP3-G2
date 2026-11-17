@@ -27,6 +27,8 @@ public interface IAcessoCartaoDAL {
 
     List<AcessoCartao> listar(String cartao, int quartoNumero, LocalHotel local, LocalDate dia);
 
+    List<AcessoCartao> listarPorCliente(int clienteId);
+
     /**
      * Apaga uma passagem (usado nos testes para limpar o que gravaram).
      *

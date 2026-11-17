@@ -13,7 +13,9 @@ import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IServicoReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
 import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
+import pt.isep.lp3.g2.hotel4youg2.model.LocalPicagem;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
@@ -23,6 +25,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -40,6 +43,9 @@ public class AcessoCartaoBLL {
 
     /** Início da designação do serviço extra que dá acesso à piscina. */
     public static final String SERVICO_PISCINA = "Piscina";
+
+    public static final String SEM_RESERVA_EM_CURSO =
+            "Não tem nenhuma reserva em curso, por isso não tem cartão. O cartão é entregue no check-in.";
 
     private static final String CARTAO_DE_FUNCIONARIO = Funcionario.PREFIXO_CARTAO + "[1-9]\\d{0,8}";
 
@@ -93,7 +99,7 @@ public class AcessoCartaoBLL {
      *                                  funcionário, funcionário com a conta desativada ou fora dos
      *                                  pisos 0 e 1
      */
-    public AcessoCartao registarPassagem(Utilizador quemAge, String cartao, LocalHotel local, int quartoNumero) {
+    AcessoCartao registarPassagem(Utilizador quemAge, String cartao, LocalHotel local, int quartoNumero) {
         if (quemAge == null) {
             throw new IllegalStateException("Entre na aplicação para registar a passagem de cartões.");
         }
@@ -187,6 +193,91 @@ public class AcessoCartaoBLL {
     public List<CartaoAtivo> listarCartoesUsados(Utilizador quemAge) {
         Permissoes.exigirGestor(quemAge);
         return acessoCartaoDAL.listarCartoesUsados();
+    }
+
+    public List<Reserva> reservasComCartao(ContaCliente conta) {
+        if (conta == null) {
+            throw new IllegalStateException("Entre na sua conta para usar o cartão.");
+        }
+        List<Reserva> reservas = new ArrayList<>();
+        for (Reserva reserva : reservaDAL.listarPorCliente(conta.getClienteId())) {
+            if (reserva.cartaoDaAcesso() && reserva.getCartao() != null) {
+                reservas.add(reserva);
+            }
+        }
+        reservas.sort(new EntradaMaisAntigaPrimeiro());
+        return reservas;
+    }
+
+    public AcessoCartao picarComoCliente(ContaCliente conta, LocalPicagem local) {
+        return picarComoCliente(conta, null, local);
+    }
+
+    public AcessoCartao picarComoCliente(ContaCliente conta, Reserva escolhida, LocalPicagem local) {
+        List<Reserva> reservas = reservasComCartao(conta);
+        if (local == null) {
+            throw new IllegalArgumentException("Escolha o local.");
+        }
+        if (reservas.isEmpty()) {
+            throw new ValidacaoException(SEM_RESERVA_EM_CURSO);
+        }
+        Reserva reserva = reservaEscolhida(reservas, escolhida);
+        if (local.getLocal() == LocalHotel.QUARTO && !quartoExiste(local.getQuartoNumero())) {
+            throw new IllegalArgumentException("O quarto " + local.getQuartoNumero() + " não existe.");
+        }
+        String cartao = reserva.getCartao();
+        exigirAcesso(cartao, reserva, local.getLocal(), local.getQuartoNumero());
+        AcessoCartao acesso = new AcessoCartao(0, cartao, local.getLocal(), local.getQuartoNumero(),
+                reserva.getId(), null);
+        acessoCartaoDAL.registar(acesso);
+        return acesso;
+    }
+
+    private Reserva reservaEscolhida(List<Reserva> reservas, Reserva escolhida) {
+        if (escolhida == null) {
+            if (reservas.size() > 1) {
+                throw new IllegalArgumentException("Tem mais do que uma reserva em curso: escolha o cartão.");
+            }
+            return reservas.get(0);
+        }
+        for (Reserva reserva : reservas) {
+            if (reserva.getId() == escolhida.getId()) {
+                return reserva;
+            }
+        }
+        throw new ValidacaoException("Acesso recusado: o cartão " + escolhida.getCartao()
+                + " não é de uma reserva sua em curso.");
+    }
+
+    private static class EntradaMaisAntigaPrimeiro implements Comparator<Reserva> {
+        @Override
+        public int compare(Reserva a, Reserva b) {
+            int porData = a.getDataEntrada().compareTo(b.getDataEntrada());
+            if (porData != 0) {
+                return porData;
+            }
+            return Integer.compare(a.getId(), b.getId());
+        }
+    }
+
+    public List<AcessoCartao> listarPicagensDoCliente(ContaCliente conta) {
+        if (conta == null) {
+            throw new IllegalStateException("Entre na sua conta para ver as suas picagens.");
+        }
+        return acessoCartaoDAL.listarPorCliente(conta.getClienteId());
+    }
+
+    public List<LocalPicagem> listarLocais() {
+        List<LocalPicagem> locais = new ArrayList<>();
+        for (Quarto quarto : quartoDAL.listarTodos()) {
+            locais.add(LocalPicagem.quarto(quarto.getNumero()));
+        }
+        for (LocalHotel local : LocalHotel.values()) {
+            if (local != LocalHotel.QUARTO) {
+                locais.add(new LocalPicagem(local, 0));
+            }
+        }
+        return locais;
     }
 
     private AcessoCartao registarPicagem(String cartao, LocalHotel local) {

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" prefWidth="460.0"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.ContaClienteController">
+    <padding>
+        <Insets top="20.0" right="20.0" bottom="20.0" left="20.0"/>
+    </padding>
+
+    <Label text="Conta do cliente" styleClass="titulo"/>
+    <Label text="O cliente entra com o NIF e o código abaixo e escolhe a palavra-passe no primeiro acesso."
+           wrapText="true" maxWidth="420"/>
+    <Label text="NIF do cliente"/>
+    <TextField fx:id="nifField" promptText="9 dígitos, ex.: 123456789" onAction="#aoCriarConta"/>
+    <HBox spacing="10.0">
+        <Button text="Criar conta" defaultButton="true" onAction="#aoCriarConta"/>
+        <Button text="Gerar código novo" onAction="#aoGerarNovoCodigo"/>
+    </HBox>
+    <Label fx:id="mensagemLabel" wrapText="true" maxWidth="420"/>
+    <Label fx:id="codigoLabel" style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+    <Button text="Fechar" onAction="#aoFechar"/>
+</VBox>

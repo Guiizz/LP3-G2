@@ -277,4 +277,41 @@ public class AcessoCartaoDALTest {
         List<AcessoCartao> result = instance.listarPorCartao(cartao);
         assertEquals(expResult, result);
     }
+
+    private int[] umaReserva() {
+        List<Integer> reservas = ConexaoBD.select("SELECT TOP 1 id FROM Reserva ORDER BY id", new InteiroMapper());
+        Assumptions.assumeTrue(!reservas.isEmpty(), "Faltam reservas na BD");
+        int reservaId = reservas.get(0);
+        int clienteId = ConexaoBD.select("SELECT clienteId FROM Reserva WHERE id = ?", new InteiroMapper(),
+                reservaId).get(0);
+        return new int[] {reservaId, clienteId};
+    }
+
+    private AcessoCartao registarDaReserva(int reservaId, LocalHotel local) {
+        AcessoCartao acesso = new AcessoCartao(0, cartao, local, 0, reservaId, null);
+        instance.registar(acesso);
+        criados.add(acesso);
+        return acesso;
+    }
+
+    @Test
+    public void testListarPorCliente() {
+        System.out.println("listarPorCliente (as picagens das reservas do cliente, mais recente primeiro)");
+        int[] reserva = umaReserva();
+        AcessoCartao restaurante = registarDaReserva(reserva[0], LocalHotel.RESTAURANTE);
+        AcessoCartao piscina = registarDaReserva(reserva[0], LocalHotel.PISCINA);
+        List<AcessoCartao> expResult = List.of(piscina, restaurante);
+        List<AcessoCartao> result = soOsDoTeste(instance.listarPorCliente(reserva[1]));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorClienteSemPicagensDeFuncionarios() {
+        System.out.println("listarPorCliente (as picagens sem reserva não aparecem)");
+        int[] reserva = umaReserva();
+        registar(LocalHotel.PISCINA, 0);
+        List<AcessoCartao> expResult = new ArrayList<>();
+        List<AcessoCartao> result = soOsDoTeste(instance.listarPorCliente(reserva[1]));
+        assertEquals(expResult, result);
+    }
 }

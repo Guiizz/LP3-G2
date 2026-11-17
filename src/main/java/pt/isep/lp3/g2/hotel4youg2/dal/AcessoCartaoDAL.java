@@ -28,6 +28,7 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
             + "LEFT JOIN Reserva r ON r.id = a.reservaId LEFT JOIN Pessoa c ON c.id = r.clienteId ";
     private static final String ORDEM = " ORDER BY a.registadoEm DESC, a.id DESC";
     private static final String LISTAR_POR_CARTAO = LISTAR + "WHERE a.cartao = ?" + ORDEM;
+    private static final String LISTAR_POR_CLIENTE = LISTAR + "WHERE r.clienteId = ?" + ORDEM;
     private static final String APAGAR = "DELETE FROM AcessoCartao WHERE id = ?";
     private static final String CARTOES_USADOS =
             "SELECT DISTINCT a.cartao, COALESCE(p.nome, c.nome) AS titular FROM AcessoCartao a "
@@ -69,6 +70,11 @@ public class AcessoCartaoDAL implements IAcessoCartaoDAL {
         }
         sql.append(ORDEM);
         return ConexaoBD.select(sql.toString(), new AcessoCartaoMapper(), params.toArray());
+    }
+
+    @Override
+    public List<AcessoCartao> listarPorCliente(int clienteId) {
+        return ConexaoBD.select(LISTAR_POR_CLIENTE, new AcessoCartaoMapper(), clienteId);
     }
 
     @Override
