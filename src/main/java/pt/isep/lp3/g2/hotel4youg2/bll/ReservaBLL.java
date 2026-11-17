@@ -352,14 +352,15 @@ public class ReservaBLL {
     }
 
     /**
-     * Apaga uma reserva sem check-in, confirmada ou cancelada (US57). Os serviços da reserva também deixam
-     * de existir e o quarto fica livre nessas datas. Só o gestor pode apagar.
+     * Apaga uma reserva por fazer: confirmada e sem check-in (US57 e US79). Os serviços da reserva também
+     * deixam de existir e o quarto fica livre nessas datas. As reservas do histórico e as em curso nunca
+     * se apagam. Só o gestor pode apagar.
      *
      * @param quemAge o utilizador com a sessão iniciada
      * @param reserva a reserva a apagar
-     * @throws IllegalStateException se quem age não for o gestor, ou se a reserva já teve check-in
-     * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se entretanto deixou de existir
-     *                               ou teve check-in noutro computador
+     * @throws IllegalStateException se quem age não for o gestor, ou se a reserva já não estiver por fazer
+     * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se entretanto deixou de existir,
+     *                               foi cancelada ou teve check-in noutro computador
      */
     public void apagar(Utilizador quemAge, Reserva reserva) {
         if (!Permissoes.eGestor(quemAge)) {
@@ -369,12 +370,12 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         if (!reserva.podeSerApagada()) {
-            throw new IllegalStateException("A reserva " + reserva.getId() + " não pode ser apagada: já teve check-in ("
-                    + reserva.getEstadoTexto().toLowerCase() + ")");
+            throw new IllegalStateException("A reserva " + reserva.getId() + " não pode ser apagada: "
+                    + "só se apagam as reservas por fazer, e esta está " + reserva.getEstadoTexto().toLowerCase());
         }
         if (!reservaDAL.apagarSemCheckin(reserva.getId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
-                    + " já não pode ser apagada: não existe ou entretanto teve check-in");
+                    + " já não pode ser apagada: não existe ou já não está por fazer");
         }
     }
 

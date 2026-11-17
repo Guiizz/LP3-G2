@@ -356,7 +356,7 @@ class ReservaTest {
         System.out.println("podeSerApagada (cancelada)");
         Reserva reserva = novaReserva();
         reserva.cancelar();
-        boolean expResult = true;
+        boolean expResult = false;
         boolean result = reserva.podeSerApagada();
         assertEquals(expResult, result);
     }
