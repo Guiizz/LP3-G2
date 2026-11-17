@@ -8,8 +8,10 @@ import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.SugestaoQueixaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSugestao;
+import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 /**
  * Controlador do ecrã onde o cliente envia uma sugestão ou queixa identificando-se com o NIF (US61). Abre a partir do login.
@@ -30,6 +32,15 @@ public class SugestaoClienteController {
     @FXML
     private void initialize() {
         tipoCombo.getItems().setAll(TipoSugestao.values());
+        preencherNifDaConta();
+    }
+
+    private void preencherNifDaConta() {
+        ContaCliente conta = Sessao.getContaCliente();
+        if (conta != null) {
+            nifField.setText(conta.getNif());
+            nifField.setEditable(false);
+        }
     }
 
     @FXML
@@ -40,6 +51,7 @@ public class SugestaoClienteController {
             Mensagens.sucesso(mensagemLabel, "Obrigado! A sua " + (registada.getTipo() == TipoSugestao.QUEIXA ? "queixa" : "sugestão")
                     + " foi enviada ao gestor.");
             nifField.clear();
+            preencherNifDaConta();
             tipoCombo.setValue(null);
             descricaoArea.clear();
         } catch (IllegalArgumentException | ValidacaoException e) {
