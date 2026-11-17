@@ -54,7 +54,6 @@ public class MateriaisQuartosController {
         }
         tipoCombo.getItems().setAll(TipoQuarto.values());
         atualizarMateriais();
-        // escolher o tipo dispara o aoEscolherTipo, que mostra a configuração desse tipo
         tipoCombo.setValue(TipoQuarto.INDIVIDUAL);
     }
 
@@ -80,8 +79,10 @@ public class MateriaisQuartosController {
         atualizarConfiguracao();
     }
 
-    // usa o material escolhido na lista de materiais; se não houver, usa o escolhido na configuração
-    // (assim também serve para mudar a quantidade de um material que o quarto já leva)
+    /**
+     * Junta à configuração o material escolhido na lista de materiais ou, se não houver nenhum escolhido, muda a
+     * quantidade do material escolhido na configuração.
+     */
     @FXML
     private void aoGuardar() {
         Material material = materiaisTabela.getSelectionModel().getSelectedItem();

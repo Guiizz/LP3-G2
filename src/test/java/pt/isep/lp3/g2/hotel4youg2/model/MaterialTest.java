@@ -13,7 +13,6 @@ public class MaterialTest {
 
     private Material instance;
 
-    // um champô, que é consumível
     @BeforeEach
     public void setUp() {
         instance = new Material(5, "XQF6324", "Rituals Champô 200ml", "ProductHero", true);

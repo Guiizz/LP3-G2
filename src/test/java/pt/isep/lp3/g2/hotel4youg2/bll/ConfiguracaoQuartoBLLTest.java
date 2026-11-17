@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class ConfiguracaoQuartoBLLTest {
 
-    // Base de dados falsa (em memória): os materiais e as linhas da configuração de todos os tipos de quarto
     private static class ConfiguracaoQuartoDALFalsa implements IConfiguracaoQuartoDAL {
         private final List<Material> materiais = new ArrayList<>();
         private final List<MaterialQuarto> configuracao = new ArrayList<>();
@@ -54,7 +53,6 @@ public class ConfiguracaoQuartoBLLTest {
             return doTipo;
         }
 
-        // como o MERGE da BD: se o material já estiver neste tipo de quarto, troca a quantidade
         @Override
         public void guardar(TipoQuarto tipo, int materialId, int quantidade) {
             MaterialQuarto existente = procurar(tipo, materialId);
@@ -98,7 +96,6 @@ public class ConfiguracaoQuartoBLLTest {
     private Material toalha;
     private Material champo;
 
-    // dois materiais: uma toalha (não consumível) e um champô (consumível); o quarto duplo leva 2 toalhas
     @BeforeEach
     public void setUp() {
         configuracaoDAL = new ConfiguracaoQuartoDALFalsa();
@@ -117,7 +114,6 @@ public class ConfiguracaoQuartoBLLTest {
         instance = null;
     }
 
-    // tenta guardar uma linha que devia ser recusada e confirma que nada mudou
     private void esperarErroAoGuardar(TipoQuarto tipo, Material material, String quantidade, String expResult) {
         try {
             instance.guardar(GESTOR, tipo, material, quantidade);
@@ -127,8 +123,6 @@ public class ConfiguracaoQuartoBLLTest {
             assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
-
-    // ---------------- o que a funcionalidade faz ----------------
 
     @Test
     public void testListarMateriais() {
@@ -243,8 +237,6 @@ public class ConfiguracaoQuartoBLLTest {
         List<MaterialQuarto> result = instance.configuracao(GESTOR, TipoQuarto.DUPLO);
         assertEquals(expResult, result);
     }
-
-    // ---------------- erros ----------------
 
     @Test
     public void testListarMateriaisSemSessao() {

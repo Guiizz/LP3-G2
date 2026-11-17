@@ -61,7 +61,6 @@ public class ConfiguracaoQuartoDALTest {
                 + "VALUES (?, ?, ?)", new InteiroMapper(), fornecedorId, codigoMaterial, descricao).get(0);
     }
 
-    // os materiais deste teste, pela ordem em que a BD os devolve
     private List<Material> osMateriaisDoTeste() {
         List<Material> doTeste = new ArrayList<>();
         for (Material material : instance.listarMateriais()) {
@@ -72,7 +71,6 @@ public class ConfiguracaoQuartoDALTest {
         return doTeste;
     }
 
-    // a configuração do tipo de quarto, só com os materiais deste teste
     private List<MaterialQuarto> configuracaoDoTeste(TipoQuarto tipo) {
         List<MaterialQuarto> doTeste = new ArrayList<>();
         for (MaterialQuarto linha : instance.listarConfiguracao(tipo)) {
@@ -82,8 +80,6 @@ public class ConfiguracaoQuartoDALTest {
         }
         return doTeste;
     }
-
-    // ---------------- o que a funcionalidade faz ----------------
 
     @Test
     public void testListarMateriais() {
@@ -140,8 +136,6 @@ public class ConfiguracaoQuartoDALTest {
         assertEquals(true, removido);
         assertEquals(new ArrayList<MaterialQuarto>(), configuracaoDoTeste(TipoQuarto.DUPLO));
     }
-
-    // ---------------- erros ----------------
 
     @Test
     public void testAlterarConsumivelMaterialQueNaoExiste() {

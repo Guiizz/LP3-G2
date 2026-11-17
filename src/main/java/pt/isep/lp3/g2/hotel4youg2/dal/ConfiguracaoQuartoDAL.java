@@ -11,7 +11,9 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Implementação em SQL Server de {@link IConfiguracaoQuartoDAL} (US75).
+ * Implementação em SQL Server de {@link IConfiguracaoQuartoDAL} (US75). Guardar uma linha da configuração usa
+ * um {@code MERGE} com {@code HOLDLOCK}: junta o material ou, se já lá estiver, muda a quantidade, e dois gestores
+ * a guardar ao mesmo tempo não dão erro de linha repetida.
  */
 public class ConfiguracaoQuartoDAL implements IConfiguracaoQuartoDAL {
 
@@ -23,8 +25,6 @@ public class ConfiguracaoQuartoDAL implements IConfiguracaoQuartoDAL {
             "SELECT c.quantidade, m.id, m.codigo, m.descricao, f.nome AS fornecedor, m.consumivel "
             + "FROM ConfiguracaoQuarto c JOIN Material m ON m.id = c.materialId "
             + "JOIN Fornecedor f ON f.id = m.fornecedorId WHERE c.tipoQuarto = ? ORDER BY m.descricao, f.nome, m.id";
-    // junta o material ou muda a quantidade se já lá estiver; o HOLDLOCK impede que dois gestores
-    // ao mesmo tempo tentem inserir a mesma linha (um deles daria erro de chave repetida)
     private static final String GUARDAR =
             "MERGE ConfiguracaoQuarto WITH (HOLDLOCK) AS c "
             + "USING (SELECT ? AS tipoQuarto, ? AS materialId, ? AS quantidade) AS n "

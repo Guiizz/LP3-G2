@@ -15,7 +15,6 @@ public class MaterialQuartoTest {
     private Material toalha;
     private MaterialQuarto instance;
 
-    // um quarto duplo leva 2 toalhas de banho
     @BeforeEach
     public void setUp() {
         toalha = new Material(4, "PZ-1989", "Toalha de banho 400g cinza", "ProductHero", false);
