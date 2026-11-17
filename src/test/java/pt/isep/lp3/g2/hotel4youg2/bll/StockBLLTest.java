@@ -6,9 +6,12 @@ import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IStockDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
 import pt.isep.lp3.g2.hotel4youg2.model.MovimentoStock;
+import pt.isep.lp3.g2.hotel4youg2.model.SaidaStock;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.MotivoSaida;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoMovimento;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,6 +27,11 @@ public class StockBLLTest {
         private int emStock = 10;
         private int movimentos;
         private int ultimoFuncionario;
+        private TipoSaida ultimoTipo;
+        private MotivoSaida ultimoMotivo;
+        private String ultimoTexto;
+        private final List<SaidaStock> porDevolver = new ArrayList<>();
+        private int ultimoQueRecebeu;
 
         @Override
         public List<MaterialStock> listar() {
@@ -31,14 +39,37 @@ public class StockBLLTest {
         }
 
         @Override
-        public boolean registarSaida(int materialId, int quantidade, int funcionarioId) {
+        public boolean registarSaida(int materialId, int quantidade, int funcionarioId, TipoSaida tipo,
+                                     MotivoSaida motivo, String descricaoMotivo) {
             if (quantidade > emStock) {
                 return false;
             }
             emStock -= quantidade;
             movimentos++;
             ultimoFuncionario = funcionarioId;
+            ultimoTipo = tipo;
+            ultimoMotivo = motivo;
+            ultimoTexto = descricaoMotivo;
             return true;
+        }
+
+        @Override
+        public List<SaidaStock> listarPorDevolver() {
+            return porDevolver;
+        }
+
+        // como na BD: só devolve se a saída ainda estiver por devolver, e o material volta ao stock
+        @Override
+        public boolean devolver(int saidaId, int funcionarioId) {
+            for (SaidaStock saida : porDevolver) {
+                if (saida.getId() == saidaId) {
+                    porDevolver.remove(saida);
+                    emStock += saida.getQuantidade();
+                    ultimoQueRecebeu = funcionarioId;
+                    return true;
+                }
+            }
+            return false;
         }
 
         private final List<MovimentoStock> historico = new ArrayList<>();
@@ -71,7 +102,7 @@ public class StockBLLTest {
 
     private void esperarErro(MaterialStock material, String quantidade, String expResult) {
         try {
-            instance.registarSaida(RECECAO, material, quantidade);
+            instance.registarSaida(RECECAO, material, quantidade, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
             fail("Devia ter recusado a saída");
         } catch (IllegalArgumentException expected) {
             assertEquals(expResult, expected.getMessage());
@@ -103,7 +134,7 @@ public class StockBLLTest {
     @Test
     public void testRegistarSaida() {
         System.out.println("registarSaida (tira do stock)");
-        instance.registarSaida(RECECAO, TOALHAS, "3");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 7;
         int result = stockDAL.emStock;
         assertEquals(expResult, result);
@@ -112,7 +143,7 @@ public class StockBLLTest {
     @Test
     public void testRegistarSaidaGuardaOFuncionario() {
         System.out.println("registarSaida (fica registado o funcionário)");
-        instance.registarSaida(RECECAO, TOALHAS, "3");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 7;
         int result = stockDAL.ultimoFuncionario;
         assertEquals(expResult, result);
@@ -121,7 +152,7 @@ public class StockBLLTest {
     @Test
     public void testRegistarSaidaAceitaEspacos() {
         System.out.println("registarSaida (espaços na quantidade)");
-        instance.registarSaida(RECECAO, TOALHAS, " 4 ");
+        instance.registarSaida(RECECAO, TOALHAS, " 4 ", TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 6;
         int result = stockDAL.emStock;
         assertEquals(expResult, result);
@@ -130,7 +161,7 @@ public class StockBLLTest {
     @Test
     public void testRegistarSaidaDeTudo() {
         System.out.println("registarSaida (pode tirar tudo o que existe)");
-        instance.registarSaida(RECECAO, TOALHAS, "10");
+        instance.registarSaida(RECECAO, TOALHAS, "10", TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int expResult = 0;
         int result = stockDAL.emStock;
         assertEquals(expResult, result);
@@ -183,7 +214,7 @@ public class StockBLLTest {
         System.out.println("registarSaida (sem sessão iniciada)");
         String expResult = "Entre na aplicação para registar saídas de stock.";
         try {
-            instance.registarSaida(null, TOALHAS, "3");
+            instance.registarSaida(null, TOALHAS, "3", TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
             fail("Devia ter exigido a sessão");
         } catch (IllegalStateException expected) {
             assertEquals(expResult, expected.getMessage());
@@ -192,11 +223,11 @@ public class StockBLLTest {
     }
 
     private static final MaterialStock CHAMPO = new MaterialStock(5, "M-2", "Champô 200ml", "Rituals", 30);
-    private static final MovimentoStock SAIDA_RECENTE = new MovimentoStock(TipoMovimento.SAIDA, 4, 3, "Ana Silva",
+    private static final MovimentoStock SAIDA_RECENTE = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 3, "Ana Silva",
             LocalDateTime.of(2026, 11, 16, 10, 0));
     private static final MovimentoStock ENTRADA = new MovimentoStock(TipoMovimento.ENTRADA, 4, 20, "Rui Costa",
             LocalDateTime.of(2026, 11, 10, 9, 30));
-    private static final MovimentoStock SAIDA_ANTIGA = new MovimentoStock(TipoMovimento.SAIDA, 4, 7, "Ana Silva",
+    private static final MovimentoStock SAIDA_ANTIGA = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 7, "Ana Silva",
             LocalDateTime.of(2026, 11, 5, 18, 15));
 
     private void juntarMovimentos() {
@@ -300,10 +331,10 @@ public class StockBLLTest {
 
     @Test
     public void testHistoricoSoSaidas() {
-        System.out.println("historico (só as saídas)");
+        System.out.println("historico (só as saídas definitivas)");
         juntarMovimentos();
         List<MovimentoStock> expResult = List.of(SAIDA_RECENTE, SAIDA_ANTIGA);
-        List<MovimentoStock> result = instance.historico(RECECAO, TOALHAS, TipoMovimento.SAIDA);
+        List<MovimentoStock> result = instance.historico(RECECAO, TOALHAS, TipoMovimento.SAIDA_DEFINITIVA);
         assertEquals(expResult, result);
     }
 
@@ -335,5 +366,179 @@ public class StockBLLTest {
         } catch (IllegalStateException expected) {
             assertEquals("Entre na aplicação para consultar o stock.", expected.getMessage());
         }
+    }
+
+    // ---------------- US77: tipo e motivo das saídas e devolução das temporárias ----------------
+
+    private static final LocalDateTime QUANDO = LocalDateTime.of(2026, 11, 16, 9, 5);
+    private static final SaidaStock SECADORES = new SaidaStock(7, 4, "X569P", "Secador", 2, "Reparação", "Ana Silva",
+            QUANDO);
+
+    // regista uma saída que devia ser recusada e confirma que nada mudou
+    private void esperarErroNoMotivo(TipoSaida tipo, MotivoSaida motivo, String texto, String expResult) {
+        try {
+            instance.registarSaida(RECECAO, TOALHAS, "3", tipo, motivo, texto);
+            fail("Devia ter recusado a saída");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+            assertEquals(10, stockDAL.emStock);
+            assertEquals(0, stockDAL.movimentos);
+        }
+    }
+
+    @Test
+    public void testRegistarSaidaTemporaria() {
+        System.out.println("registarSaida (temporária, com o texto do motivo)");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.TEMPORARIA, null, "Reparação");
+        assertEquals(TipoSaida.TEMPORARIA, stockDAL.ultimoTipo);
+        assertEquals("Reparação", stockDAL.ultimoTexto);
+        assertEquals(7, stockDAL.emStock);
+    }
+
+    @Test
+    public void testRegistarSaidaTemporariaSemTexto() {
+        System.out.println("registarSaida (temporária sem motivo também pode)");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.TEMPORARIA, null, "  ");
+        String expResult = null;
+        String result = stockDAL.ultimoTexto;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarSaidaTemporariaIgnoraOMotivoDaLista() {
+        System.out.println("registarSaida (temporária não guarda o motivo da lista)");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.TEMPORARIA, MotivoSaida.ROUBADO, null);
+        MotivoSaida expResult = null;
+        MotivoSaida result = stockDAL.ultimoMotivo;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarSaidaDefinitiva() {
+        System.out.println("registarSaida (definitiva com o motivo)");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.DEFINITIVA, MotivoSaida.DEVOLVIDO_FORNECEDOR, null);
+        assertEquals(TipoSaida.DEFINITIVA, stockDAL.ultimoTipo);
+        assertEquals(MotivoSaida.DEVOLVIDO_FORNECEDOR, stockDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRegistarSaidaDefinitivaOutroComTexto() {
+        System.out.println("registarSaida (definitiva com \"Outro\" e o motivo escrito)");
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "  caiu ao chão ");
+        assertEquals(MotivoSaida.OUTRO, stockDAL.ultimoMotivo);
+        assertEquals("caiu ao chão", stockDAL.ultimoTexto);
+    }
+
+    @Test
+    public void testRegistarSaidaMotivoComOLimiteDeCaracteres() {
+        System.out.println("registarSaida (motivo com 200 caracteres)");
+        String texto = "a".repeat(StockBLL.TAMANHO_MAXIMO_MOTIVO);
+        instance.registarSaida(RECECAO, TOALHAS, "3", TipoSaida.TEMPORARIA, null, texto);
+        String expResult = texto;
+        String result = stockDAL.ultimoTexto;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarSaidaSemTipo() {
+        System.out.println("registarSaida (sem tipo)");
+        esperarErroNoMotivo(null, MotivoSaida.ESTRAGADO, null, "Escolha o tipo de saída: temporária ou definitiva.");
+    }
+
+    @Test
+    public void testRegistarSaidaDefinitivaSemMotivo() {
+        System.out.println("registarSaida (definitiva sem motivo)");
+        esperarErroNoMotivo(TipoSaida.DEFINITIVA, null, null, "Escolha o motivo da saída definitiva.");
+    }
+
+    @Test
+    public void testRegistarSaidaDefinitivaOutroSemTexto() {
+        System.out.println("registarSaida (\"Outro\" sem o motivo escrito)");
+        esperarErroNoMotivo(TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "   ", "Escreva o motivo da saída.");
+    }
+
+    @Test
+    public void testRegistarSaidaMotivoComMuitosCaracteres() {
+        System.out.println("registarSaida (motivo com mais de 200 caracteres)");
+        esperarErroNoMotivo(TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "a".repeat(StockBLL.TAMANHO_MAXIMO_MOTIVO + 1),
+                "O motivo pode ter no máximo 200 caracteres.");
+    }
+
+    @Test
+    public void testListarPorDevolver() {
+        System.out.println("listarPorDevolver");
+        stockDAL.porDevolver.add(SECADORES);
+        List<SaidaStock> expResult = List.of(SECADORES);
+        List<SaidaStock> result = instance.listarPorDevolver(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorDevolverSemSessao() {
+        System.out.println("listarPorDevolver (sem sessão iniciada)");
+        try {
+            instance.listarPorDevolver(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals("Entre na aplicação para consultar o stock.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testDevolver() {
+        System.out.println("devolver (o material volta ao stock)");
+        stockDAL.porDevolver.add(SECADORES);
+        instance.devolver(RECECAO, SECADORES);
+        assertEquals(12, stockDAL.emStock);
+        assertEquals(0, stockDAL.porDevolver.size());
+        assertEquals(7, stockDAL.ultimoQueRecebeu);
+    }
+
+    @Test
+    public void testDevolverJaDevolvida() {
+        System.out.println("devolver (já tinha sido devolvida)");
+        try {
+            instance.devolver(RECECAO, SECADORES);
+            fail("Devia ter recusado a devolução");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Esta saída já foi devolvida.", expected.getMessage());
+            assertEquals(10, stockDAL.emStock);
+        }
+    }
+
+    @Test
+    public void testDevolverSemSaida() {
+        System.out.println("devolver (sem saída escolhida)");
+        try {
+            instance.devolver(RECECAO, null);
+            fail("Devia ter pedido a saída");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("Escolha a saída na tabela.", expected.getMessage());
+        }
+    }
+
+    @Test
+    public void testDevolverSemSessao() {
+        System.out.println("devolver (sem sessão iniciada)");
+        stockDAL.porDevolver.add(SECADORES);
+        try {
+            instance.devolver(null, SECADORES);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            assertEquals("Entre na aplicação para registar saídas de stock.", expected.getMessage());
+            assertEquals(1, stockDAL.porDevolver.size());
+        }
+    }
+
+    @Test
+    public void testHistoricoSoTemporarias() {
+        System.out.println("historico (só as saídas temporárias)");
+        MovimentoStock temporaria = new MovimentoStock(TipoMovimento.SAIDA_TEMPORARIA, 4, 2, "Ana Silva", QUANDO,
+                "Reparação");
+        stockDAL.historico.add(temporaria);
+        stockDAL.historico.add(SAIDA_RECENTE);
+        List<MovimentoStock> expResult = List.of(temporaria);
+        List<MovimentoStock> result = instance.historico(RECECAO, TOALHAS, TipoMovimento.SAIDA_TEMPORARIA);
+        assertEquals(expResult, result);
     }
 }

@@ -1,16 +1,20 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import pt.isep.lp3.g2.hotel4youg2.bll.StockBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.MaterialStock;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.MotivoSaida;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 /**
- * Controlador do ecrã "Saída de materiais" (US42): mostra o stock de cada material e regista as saídas.
+ * Controlador do ecrã "Saída de materiais" (US42): mostra o stock de cada material e regista as saídas,
+ * com o tipo (temporária ou definitiva) e o motivo (US77).
  */
 public class SaidaStockController {
 
@@ -21,26 +25,57 @@ public class SaidaStockController {
     @FXML
     private TextField quantidadeField;
     @FXML
+    private ComboBox<TipoSaida> tipoCombo;
+    @FXML
+    private ComboBox<MotivoSaida> motivoCombo;
+    @FXML
+    private TextField motivoField;
+    @FXML
     private Label mensagemLabel;
 
     @FXML
     private void initialize() {
+        tipoCombo.getItems().setAll(TipoSaida.values());
+        motivoCombo.getItems().setAll(MotivoSaida.values());
+        aoEscolherTipo();
         atualizar();
+    }
+
+    // numa saída temporária não há motivo da lista: só o texto, que é opcional
+    @FXML
+    private void aoEscolherTipo() {
+        boolean definitiva = tipoCombo.getValue() == TipoSaida.DEFINITIVA;
+        motivoCombo.setDisable(!definitiva);
+        if (!definitiva) {
+            motivoCombo.setValue(null);
+            motivoField.setPromptText("Motivo (opcional), ex.: Reparação");
+        } else {
+            motivoField.setPromptText("Escreva o motivo (obrigatório no \"Outro\")");
+        }
     }
 
     @FXML
     private void aoRegistarSaida() {
         MaterialStock material = tabela.getSelectionModel().getSelectedItem();
         try {
-            stockBLL.registarSaida(Sessao.getUtilizador(), material, quantidadeField.getText());
-            quantidadeField.clear();
-            mostrarMensagem("Saída registada: " + material.getDescricao() + ".", "green");
+            stockBLL.registarSaida(Sessao.getUtilizador(), material, quantidadeField.getText(), tipoCombo.getValue(),
+                    motivoCombo.getValue(), motivoField.getText());
+            mostrarMensagem("Saída " + tipoCombo.getValue().getDescricao().toLowerCase() + " registada: "
+                    + material.getDescricao() + ".", "green");
+            limparFormulario();
         } catch (IllegalArgumentException | IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
             mostrarMensagem("Não foi possível registar a saída. Tente novamente.", "red");
         }
         atualizar();
+    }
+
+    private void limparFormulario() {
+        quantidadeField.clear();
+        tipoCombo.setValue(null);
+        motivoCombo.setValue(null);
+        motivoField.clear();
     }
 
     private void atualizar() {
