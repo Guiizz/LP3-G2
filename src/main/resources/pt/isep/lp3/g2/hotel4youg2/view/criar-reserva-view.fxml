@@ -62,7 +62,7 @@
             <TableColumn text="Capacidade">
                 <cellValueFactory><PropertyValueFactory property="capacidade"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Preço/noite (€)">
+            <TableColumn text="Preço/noite (€)" minWidth="130">
                 <cellValueFactory><PropertyValueFactory property="valorNoite"/></cellValueFactory>
             </TableColumn>
         </columns>
@@ -87,10 +87,10 @@
             <TableColumn text="Quantidade" prefWidth="90">
                 <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Preço" prefWidth="90">
+            <TableColumn text="Preço" prefWidth="100" minWidth="100">
                 <cellValueFactory><PropertyValueFactory property="precoTexto"/></cellValueFactory>
             </TableColumn>
-            <TableColumn text="Total" prefWidth="90">
+            <TableColumn text="Total" prefWidth="110" minWidth="110">
                 <cellValueFactory><PropertyValueFactory property="totalTexto"/></cellValueFactory>
             </TableColumn>
         </columns>

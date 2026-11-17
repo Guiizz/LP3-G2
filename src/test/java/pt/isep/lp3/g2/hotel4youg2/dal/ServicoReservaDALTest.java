@@ -185,6 +185,16 @@ public class ServicoReservaDALTest {
     }
 
     @Test
+    public void testDesativarServicoNaoMudaOTotalDasReservas() {
+        System.out.println("desativar o serviço (as reservas que já o têm ficam com o mesmo total)");
+        instance.inserirSeAberta(novoServico(2));
+        BigDecimal expResult = reservaDAL.procurarPorId(reserva.getId()).getTotal();
+        servicoDAL.atualizarAtivo(servico.getId(), false);
+        BigDecimal result = reservaDAL.procurarPorId(reserva.getId()).getTotal();
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testInserirReservaCancelada() {
         System.out.println("inserirSeAberta (reserva cancelada)");
         reservaDAL.atualizarEstado(reserva.getId(), EstadoReserva.CANCELADA);
