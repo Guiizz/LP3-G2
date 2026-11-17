@@ -93,4 +93,30 @@ public class MovimentoStockTest {
         String result = instance.toString();
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testGetMotivo() {
+        System.out.println("getMotivo (US77)");
+        MovimentoStock saida = new MovimentoStock(TipoMovimento.SAIDA, 4, 3, "Ana Silva", QUANDO, "Estragado");
+        String expResult = "Estragado";
+        String result = saida.getMotivo();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetMotivoSemMotivo() {
+        System.out.println("getMotivo (entrada ou saída antiga mostra -)");
+        String expResult = "-";
+        String result = instance.getMotivo();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEqualsOutroMotivo() {
+        System.out.println("equals (motivo diferente)");
+        MovimentoStock comMotivo = new MovimentoStock(TipoMovimento.SAIDA, 4, 3, "Ana Silva", QUANDO, "Roubado");
+        boolean expResult = false;
+        boolean result = instance.equals(comMotivo);
+        assertEquals(expResult, result);
+    }
 }
