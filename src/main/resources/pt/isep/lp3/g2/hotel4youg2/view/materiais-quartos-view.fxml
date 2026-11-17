@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.MateriaisQuartosController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Materiais dos quartos" styleClass="titulo"/>
+    <Label fx:id="permissaoLabel" wrapText="true"/>
+
+    <Label text="Materiais" style="-fx-font-weight: bold;"/>
+    <TableView fx:id="materiaisTabela" VBox.vgrow="ALWAYS" minHeight="140.0">
+        <placeholder>
+            <Label text="Ainda não há materiais: entram com as entregas dos fornecedores."/>
+        </placeholder>
+        <columns>
+            <TableColumn text="Código" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="codigo"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Material" prefWidth="260.0">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Fornecedor" prefWidth="170.0">
+                <cellValueFactory><PropertyValueFactory property="fornecedor"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="consumivelTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button fx:id="consumivelButton" text="Mudar entre consumível e não consumível" onAction="#aoMudarConsumivel"/>
+    </HBox>
+
+    <Separator/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Materiais do quarto" style="-fx-font-weight: bold;"/>
+        <ComboBox fx:id="tipoCombo" prefWidth="150.0" onAction="#aoEscolherTipo"/>
+    </HBox>
+
+    <TableView fx:id="configuracaoTabela" VBox.vgrow="ALWAYS" minHeight="140.0">
+        <placeholder>
+            <Label text="Este tipo de quarto ainda não tem materiais configurados."/>
+        </placeholder>
+        <columns>
+            <TableColumn text="Material" prefWidth="260.0">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Fornecedor" prefWidth="170.0">
+                <cellValueFactory><PropertyValueFactory property="fornecedor"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo" prefWidth="130.0">
+                <cellValueFactory><PropertyValueFactory property="consumivelTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Quantidade:"/>
+        <TextField fx:id="quantidadeField" promptText="1 a 99" prefWidth="80.0" onAction="#aoGuardar"/>
+        <Button fx:id="guardarButton" text="Juntar / alterar quantidade" onAction="#aoGuardar"/>
+        <Button fx:id="retirarButton" text="Retirar do quarto" onAction="#aoRetirar"/>
+    </HBox>
+    <Label text="Para juntar, escolha o material na lista de cima; para mudar a quantidade, escolha-o na configuração."
+           wrapText="true" style="-fx-font-size: 11px;"/>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>

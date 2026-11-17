@@ -4,18 +4,23 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import pt.isep.lp3.g2.hotel4youg2.bll.ConfiguracaoQuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.model.MaterialQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.util.List;
 
 /**
- * Controlador do ecrã "Consultar quartos": mostra os quartos e os preços, com filtros por tipo e piso.
+ * Controlador do ecrã "Consultar quartos": mostra os quartos e os preços, com filtros por tipo e piso,
+ * e os materiais que o quarto escolhido leva, conforme o seu tipo (US75).
  */
 public class QuartosController {
     private final QuartoBLL quartoBLL = new QuartoBLL();
+    private final ConfiguracaoQuartoBLL configuracaoBLL = new ConfiguracaoQuartoBLL();
 
     @FXML
     private ComboBox<TipoQuarto> tipoCombo;
@@ -28,6 +33,12 @@ public class QuartosController {
 
     @FXML
     private Label mensagemLabel;
+
+    @FXML
+    private Label materiaisLabel;
+
+    @FXML
+    private TableView<MaterialQuarto> materiaisTabela;
 
     @FXML
     private void initialize() {
@@ -46,6 +57,24 @@ public class QuartosController {
         tipoCombo.setValue(null);
         pisoCombo.setValue(null);
         atualizar();
+    }
+
+    @FXML
+    private void aoEscolherQuarto() {
+        Quarto quarto = quartosTabela.getSelectionModel().getSelectedItem();
+        if (quarto == null) {
+            return;
+        }
+        materiaisLabel.setText("Materiais do quarto " + quarto.getNumero() + " (" + quarto.getTipo() + ")");
+        try {
+            materiaisTabela.getItems().setAll(configuracaoBLL.configuracao(Sessao.getUtilizador(), quarto.getTipo()));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            materiaisTabela.getItems().clear();
+            Mensagens.erro(mensagemLabel, e.getMessage());
+        } catch (DataAccessException e) {
+            materiaisTabela.getItems().clear();
+            Mensagens.erro(mensagemLabel, "Não foi possível carregar os materiais do quarto.");
+        }
     }
 
     @FXML
