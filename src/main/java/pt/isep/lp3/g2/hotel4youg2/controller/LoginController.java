@@ -64,7 +64,7 @@ public class LoginController {
         try {
             Utilizador utilizador = autenticacaoBLL.autenticar(nomeUtilizadorField.getText(), passwordField.getText());
             Sessao.iniciar(utilizador);
-            reservaBLL.cancelarSemCheckin();
+            cancelarReservasSemCheckin();
             abrirJanela("inicial-view.fxml", "Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador()
                     + " (" + utilizador.getPerfil() + ")");
         } catch (IllegalArgumentException e) {
@@ -143,8 +143,15 @@ public class LoginController {
 
     private void entrarComoCliente(ContaCliente conta) throws IOException {
         Sessao.iniciarCliente(conta);
-        reservaBLL.cancelarSemCheckin();
+        cancelarReservasSemCheckin();
         abrirJanela("area-cliente-view.fxml", "Hotel4You · " + conta.getNome());
+    }
+
+    private void cancelarReservasSemCheckin() {
+        try {
+            reservaBLL.cancelarSemCheckin();
+        } catch (DataAccessException ignorada) {
+        }
     }
 
     private void abrirJanela(String ficheiro, String titulo) throws IOException {

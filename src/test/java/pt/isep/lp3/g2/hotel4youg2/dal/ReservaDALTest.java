@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
@@ -24,6 +25,15 @@ public class ReservaDALTest {
     private Cliente cliente;
     private Reserva reserva;
     private final List<Reserva> outras = new ArrayList<>();
+
+    @BeforeAll
+    public static void limparRestosDosTestesDoCancelamento() {
+        try {
+            ConexaoBD.executar("DELETE FROM Reserva WHERE dataEntrada < '1990-01-05' AND clienteId IN "
+                    + "(SELECT id FROM Pessoa WHERE nome LIKE 'Teste [0-9]%')");
+        } catch (DataAccessException e) {
+        }
+    }
 
     @BeforeEach
     public void setUp() {
