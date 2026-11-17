@@ -22,6 +22,7 @@ public class AcessoCartao {
     private LocalDateTime registadoEm;
     private int funcionarioId;
     private String funcionarioNome;
+    private String clienteNome;
 
     /**
      * Cria uma passagem de cartão.
@@ -115,8 +116,37 @@ public class AcessoCartao {
         return funcionarioId > 0 ? funcionarioNome : "-";
     }
 
+    public String getClienteNome() {
+        return clienteNome;
+    }
+
+    public void setClienteNome(String clienteNome) {
+        this.clienteNome = clienteNome;
+    }
+
+    public String getPessoaTexto() {
+        if (funcionarioId > 0) {
+            return funcionarioNome;
+        }
+        if (clienteNome != null) {
+            return clienteNome;
+        }
+        if (CARTAO_MESTRE.equals(cartao)) {
+            return "Gestor (cartão mestre)";
+        }
+        return "-";
+    }
+
     public String getRegistadoEmTexto() {
         return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    public String getDataTexto() {
+        return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    public String getHoraTexto() {
+        return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("HH:mm"));
     }
 
     @Override

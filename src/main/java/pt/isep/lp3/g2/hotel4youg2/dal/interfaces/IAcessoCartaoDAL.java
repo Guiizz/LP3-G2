@@ -2,11 +2,13 @@ package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
 import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Acesso à base de dados das passagens dos cartões (US39 e US41).
+ * Acesso à base de dados das passagens dos cartões (US39, US41 e US74).
  */
 public interface IAcessoCartaoDAL {
 
@@ -23,12 +25,7 @@ public interface IAcessoCartaoDAL {
      */
     List<AcessoCartao> listarPorCartao(String cartao);
 
-    /**
-     * @param quartoNumero o número do quarto
-     * @return as passagens no quarto, de qualquer cartão (incluindo o mestre), da mais recente
-     *         para a mais antiga; vazia se não houver nenhuma
-     */
-    List<AcessoCartao> listarPorQuarto(int quartoNumero);
+    List<AcessoCartao> listar(String cartao, int quartoNumero, LocalHotel local, LocalDate dia);
 
     /**
      * Apaga uma passagem (usado nos testes para limpar o que gravaram).
@@ -38,8 +35,5 @@ public interface IAcessoCartaoDAL {
      */
     boolean apagar(int id);
 
-    /**
-     * @return os cartões dos clientes com uma reserva em curso, com o nome e o quarto, pelo número do quarto (US63)
-     */
-    List<CartaoAtivo> listarCartoesDeClientes();
+    List<CartaoAtivo> listarCartoesUsados();
 }

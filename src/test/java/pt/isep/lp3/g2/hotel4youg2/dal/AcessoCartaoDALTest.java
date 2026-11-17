@@ -1,14 +1,18 @@
 package pt.isep.lp3.g2.hotel4youg2.dal;
 
+import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
+import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +26,13 @@ public class AcessoCartaoDALTest {
     private String cartao;
     private int quarto;
     private final List<AcessoCartao> criados = new ArrayList<>();
+
+    private static class TextoMapper implements RowMapper<String> {
+        @Override
+        public String map(ResultSet rs) throws SQLException {
+            return rs.getString(1);
+        }
+    }
 
     @BeforeEach
     public void setUp() {
@@ -111,21 +122,86 @@ public class AcessoCartaoDALTest {
     }
 
     @Test
+    public void testListarSemFiltros() {
+        System.out.println("listar (sem filtros, mais recente primeiro)");
+        AcessoCartao primeiro = registar(LocalHotel.RESTAURANTE, 0);
+        AcessoCartao segundo = registar(LocalHotel.PISCINA, 0);
+        List<AcessoCartao> expResult = List.of(segundo, primeiro);
+        List<AcessoCartao> result = soOsDoTeste(instance.listar("", 0, null, null));
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testListarPorQuartoMostraOsCartoesEOMestre() {
-        System.out.println("listarPorQuarto (cartões que entraram, com o mestre, mais recente primeiro)");
+        System.out.println("listar (por quarto: cartões que entraram, com o mestre, mais recente primeiro)");
         AcessoCartao hospede = registar(LocalHotel.QUARTO, quarto);
         AcessoCartao mestre = registar(AcessoCartao.CARTAO_MESTRE, LocalHotel.QUARTO, quarto);
         List<AcessoCartao> expResult = List.of(mestre, hospede);
-        List<AcessoCartao> result = soOsDoTeste(instance.listarPorQuarto(quarto));
+        List<AcessoCartao> result = soOsDoTeste(instance.listar("", quarto, null, null));
         assertEquals(expResult, result);
     }
 
     @Test
     public void testListarPorQuartoIgnoraOutrosLocais() {
-        System.out.println("listarPorQuarto (a piscina não conta como quarto)");
+        System.out.println("listar (por quarto: a piscina não conta como quarto)");
         registar(LocalHotel.PISCINA, 0);
         List<AcessoCartao> expResult = new ArrayList<>();
-        List<AcessoCartao> result = soOsDoTeste(instance.listarPorQuarto(quarto));
+        List<AcessoCartao> result = soOsDoTeste(instance.listar("", quarto, null, null));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorLocal() {
+        System.out.println("listar (por local)");
+        registar(LocalHotel.QUARTO, quarto);
+        AcessoCartao piscina = registar(LocalHotel.PISCINA, 0);
+        List<AcessoCartao> expResult = List.of(piscina);
+        List<AcessoCartao> result = instance.listar(cartao, 0, LocalHotel.PISCINA, null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorDia() {
+        System.out.println("listar (por dia)");
+        AcessoCartao acesso = registar(LocalHotel.BAR, 0);
+        List<AcessoCartao> expResult = List.of(acesso);
+        List<AcessoCartao> result = instance.listar(cartao, 0, null, acesso.getRegistadoEm().toLocalDate());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarPorDiaSemAcessos() {
+        System.out.println("listar (por dia: outro dia não mostra os acessos de hoje)");
+        AcessoCartao acesso = registar(LocalHotel.BAR, 0);
+        List<AcessoCartao> expResult = new ArrayList<>();
+        List<AcessoCartao> result = instance.listar(cartao, 0, null,
+                acesso.getRegistadoEm().toLocalDate().minusDays(1));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarFiltrosJuntos() {
+        System.out.println("listar (cartão, quarto, local e dia ao mesmo tempo)");
+        AcessoCartao noQuarto = registar(LocalHotel.QUARTO, quarto);
+        registar(LocalHotel.PISCINA, 0);
+        List<AcessoCartao> expResult = List.of(noQuarto);
+        List<AcessoCartao> result = instance.listar(cartao, quarto, LocalHotel.QUARTO,
+                noQuarto.getRegistadoEm().toLocalDate());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarTrazONomeDoCliente() {
+        System.out.println("listar (traz o nome do cliente da reserva)");
+        List<Integer> reservas = ConexaoBD.select("SELECT TOP 1 id FROM Reserva ORDER BY id", new InteiroMapper());
+        Assumptions.assumeTrue(!reservas.isEmpty(), "Faltam reservas na BD");
+        int reservaId = reservas.get(0);
+        AcessoCartao acesso = new AcessoCartao(0, cartao, LocalHotel.PISCINA, 0, reservaId, null);
+        instance.registar(acesso);
+        criados.add(acesso);
+        String expResult = ConexaoBD.select("SELECT p.nome FROM Reserva r JOIN Pessoa p ON p.id = r.clienteId "
+                + "WHERE r.id = ?", new TextoMapper(), reservaId).get(0);
+        String result = instance.listar(cartao, 0, null, null).get(0).getPessoaTexto();
         assertEquals(expResult, result);
     }
 
@@ -184,11 +260,11 @@ public class AcessoCartaoDALTest {
     }
 
     @Test
-    public void testListarCartoesDeClientes() {
-        System.out.println("listarCartoesDeClientes (um cartão por reserva em curso)");
-        int expResult = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado = 'EM_CURSO' "
-                + "AND cartao IS NOT NULL", new InteiroMapper()).get(0);
-        int result = instance.listarCartoesDeClientes().size();
+    public void testListarCartoesUsados() {
+        System.out.println("listarCartoesUsados (inclui um cartão acabado de usar, sem titular)");
+        registar(LocalHotel.PISCINA, 0);
+        boolean expResult = true;
+        boolean result = instance.listarCartoesUsados().contains(new CartaoAtivo(cartao, "Sem titular"));
         assertEquals(expResult, result);
     }
 
