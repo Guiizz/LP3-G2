@@ -27,7 +27,7 @@
         <Button text="Limpar filtros" onAction="#aoLimparFiltros"/>
     </HBox>
 
-    <TableView fx:id="quartosTabela" VBox.vgrow="ALWAYS">
+    <TableView fx:id="quartosTabela" VBox.vgrow="ALWAYS" onMouseClicked="#aoEscolherQuarto">
         <columns>
             <TableColumn text="Número">
                 <cellValueFactory><PropertyValueFactory property="numero"/></cellValueFactory>
@@ -54,5 +54,30 @@
     </TableView>
 
     <Label fx:id="mensagemLabel"/>
+
+    <Label fx:id="materiaisLabel" text="Materiais do quarto: escolha um quarto na tabela" style="-fx-font-weight: bold;"/>
+
+    <TableView fx:id="materiaisTabela" prefHeight="150.0">
+        <placeholder>
+            <Label text="O tipo deste quarto ainda não tem materiais configurados."/>
+        </placeholder>
+        <columns>
+            <TableColumn text="Material">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Fornecedor">
+                <cellValueFactory><PropertyValueFactory property="fornecedor"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo">
+                <cellValueFactory><PropertyValueFactory property="consumivelTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quantidade">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+        </columnResizePolicy>
+    </TableView>
 
 </VBox>

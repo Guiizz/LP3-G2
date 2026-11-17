@@ -82,6 +82,7 @@ public class InicialController {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Consultar quartos", "quartos-view.fxml", false));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Materiais dos quartos", "materiais-quartos-view.fxml", false));
         if (Permissoes.eGestor(Sessao.getUtilizador())) {
             opcoes.add(new OpcaoMenu("Gestão de quartos", "gestao-quartos-view.fxml", false));
             opcoes.add(new OpcaoMenu("Tarifas", "tarifas-view.fxml", false));
