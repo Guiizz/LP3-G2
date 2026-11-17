@@ -31,7 +31,6 @@ public class StockDAL implements IStockDAL {
             + "AND ms.devolvidaEm IS NULL), 0) AS saiu "
             + "FROM Stock s JOIN Material m ON m.id = s.materialId JOIN Fornecedor f ON f.id = m.fornecedorId "
             + "ORDER BY m.descricao, f.nome, m.id";
-    // os NULL levam o tipo VARCHAR: num UNION, um NULL sem tipo é INT e o SQL Server tentaria converter o texto
     private static final String LISTAR_MOVIMENTOS =
             "SELECT 'ENTRADA' AS tipo, l.unidades AS quantidade, COALESCE(e.decididaEm, e.registadaEm) AS registadoEm, "
             + "p.nome AS funcionario, CAST(NULL AS VARCHAR(25)) AS motivo, "
@@ -57,7 +56,6 @@ public class StockDAL implements IStockDAL {
             + "p.nome AS funcionario, ms.registadoEm FROM MovimentoStock ms JOIN Material m ON m.id = ms.materialId "
             + "LEFT JOIN Pessoa p ON p.id = ms.funcionarioId "
             + "WHERE ms.tipo = 'TEMPORARIA' AND ms.devolvidaEm IS NULL ORDER BY ms.registadoEm, ms.id";
-    // só marca a saída se for temporária e ainda estiver fora: se outra pessoa já a devolveu, não muda nada
     private static final String MARCAR_DEVOLVIDA =
             "UPDATE MovimentoStock SET devolvidaEm = SYSDATETIME(), devolvidaPor = ? "
             + "WHERE id = ? AND tipo = 'TEMPORARIA' AND devolvidaEm IS NULL";
@@ -126,7 +124,6 @@ public class StockDAL implements IStockDAL {
         }
     }
 
-    // passa o motivo guardado (nome do enum) e o texto para o texto da tabela, por exemplo "Outro: caiu ao chão"
     private static String motivo(ResultSet rs) throws SQLException {
         String nome = rs.getString("motivo");
         MotivoSaida motivo = nome == null ? null : MotivoSaida.valueOf(nome);

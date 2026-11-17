@@ -272,9 +272,6 @@ public class StockDALTest {
         assertEquals(expResult, result);
     }
 
-    // ---------------- US77: tipo e motivo das saídas e devolução das temporárias ----------------
-
-    // a saída temporária deste material que está por devolver (só há uma em cada teste)
     private SaidaStock aSaidaPorDevolver() {
         for (SaidaStock saida : instance.listarPorDevolver()) {
             if (saida.getMaterialId() == materialId) {

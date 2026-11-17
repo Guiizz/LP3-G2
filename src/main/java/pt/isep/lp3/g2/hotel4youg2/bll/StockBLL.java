@@ -179,7 +179,6 @@ public class StockBLL {
         }
     }
 
-    // sem texto ou só com espaços fica null
     private static String limparTexto(String texto) {
         if (texto == null || texto.isBlank()) {
             return null;

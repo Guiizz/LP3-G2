@@ -17,7 +17,6 @@ public class SaidaStockTest {
 
     private SaidaStock instance;
 
-    // 2 secadores levados para reparação pela Ana Silva
     @BeforeEach
     public void setUp() {
         instance = new SaidaStock(7, 4, "X569P", "Secador de cabelo Philips Preto", 2, "Reparação", "Ana Silva",

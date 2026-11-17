@@ -44,7 +44,6 @@ public class SaidaStockController {
         atualizar();
     }
 
-    // numa saída temporária não há motivo da lista: só o texto, que é opcional
     @FXML
     private void aoEscolherTipo() {
         boolean definitiva = tipoCombo.getValue() == TipoSaida.DEFINITIVA;

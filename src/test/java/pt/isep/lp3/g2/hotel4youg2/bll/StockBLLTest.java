@@ -58,7 +58,6 @@ public class StockBLLTest {
             return porDevolver;
         }
 
-        // como na BD: só devolve se a saída ainda estiver por devolver, e o material volta ao stock
         @Override
         public boolean devolver(int saidaId, int funcionarioId) {
             for (SaidaStock saida : porDevolver) {
@@ -368,13 +367,10 @@ public class StockBLLTest {
         }
     }
 
-    // ---------------- US77: tipo e motivo das saídas e devolução das temporárias ----------------
-
     private static final LocalDateTime QUANDO = LocalDateTime.of(2026, 11, 16, 9, 5);
     private static final SaidaStock SECADORES = new SaidaStock(7, 4, "X569P", "Secador", 2, "Reparação", "Ana Silva",
             QUANDO);
 
-    // regista uma saída que devia ser recusada e confirma que nada mudou
     private void esperarErroNoMotivo(TipoSaida tipo, MotivoSaida motivo, String texto, String expResult) {
         try {
             instance.registarSaida(RECECAO, TOALHAS, "3", tipo, motivo, texto);
