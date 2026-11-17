@@ -12,6 +12,7 @@ import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoFornecedorBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ContaClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
@@ -29,6 +30,7 @@ public class LoginController {
     private final AutenticacaoBLL autenticacaoBLL = new AutenticacaoBLL();
     private final AutenticacaoFornecedorBLL autenticacaoFornecedorBLL = new AutenticacaoFornecedorBLL();
     private final ContaClienteBLL contaClienteBLL = new ContaClienteBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
     private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
     private ContaCliente contaPorAtivar;
 
@@ -62,6 +64,7 @@ public class LoginController {
         try {
             Utilizador utilizador = autenticacaoBLL.autenticar(nomeUtilizadorField.getText(), passwordField.getText());
             Sessao.iniciar(utilizador);
+            reservaBLL.cancelarSemCheckin();
             abrirJanela("inicial-view.fxml", "Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador()
                     + " (" + utilizador.getPerfil() + ")");
         } catch (IllegalArgumentException e) {
@@ -140,6 +143,7 @@ public class LoginController {
 
     private void entrarComoCliente(ContaCliente conta) throws IOException {
         Sessao.iniciarCliente(conta);
+        reservaBLL.cancelarSemCheckin();
         abrirJanela("area-cliente-view.fxml", "Hotel4You · " + conta.getNome());
     }
 

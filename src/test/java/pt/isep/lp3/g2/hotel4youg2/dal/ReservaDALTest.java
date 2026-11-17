@@ -10,6 +10,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -346,6 +347,7 @@ public class ReservaDALTest {
         LocalDate antiga = LocalDate.of(1990, 1, 1);
         Reserva passada = outraReserva(antiga, antiga.plusDays(2));
         Assumptions.assumeTrue(instance.inserirSeLivre(passada), "O quarto estava ocupado nessas datas");
+        soAsDoTeste(antiga.plusDays(1), passada);
         instance.cancelarSemCheckin(antiga.plusDays(1));
         EstadoReserva expResult = EstadoReserva.CANCELADA;
         EstadoReserva result = instance.procurarPorId(passada.getId()).getEstado();
@@ -358,6 +360,7 @@ public class ReservaDALTest {
         LocalDate antiga = LocalDate.of(1990, 1, 1);
         Reserva doDia = outraReserva(antiga, antiga.plusDays(2));
         Assumptions.assumeTrue(instance.inserirSeLivre(doDia), "O quarto estava ocupado nessas datas");
+        soAsDoTeste(antiga, doDia);
         instance.cancelarSemCheckin(antiga);
         EstadoReserva expResult = EstadoReserva.CONFIRMADA;
         EstadoReserva result = instance.procurarPorId(doDia.getId()).getEstado();
@@ -370,6 +373,7 @@ public class ReservaDALTest {
         LocalDate antiga = LocalDate.of(1990, 1, 1);
         Reserva passada = outraReserva(antiga, antiga.plusDays(2));
         Assumptions.assumeTrue(instance.inserirSeLivre(passada), "O quarto estava ocupado nessas datas");
+        soAsDoTeste(antiga.plusDays(1), passada);
         instance.cancelarSemCheckin(antiga.plusDays(1));
         EstadoReserva expResult = EstadoReserva.CONFIRMADA;
         EstadoReserva result = instance.procurarPorId(reserva.getId()).getEstado();
@@ -384,10 +388,18 @@ public class ReservaDALTest {
         Assumptions.assumeTrue(instance.inserirSeLivre(emCurso), "O quarto estava ocupado nessas datas");
         ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = '1990-01-01T15:00:00' WHERE id = ?",
                 emCurso.getId());
+        soAsDoTeste(antiga.plusDays(1), emCurso);
         instance.cancelarSemCheckin(antiga.plusDays(1));
         EstadoReserva expResult = EstadoReserva.EM_CURSO;
         EstadoReserva result = instance.procurarPorId(emCurso.getId()).getEstado();
         assertEquals(expResult, result);
+    }
+
+    private void soAsDoTeste(LocalDate hoje, Reserva doTeste) {
+        int outras = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado = 'CONFIRMADA' "
+                + "AND checkinEm IS NULL AND dataEntrada < ? AND id <> ?", new InteiroMapper(),
+                Date.valueOf(hoje), doTeste.getId()).get(0);
+        Assumptions.assumeTrue(outras == 0, "Há reservas antigas que não são do teste e seriam canceladas");
     }
 
     private Reserva outraReserva(LocalDate entrada, LocalDate saida) {

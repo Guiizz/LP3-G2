@@ -1556,66 +1556,90 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testListarCancelaReservaSemCheckin() {
-        System.out.println("listar (a entrada foi ontem e não houve check-in: passa a cancelada)");
+    public void testCancelarSemCheckin() {
+        System.out.println("cancelarSemCheckin (a entrada foi ontem e não houve check-in: passa a cancelada)");
         repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        instance.cancelarSemCheckin();
         EstadoReserva expResult = EstadoReserva.CANCELADA;
         EstadoReserva result = instance.listar().get(0).getEstado();
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testListarCanceladaVaiParaOHistorico() {
-        System.out.println("listar (a reserva cancelada sozinha aparece no histórico)");
+    public void testCancelarSemCheckinVaiParaOHistorico() {
+        System.out.println("cancelarSemCheckin (a reserva cancelada sozinha aparece no histórico)");
         Reserva semCheckin = reservaDaAna(1, LocalDate.now().minusDays(3), EstadoReserva.CONFIRMADA);
         repositorio.todas.add(semCheckin);
+        instance.cancelarSemCheckin();
         List<Reserva> expResult = List.of(semCheckin);
         List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "");
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testListarNaoCancelaNoDiaDeEntrada() {
-        System.out.println("listar (no próprio dia de entrada a reserva continua confirmada)");
+    public void testCancelarSemCheckinNoDiaDeEntrada() {
+        System.out.println("cancelarSemCheckin (no próprio dia de entrada a reserva continua confirmada)");
         repositorio.todas.add(reservaDaAna(1, LocalDate.now(), EstadoReserva.CONFIRMADA));
+        instance.cancelarSemCheckin();
         EstadoReserva expResult = EstadoReserva.CONFIRMADA;
         EstadoReserva result = instance.listar().get(0).getEstado();
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testListarNaoMexeNasReservasEmCurso() {
-        System.out.println("listar (as reservas em curso sem check-out não mudam)");
+    public void testCancelarSemCheckinNaoMexeNasReservasEmCurso() {
+        System.out.println("cancelarSemCheckin (as reservas em curso sem check-out não mudam)");
         Reserva emCurso = reservaDaAna(1, LocalDate.now().minusDays(5), EstadoReserva.EM_CURSO);
         emCurso.setCheckinEm(LocalDate.now().minusDays(5).atTime(15, 0));
         repositorio.todas.add(emCurso);
+        instance.cancelarSemCheckin();
         EstadoReserva expResult = EstadoReserva.EM_CURSO;
         EstadoReserva result = instance.listar().get(0).getEstado();
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testListarCancelaComODiaDeHoje() {
-        System.out.println("listar (usa o dia de hoje para cancelar)");
+    public void testCancelarSemCheckinComODiaDeHoje() {
+        System.out.println("cancelarSemCheckin (usa o dia de hoje)");
         LocalDate expResult = LocalDate.now();
-        instance.listar();
+        instance.cancelarSemCheckin();
         LocalDate result = repositorio.canceladasAte;
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testConsultarDoClienteCancelaPrimeiro() {
-        System.out.println("consultarDoCliente (cancela primeiro as reservas sem check-in)");
-        LocalDate expResult = LocalDate.now();
+    public void testCancelarSemCheckinDevolveQuantasCancelou() {
+        System.out.println("cancelarSemCheckin (devolve quantas reservas cancelou)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(2), EstadoReserva.CONFIRMADA));
+        repositorio.todas.add(reservaDaAna(2, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        repositorio.todas.add(reservaDaAna(3, LocalDate.now().plusDays(1), EstadoReserva.CONFIRMADA));
+        int expResult = 2;
+        int result = instance.cancelarSemCheckin();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarNaoCancela() {
+        System.out.println("listar (só lê: não cancela as reservas sem check-in)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarDoClienteNaoCancela() {
+        System.out.println("consultarDoCliente (só lê: não cancela as reservas sem check-in)");
+        LocalDate expResult = null;
         instance.consultarDoCliente(cliente);
         LocalDate result = repositorio.canceladasAte;
         assertEquals(expResult, result);
     }
 
     @Test
-    public void testOpcoesDisponiveisCancelaPrimeiro() {
-        System.out.println("opcoesDisponiveis (cancela primeiro, para o quarto ficar livre)");
-        LocalDate expResult = LocalDate.now();
+    public void testOpcoesDisponiveisNaoCancela() {
+        System.out.println("opcoesDisponiveis (só lê: não cancela as reservas sem check-in)");
+        LocalDate expResult = null;
         instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 1, false, false);
         LocalDate result = repositorio.canceladasAte;
         assertEquals(expResult, result);
