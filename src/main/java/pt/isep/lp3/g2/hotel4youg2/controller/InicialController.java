@@ -69,6 +69,7 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Criar reserva", "criar-reserva-view.fxml", true));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
         opcoes.add(new OpcaoMenu("Reservas de um cliente", "consultar-reservas-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Pedidos dos clientes", "pedidos-extra-view.fxml", false));
         Navegador.mostrarArea("Reservas", opcoes);
     }
 

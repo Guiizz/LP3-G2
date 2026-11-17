@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.PedidosExtraController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Pedidos dos clientes" styleClass="titulo"/>
+        <Button text="Atualizar" onAction="#aoAtualizar"/>
+    </HBox>
+    <Label text="Pedidos de serviços e materiais à espera de decisão. O serviço aceite entra na reserva; o material aceite sai do stock (o não consumível volta no check-out)."
+           wrapText="true" maxWidth="760"/>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Pedido em" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="pedidoEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quarto" prefWidth="70.0">
+                <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Cliente" prefWidth="160.0">
+                <cellValueFactory><PropertyValueFactory property="nomeCliente"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo" prefWidth="190.0">
+                <cellValueFactory><PropertyValueFactory property="tipoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Pedido" prefWidth="170.0">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Qtd." prefWidth="60.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <placeholder>
+            <Label text="Não há pedidos à espera de decisão."/>
+        </placeholder>
+    </TableView>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="Aceitar" onAction="#aoAceitar"/>
+        <Label text="Motivo:"/>
+        <TextField fx:id="motivoField" promptText="obrigatório para recusar" prefWidth="320.0"/>
+        <Button text="Recusar" onAction="#aoRecusar"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true" maxWidth="760"/>
+</VBox>

@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox fx:id="ecra" spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
@@ -96,6 +97,9 @@
         </Tab>
     </TabPane>
 
-    <Button text="Ver detalhes" onAction="#aoVerDetalhes"/>
+    <HBox spacing="10.0">
+        <Button text="Ver detalhes" onAction="#aoVerDetalhes"/>
+        <Button text="Pedir extra" onAction="#aoPedirExtra"/>
+    </HBox>
     <Label fx:id="mensagemLabel" wrapText="true"/>
 </VBox>
