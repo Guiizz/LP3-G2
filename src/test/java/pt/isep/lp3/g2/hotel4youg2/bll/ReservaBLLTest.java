@@ -205,6 +205,9 @@ public class ReservaBLLTest {
         private List<Quarto> livres = new ArrayList<>();
         private Boolean earlyPedido;
         private Boolean latePedido;
+        private boolean aceitaEarly = true;
+        private boolean aceitaLate = true;
+        private boolean aceitaOsDoisJuntos = true;
 
         @Override
         public List<Quarto> listarComTarifa() {
@@ -221,6 +224,10 @@ public class ReservaBLLTest {
                                               boolean lateCheckout) {
             earlyPedido = earlyCheckin;
             latePedido = lateCheckout;
+            if ((earlyCheckin && !aceitaEarly) || (lateCheckout && !aceitaLate)
+                    || (earlyCheckin && lateCheckout && !aceitaOsDoisJuntos)) {
+                return new ArrayList<>();
+            }
             return new ArrayList<>(livres);
         }
 
@@ -1642,6 +1649,112 @@ public class ReservaBLLTest {
         LocalDate expResult = null;
         instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 1, false, false);
         LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotal() {
+        System.out.println("resumoDoTotal (noites, vista, early, late, serviços e total)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        String expResult = "Quarto DUPLO, vista MAR: 2 noites × 100.00 € = 200.00 €\n"
+                + "Early check-in: 20.00 €\n"
+                + "Late check-out: 25.00 €\n"
+                + "Serviços extra: 46.00 €\n"
+                + "Total: 291.00 €";
+        String result = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, true, servicosEscolhidos());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotalIgualAoDaReservaCriada() {
+        System.out.println("resumoDoTotal (é o total que fica na reserva ao confirmar)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        quartos.livres.add(duplo);
+        Reserva reserva = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+                true, true, servicosEscolhidos());
+        String expResult = "Total: " + reserva.getTotal().setScale(2) + " €";
+        String resumo = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, true, servicosEscolhidos());
+        String result = resumo.substring(resumo.lastIndexOf('\n') + 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotalSemEarlyNemLate() {
+        System.out.println("resumoDoTotal (sem early nem late, essas linhas não aparecem)");
+        Quarto individual = quartoLivre(101, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1, "50.00");
+        String expResult = "Quarto INDIVIDUAL, vista NENHUMA: 1 noite × 50.00 € = 50.00 €\n"
+                + "Serviços extra: 0.00 €\n"
+                + "Total: 50.00 €";
+        String result = instance.resumoDoTotal(individual, entrada, entrada.plusDays(1), false, false, new ArrayList<>());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotalSemQuarto() {
+        System.out.println("resumoDoTotal (sem quarto escolhido)");
+        String expResult = "Escolha um quarto";
+        try {
+            instance.resumoDoTotal(null, entrada, entrada.plusDays(1), false, false, new ArrayList<>());
+            fail("Devia ter pedido um quarto");
+        } catch (ValidacaoException e) {
+            assertEquals(expResult, e.getMessage());
+        }
+    }
+
+    @Test
+    public void testOpcoesDisponiveisEarlyELateJuntos() {
+        System.out.println("opcoesDisponiveis (early check-in e late check-out escolhidos juntos)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        quartos.livres.add(duplo);
+        List<Quarto> expResult = List.of(duplo);
+        List<Quarto> result = instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 2, true, true);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAvisoSemQuartosEarlyELateJuntos() {
+        System.out.println("avisoSemQuartos (os dois juntos não dá, mostra as alternativas)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        quartos.aceitaOsDoisJuntos = false;
+        quartos.aceitaLate = false;
+        String expResult = "Nenhum quarto permite o early check-in e o late check-out juntos nestas datas."
+                + " Há quartos só com o early check-in."
+                + " Há quartos nas horas standard (check-in às 15:00 e check-out às 12:00)."
+                + " Desmarque o que o cliente dispensar e pesquise outra vez.";
+        String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, true, true);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAvisoSemQuartosSoEarly() {
+        System.out.println("avisoSemQuartos (só o early check-in não dá)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        quartos.aceitaEarly = false;
+        String expResult = "Nenhum quarto permite o early check-in nestas datas."
+                + " Há quartos nas horas standard (check-in às 15:00 e check-out às 12:00)."
+                + " Desmarque o que o cliente dispensar e pesquise outra vez.";
+        String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, true, false);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAvisoSemQuartosNenhumLivre() {
+        System.out.println("avisoSemQuartos (sem early nem late e nenhum quarto livre)");
+        String expResult = "Não há quartos livres para estas datas e hóspedes.";
+        String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, false, false);
+        assertEquals(expResult, result);
+    }
+    @Test
+    public void testResumoDoTotalComOHorarioJaLido() {
+        System.out.println("resumoDoTotal (com o horário já lido, usa essas taxas e não volta à BD)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        HorarioReserva lido = new HorarioReserva(LocalTime.of(15, 0), LocalTime.of(12, 0),
+                LocalTime.of(13, 0), LocalTime.of(14, 0), new BigDecimal("30.00"), new BigDecimal("35.00"));
+        String expResult = "Quarto DUPLO, vista MAR: 2 noites × 100.00 € = 200.00 €\n"
+                + "Early check-in: 30.00 €\n"
+                + "Serviços extra: 0.00 €\n"
+                + "Total: 230.00 €";
+        String result = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, false, new ArrayList<>(), lido);
         assertEquals(expResult, result);
     }
 }
