@@ -19,7 +19,6 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -75,63 +74,6 @@ public class ReservaBLL {
     public BigDecimal calcularTaxa(boolean earlyCheckin, boolean lateCheckout) {
         return horarioReservaDAL.obter().calcularTaxa(earlyCheckin, lateCheckout);
     }
-
-    public String avisoSemQuartos(LocalDate entrada, LocalDate saida, int hospedes, boolean early, boolean late) {
-        if (!early && !late) {
-            return "Não há quartos livres para estas datas e hóspedes.";
-        }
-        StringBuilder aviso = new StringBuilder("Nenhum quarto permite ");
-        if (early && late) {
-            aviso.append("o early check-in e o late check-out juntos nestas datas.");
-            if (!opcoesDisponiveis(entrada, saida, hospedes, true, false).isEmpty()) {
-                aviso.append(" Há quartos só com o early check-in.");
-            }
-            if (!opcoesDisponiveis(entrada, saida, hospedes, false, true).isEmpty()) {
-                aviso.append(" Há quartos só com o late check-out.");
-            }
-        } else {
-            aviso.append(early ? "o early check-in" : "o late check-out").append(" nestas datas.");
-        }
-        if (!opcoesDisponiveis(entrada, saida, hospedes, false, false).isEmpty()) {
-            HorarioReserva horario = horarioReservaDAL.obter();
-            aviso.append(" Há quartos nas horas standard (check-in às ").append(horario.getHoraCheckin())
-                    .append(" e check-out às ").append(horario.getHoraCheckout()).append(").");
-        }
-        aviso.append(" Desmarque o que o cliente dispensar e pesquise outra vez.");
-        return aviso.toString();
-    }
-
-    public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
-                                List<ServicoReserva> servicos) {
-        return resumoDoTotal(quarto, entrada, saida, early, late, servicos, horarioReservaDAL.obter());
-    }
-
-    public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
-                                List<ServicoReserva> servicos, HorarioReserva horario) {
-        BigDecimal alojamento = calcularPreco(quarto, entrada, saida);
-        long noites = ChronoUnit.DAYS.between(entrada, saida);
-        BigDecimal taxaEarly = early ? horario.getTaxaEarlyCheckin() : BigDecimal.ZERO;
-        BigDecimal taxaLate = late ? horario.getTaxaLateCheckout() : BigDecimal.ZERO;
-        BigDecimal extras = ServicoReservaBLL.somar(servicos);
-        StringBuilder texto = new StringBuilder();
-        texto.append("Quarto ").append(quarto.getTipo()).append(", vista ").append(quarto.getVista()).append(": ")
-                .append(noites).append(noites == 1 ? " noite × " : " noites × ").append(euros(quarto.getValorNoite()))
-                .append(" = ").append(euros(alojamento));
-        if (early) {
-            texto.append("\nEarly check-in: ").append(euros(taxaEarly));
-        }
-        if (late) {
-            texto.append("\nLate check-out: ").append(euros(taxaLate));
-        }
-        texto.append("\nServiços extra: ").append(euros(extras));
-        texto.append("\nTotal: ").append(euros(alojamento.add(taxaEarly).add(taxaLate).add(extras)));
-        return texto.toString();
-    }
-
-    private static String euros(BigDecimal valor) {
-        return valor.setScale(2, RoundingMode.HALF_UP) + " €";
-    }
-
 
     /**
      * Devolve as opções de quarto disponíveis para o pedido do cliente: um quarto de cada
