@@ -19,6 +19,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.HorarioReserva;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -32,6 +33,7 @@ import java.util.List;
  */
 public class CriarReservaController {
 
+    private static final String SEM_QUARTO = "Escolha o cliente, as datas e o tipo de quarto.";
     private final ClienteBLL clienteBLL = new ClienteBLL();
     private final ReservaBLL reservaBLL = new ReservaBLL();
     private final ServicoReservaBLL servicoReservaBLL = new ServicoReservaBLL();
@@ -64,18 +66,18 @@ public class CriarReservaController {
     @FXML
     private Button confirmarButton;
     @FXML
-    private Button servicosButton;
+    private Label totalLabel;
     @FXML
     private Label mensagemLabel;
 
     private Cliente cliente;
-    private Reserva reservaCriada;
     private Quarto quartoEscolhido;
     private LocalDate entradaPesquisada;
     private LocalDate saidaPesquisada;
     private int hospedesPesquisados;
     private boolean earlyPesquisado;
     private boolean latePesquisado;
+    private HorarioReserva horarioPesquisado;
 
     @FXML
     private void initialize() {
@@ -135,6 +137,7 @@ public class CriarReservaController {
             hospedesPesquisados = hospedes;
             earlyPesquisado = early;
             latePesquisado = late;
+            horarioPesquisado = reservaBLL.horario();
             quartosTabela.getItems().setAll(opcoes);
             if (opcoes.isEmpty()) {
                 mostrarMensagem(reservaBLL.avisoSemQuartos(entrada, saida, hospedes, early, late), "red");
@@ -202,11 +205,16 @@ public class CriarReservaController {
 
     private void mostrarTotal() {
         if (quartoEscolhido == null) {
-            precoLabel.setText("");
+            precoLabel.setText(SEM_QUARTO);
+            totalLabel.setText("");
             return;
         }
-        precoLabel.setText(reservaBLL.resumoDoTotal(quartoEscolhido, entradaPesquisada, saidaPesquisada,
-                earlyPesquisado, latePesquisado, servicosEscolhidos));
+        String resumo = reservaBLL.resumoDoTotal(quartoEscolhido, entradaPesquisada, saidaPesquisada,
+                earlyPesquisado, latePesquisado, servicosEscolhidos, horarioPesquisado);
+        int ultimaLinha = resumo.lastIndexOf('\n');
+        precoLabel.setText(resumo.substring(0, ultimaLinha));
+        totalLabel.setText(resumo.substring(ultimaLinha + 1));
+
     }
 
     @FXML
@@ -218,8 +226,6 @@ public class CriarReservaController {
             mostrarMensagem("Reserva n.º " + reserva.getId() + " criada para " + cliente.getNome()
                     + ": foi atribuído o quarto " + reserva.getQuartoNumero() + " (" + reserva.getTotal() + " €)",
                     "green");
-            reservaCriada = reserva;
-            servicosButton.setDisable(false);
             servicosEscolhidos.clear();
             servicosTabela.getItems().clear();
             limparQuartoEscolhido();
@@ -231,24 +237,10 @@ public class CriarReservaController {
         }
     }
 
-    @FXML
-    private void aoJuntarServicos() {
-        if (reservaCriada == null) {
-            return;
-        }
-        try {
-            ServicosReservaController.abrir(reservaCriada);
-            mostrarMensagem("Reserva n.º " + reservaCriada.getId() + ": quarto " + reservaCriada.getPrecoTotal()
-                    + " € + taxa de horário " + reservaCriada.getTaxaHorario() + " € + serviços "
-                    + reservaCriada.getTotalServicos() + " € = " + reservaCriada.getTotal() + " €", "green");
-        } catch (IOException e) {
-            mostrarMensagem("Não foi possível abrir os serviços da reserva.", "red");
-        }
-    }
-
     private void limparQuartoEscolhido() {
         quartoEscolhido = null;
-        precoLabel.setText("");
+        precoLabel.setText(SEM_QUARTO);
+        totalLabel.setText("");
         atualizarConfirmar();
     }
 

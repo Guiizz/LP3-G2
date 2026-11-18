@@ -103,9 +103,13 @@ public class ReservaBLL {
 
     public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
                                 List<ServicoReserva> servicos) {
+        return resumoDoTotal(quarto, entrada, saida, early, late, servicos, horarioReservaDAL.obter());
+    }
+
+    public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
+                                List<ServicoReserva> servicos, HorarioReserva horario) {
         BigDecimal alojamento = calcularPreco(quarto, entrada, saida);
         long noites = ChronoUnit.DAYS.between(entrada, saida);
-        HorarioReserva horario = horarioReservaDAL.obter();
         BigDecimal taxaEarly = early ? horario.getTaxaEarlyCheckin() : BigDecimal.ZERO;
         BigDecimal taxaLate = late ? horario.getTaxaLateCheckout() : BigDecimal.ZERO;
         BigDecimal extras = ServicoReservaBLL.somar(servicos);

@@ -1744,4 +1744,17 @@ public class ReservaBLLTest {
         String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, false, false);
         assertEquals(expResult, result);
     }
+    @Test
+    public void testResumoDoTotalComOHorarioJaLido() {
+        System.out.println("resumoDoTotal (com o horário já lido, usa essas taxas e não volta à BD)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        HorarioReserva lido = new HorarioReserva(LocalTime.of(15, 0), LocalTime.of(12, 0),
+                LocalTime.of(13, 0), LocalTime.of(14, 0), new BigDecimal("30.00"), new BigDecimal("35.00"));
+        String expResult = "Quarto DUPLO, vista MAR: 2 noites × 100.00 € = 200.00 €\n"
+                + "Early check-in: 30.00 €\n"
+                + "Serviços extra: 0.00 €\n"
+                + "Total: 230.00 €";
+        String result = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, false, new ArrayList<>(), lido);
+        assertEquals(expResult, result);
+    }
 }
