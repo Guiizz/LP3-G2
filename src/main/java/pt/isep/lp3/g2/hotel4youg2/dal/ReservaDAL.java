@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IReservaDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.model.MaterialQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
@@ -20,6 +21,8 @@ import java.util.List;
  * Implementação do {@link IReservaDAL} sobre a tabela Reserva do SQL Server.
  */
 public class ReservaDAL implements IReservaDAL {
+
+    private final MaterialReservaDAL materialReservaDAL = new MaterialReservaDAL();
 
     private static final String CONFLITO_DE_DATAS =
             "((r.dataEntrada < ? AND r.dataSaida > ?) "
@@ -279,5 +282,59 @@ public class ReservaDAL implements IReservaDAL {
     public boolean registarCheckout(Reserva reserva) {
         return ConexaoBD.executar(REGISTAR_CHECKOUT, Timestamp.valueOf(reserva.getCheckoutEm()),
                 reserva.getId()) > 0;
+    }
+
+    @Override
+    public boolean registarCheckin(Reserva reserva, int funcionarioId) {
+        List<MaterialQuarto> materiais = materialReservaDAL.listar(reserva.getId());
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try {
+                if (executar(conn, REGISTAR_CHECKIN, Timestamp.valueOf(reserva.getCheckinEm()), reserva.getCartao(),
+                        reserva.getId()) == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                materialReservaDAL.darBaixa(conn, reserva.getId(), materiais, funcionarioId);
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao gravar o check-in", e);
+        }
+    }
+
+    @Override
+    public boolean registarCheckout(Reserva reserva, int funcionarioId) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try {
+                if (executar(conn, REGISTAR_CHECKOUT, Timestamp.valueOf(reserva.getCheckoutEm()),
+                        reserva.getId()) == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                materialReservaDAL.devolverTemporarias(conn, reserva.getId(), funcionarioId);
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao gravar o check-out", e);
+        }
+    }
+
+    private static int executar(Connection conn, String sql, Object... valores) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (int i = 0; i < valores.length; i++) {
+                ps.setObject(i + 1, valores[i]);
+            }
+            return ps.executeUpdate();
+        }
     }
 }
