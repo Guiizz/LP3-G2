@@ -43,7 +43,11 @@ public class QuartosController {
     @FXML
     private void initialize() {
         tipoCombo.getItems().setAll(TipoQuarto.values());
-        pisoCombo.getItems().setAll(2,3);
+        try {
+            pisoCombo.getItems().setAll(quartoBLL.listarPisos());
+        } catch (RuntimeException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível carregar os pisos: " + e.getMessage());
+        }
         atualizar();
     }
 
