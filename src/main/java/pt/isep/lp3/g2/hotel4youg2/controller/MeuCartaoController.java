@@ -109,16 +109,4 @@ public class MeuCartaoController {
             tabela.getItems().clear();
         }
     }
-
-    private static class CartaoDaReserva extends StringConverter<Reserva> {
-        @Override
-        public String toString(Reserva reserva) {
-            return reserva == null ? "" : reserva.getCartao() + " · Quarto " + reserva.getQuartoNumero();
-        }
-
-        @Override
-        public Reserva fromString(String texto) {
-            return null;
-        }
-    }
 }

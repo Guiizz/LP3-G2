@@ -16,6 +16,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.LocalPicagem;
+import pt.isep.lp3.g2.hotel4youg2.model.PlantaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
@@ -276,6 +277,27 @@ public class AcessoCartaoBLL {
             if (local != LocalHotel.QUARTO) {
                 locais.add(new LocalPicagem(local, 0));
             }
+        }
+        return locais;
+    }
+
+    public PlantaHotel planta() {
+        return new PlantaHotel(quartoDAL.listarTodos());
+    }
+
+    public List<LocalPicagem> locaisQueAbre(ContaCliente conta, Reserva escolhida) {
+        List<LocalPicagem> locais = new ArrayList<>();
+        List<Reserva> reservas = reservasComCartao(conta);
+        if (reservas.isEmpty()) {
+            return locais;
+        }
+        Reserva reserva = reservaEscolhida(reservas, escolhida);
+        locais.add(LocalPicagem.quarto(reserva.getQuartoNumero()));
+        if (reservaIncluiLocal(reserva, LocalHotel.RESTAURANTE)) {
+            locais.add(new LocalPicagem(LocalHotel.RESTAURANTE, 0));
+        }
+        if (reservaIncluiLocal(reserva, LocalHotel.PISCINA)) {
+            locais.add(new LocalPicagem(LocalHotel.PISCINA, 0));
         }
         return locais;
     }

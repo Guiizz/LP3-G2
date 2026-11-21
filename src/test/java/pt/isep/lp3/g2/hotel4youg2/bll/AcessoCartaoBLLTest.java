@@ -32,8 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AcessoCartaoBLLTest {
 
@@ -1286,5 +1285,31 @@ public class AcessoCartaoBLLTest {
                 new LocalPicagem(LocalHotel.GARAGEM, 0), new LocalPicagem(LocalHotel.ARMAZEM, 0));
         List<LocalPicagem> result = instance.listarLocais();
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLocaisQueAbreSoOQuarto() {
+        System.out.println("locaisQueAbre (reserva sem extras: só o quarto 201)");
+        List<LocalPicagem> expResult = List.of(LocalPicagem.quarto(201));
+        List<LocalPicagem> result = instance.locaisQueAbre(RUI, reservaDAL.emCurso);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLocaisQueAbreComJantarEPiscina() {
+        System.out.println("locaisQueAbre (com jantar e piscina: quarto, restaurante e piscina)");
+        juntarExtra(JANTAR);
+        juntarExtra(PISCINA);
+        List<LocalPicagem> expResult = List.of(LocalPicagem.quarto(201),
+                new LocalPicagem(LocalHotel.RESTAURANTE, 0), new LocalPicagem(LocalHotel.PISCINA, 0));
+        List<LocalPicagem> result = instance.locaisQueAbre(RUI, reservaDAL.emCurso);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLocaisQueAbreSemReserva() {
+        System.out.println("locaisQueAbre (sem reserva em curso: nenhum)");
+        List<LocalPicagem> result = instance.locaisQueAbre(SEM_RESERVAS, null);
+        assertTrue(result.isEmpty());
     }
 }

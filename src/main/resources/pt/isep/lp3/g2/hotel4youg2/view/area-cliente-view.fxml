@@ -39,6 +39,13 @@
                     </ImageView>
                 </graphic>
             </Button>
+            <Button text="Planta do hotel" onAction="#aoAbrirPlanta" maxWidth="Infinity" graphicTextGap="10">
+                <graphic>
+                    <ImageView fitWidth="18" fitHeight="18" preserveRatio="true" smooth="true">
+                        <image><Image url="@../images/icons/chave_quarto_branco.png"/></image>
+                    </ImageView>
+                </graphic>
+            </Button>
             <Button text="Sugestão ou queixa" onAction="#aoAbrirSugestao" maxWidth="Infinity" graphicTextGap="10">
                 <graphic>
                     <ImageView fitWidth="18" fitHeight="18" preserveRatio="true" smooth="true">
