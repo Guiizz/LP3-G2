@@ -3,6 +3,10 @@ package pt.isep.lp3.g2.hotel4youg2.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
@@ -21,8 +25,41 @@ public class GestaoQuartosController {
     private Label mensagemLabel;
 
     @FXML
+    private TextField numeroField;
+
+    @FXML
+    private TextField pisoField;
+
+    @FXML
+    private ComboBox<TipoQuarto> tipoCombo;
+
+    @FXML
+    private ComboBox<Vista> vistaCombo;
+
+    @FXML
     private void initialize() {
+        tipoCombo.getItems().setAll(TipoQuarto.values());
+        vistaCombo.getItems().setAll(Vista.values());
         carregar();
+    }
+
+    @FXML
+    private void aoCriar() {
+        try {
+            Quarto quarto = quartoBLL.criar(Sessao.getUtilizador().getPerfil(), numeroField.getText(),
+                    pisoField.getText(), tipoCombo.getValue(), vistaCombo.getValue());
+            Mensagens.sucesso(mensagemLabel, "Quarto " + quarto.getNumero() + " criado, para "
+                    + quarto.getCapacidade() + (quarto.getCapacidade() == 1 ? " pessoa" : " pessoas")
+                    + ". Já aparece nas reservas e leva os materiais configurados para o tipo " + quarto.getTipo()
+                    + ".");
+            numeroField.clear();
+            pisoField.clear();
+            tipoCombo.setValue(null);
+            vistaCombo.setValue(null);
+            carregar();
+        } catch (RuntimeException e) {
+            Mensagens.erro(mensagemLabel, e.getMessage());
+        }
     }
 
     @FXML

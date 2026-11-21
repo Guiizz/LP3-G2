@@ -57,4 +57,6 @@ public interface IQuartoDAL {
      * @return {@code true} se o quarto existia e foi alterado
      */
     boolean atualizarAtivo(int numero, boolean ativo);
+
+    boolean inserir(Quarto quarto);
 }

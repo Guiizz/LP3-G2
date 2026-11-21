@@ -245,6 +245,11 @@ public class ReservaBLLTest {
         public boolean atualizarAtivo(int numero, boolean ativo) {
             return true;
         }
+
+        @Override
+        public boolean inserir(Quarto quarto) {
+            return false;
+        }
     }
 
     private static class HorarioReservaDALFalso implements IHorarioReservaDAL {

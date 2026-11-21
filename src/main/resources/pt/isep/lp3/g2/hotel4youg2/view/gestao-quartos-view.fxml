@@ -8,6 +8,8 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
 
 <VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.GestaoQuartosController">
@@ -16,6 +18,16 @@
     </padding>
 
     <Label text="Gestão de quartos" styleClass="titulo"/>
+    <VBox spacing="8.0" styleClass="cartao">
+        <Label text="Criar quarto" styleClass="passo"/>
+        <HBox spacing="10.0" alignment="CENTER_LEFT">
+            <TextField fx:id="numeroField" promptText="Número (ex.: 311)" prefWidth="140"/>
+            <TextField fx:id="pisoField" promptText="Piso" prefWidth="70"/>
+            <ComboBox fx:id="tipoCombo" promptText="Tipo" prefWidth="130"/>
+            <ComboBox fx:id="vistaCombo" promptText="Vista" prefWidth="130"/>
+            <Button text="Criar quarto" onAction="#aoCriar" minWidth="-Infinity"/>
+        </HBox>
+    </VBox>
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn text="Número" prefWidth="80.0">
@@ -29,6 +41,9 @@
             </TableColumn>
             <TableColumn text="Vista" prefWidth="110.0">
                 <cellValueFactory><PropertyValueFactory property="vista"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Capacidade" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="capacidade"/></cellValueFactory>
             </TableColumn>
             <TableColumn text="Estado" prefWidth="110.0">
                 <cellValueFactory><PropertyValueFactory property="estado"/></cellValueFactory>

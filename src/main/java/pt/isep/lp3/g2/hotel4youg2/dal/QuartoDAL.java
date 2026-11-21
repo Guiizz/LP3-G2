@@ -52,6 +52,12 @@ public class QuartoDAL implements IQuartoDAL {
     private static final String ATUALIZAR_ATIVO =
             "UPDATE Quarto SET ativo = ? WHERE numero = ?";
 
+
+    private static final String INSERIR =
+            "INSERT INTO Quarto (numero, piso, tipo, vista, capacidade) "
+                    + "SELECT ?, ?, ?, ?, ? "
+                    + "WHERE NOT EXISTS (SELECT 1 FROM Quarto WITH (UPDLOCK, HOLDLOCK) WHERE numero = ?)";
+
     @Override
     public List<Quarto> listarComTarifa() {
         return ConexaoBD.select(LISTAR_COM_TARIFA, new QuartoComTarifaMapper());
@@ -87,6 +93,11 @@ public class QuartoDAL implements IQuartoDAL {
     }
 
 
+    @Override
+    public boolean inserir(Quarto quarto) {
+        return ConexaoBD.executar(INSERIR, quarto.getNumero(), quarto.getPiso(), quarto.getTipo().name(),
+                quarto.getVista().name(), quarto.getCapacidade(), quarto.getNumero()) > 0;
+    }
 
     private static class QuartoComTarifaMapper implements RowMapper<Quarto> {
         @Override

@@ -257,6 +257,11 @@ public class AcessoCartaoBLLTest {
         public boolean atualizarAtivo(int numero, boolean ativo) {
             return false;
         }
+
+        @Override
+        public boolean inserir(Quarto quarto) {
+            return false;
+        }
     }
 
     private static class FuncionarioDALFalsa implements IFuncionarioDAL {
