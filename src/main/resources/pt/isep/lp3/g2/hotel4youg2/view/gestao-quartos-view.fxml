@@ -54,6 +54,7 @@
     <HBox spacing="10.0">
         <Button text="Desativar" onAction="#aoDesativar"/>
         <Button text="Reativar" onAction="#aoReativar"/>
+        <Button text="Eliminar" onAction="#aoEliminar"/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>

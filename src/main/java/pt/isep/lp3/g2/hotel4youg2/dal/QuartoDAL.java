@@ -58,6 +58,15 @@ public class QuartoDAL implements IQuartoDAL {
                     + "SELECT ?, ?, ?, ?, ? "
                     + "WHERE NOT EXISTS (SELECT 1 FROM Quarto WITH (UPDLOCK, HOLDLOCK) WHERE numero = ?)";
 
+    private static final String FOI_USADO =
+            "SELECT CASE WHEN EXISTS (SELECT 1 FROM Reserva WHERE quartoNumero = ?) "
+                    + "OR EXISTS (SELECT 1 FROM AcessoCartao WHERE quartoNumero = ?) THEN 1 ELSE 0 END";
+
+    private static final String APAGAR_SE_NUNCA_USADO =
+            "DELETE FROM Quarto WHERE numero = ? "
+                    + "AND NOT EXISTS (SELECT 1 FROM Reserva WHERE quartoNumero = ?) "
+                    + "AND NOT EXISTS (SELECT 1 FROM AcessoCartao WHERE quartoNumero = ?)";
+
     @Override
     public List<Quarto> listarComTarifa() {
         return ConexaoBD.select(LISTAR_COM_TARIFA, new QuartoComTarifaMapper());
@@ -97,6 +106,17 @@ public class QuartoDAL implements IQuartoDAL {
     public boolean inserir(Quarto quarto) {
         return ConexaoBD.executar(INSERIR, quarto.getNumero(), quarto.getPiso(), quarto.getTipo().name(),
                 quarto.getVista().name(), quarto.getCapacidade(), quarto.getNumero()) > 0;
+    }
+
+    @Override
+    public boolean foiUsado(int numero) {
+        List<Integer> resultado = ConexaoBD.select(FOI_USADO, new ContagemMapper(), numero, numero);
+        return resultado.get(0) == 1;
+    }
+
+    @Override
+    public boolean apagarSeNuncaUsado(int numero) {
+        return ConexaoBD.executar(APAGAR_SE_NUNCA_USADO, numero, numero, numero) > 0;
     }
 
     private static class QuartoComTarifaMapper implements RowMapper<Quarto> {

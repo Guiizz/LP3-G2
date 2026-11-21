@@ -38,6 +38,7 @@ public class QuartoDALTest {
     @AfterEach
     public void tearDown() {
         if (numero > 0) {
+            ConexaoBD.executar("DELETE FROM AcessoCartao WHERE quartoNumero = ?", numero);
             ConexaoBD.executar("DELETE FROM Quarto WHERE numero = ?", numero);
         }
     }
@@ -104,5 +105,59 @@ public class QuartoDALTest {
         boolean result = instance.inserir(new Quarto(numero, 9, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1));
         assertEquals(false, result);
         assertEquals(expResult, procurar(numero));
+    }
+
+    @Test
+    public void testFoiUsadoQuartoNovo() {
+        System.out.println("foiUsado (quarto acabado de criar)");
+        instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
+        boolean expResult = false;
+        boolean result = instance.foiUsado(numero);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFoiUsadoComPicagem() {
+        System.out.println("foiUsado (o quarto já teve uma picagem)");
+        instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
+        picarNoQuarto();
+        boolean expResult = true;
+        boolean result = instance.foiUsado(numero);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarSeNuncaUsado() {
+        System.out.println("apagarSeNuncaUsado (o quarto deixa de existir)");
+        instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
+        boolean apagado = instance.apagarSeNuncaUsado(numero);
+        Quarto expResult = null;
+        Quarto result = procurar(numero);
+        assertEquals(true, apagado);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testApagarSeNuncaUsadoComPicagem() {
+        System.out.println("apagarSeNuncaUsado (quarto com picagens não é apagado)");
+        instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
+        picarNoQuarto();
+        Quarto expResult = procurar(numero);
+        boolean apagado = instance.apagarSeNuncaUsado(numero);
+        assertEquals(false, apagado);
+        assertEquals(expResult, procurar(numero));
+    }
+
+    @Test
+    public void testApagarSeNuncaUsadoInexistente() {
+        System.out.println("apagarSeNuncaUsado (quarto que não existe)");
+        boolean expResult = false;
+        boolean result = instance.apagarSeNuncaUsado(numero);
+        assertEquals(expResult, result);
+    }
+
+    private void picarNoQuarto() {
+        ConexaoBD.executar("INSERT INTO AcessoCartao (cartao, localAcesso, quartoNumero) VALUES (?, 'QUARTO', ?)",
+                "T" + numero, numero);
     }
 }

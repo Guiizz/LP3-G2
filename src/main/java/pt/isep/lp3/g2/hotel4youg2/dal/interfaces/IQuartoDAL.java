@@ -59,4 +59,8 @@ public interface IQuartoDAL {
     boolean atualizarAtivo(int numero, boolean ativo);
 
     boolean inserir(Quarto quarto);
+
+    boolean foiUsado(int numero);
+
+    boolean apagarSeNuncaUsado(int numero);
 }

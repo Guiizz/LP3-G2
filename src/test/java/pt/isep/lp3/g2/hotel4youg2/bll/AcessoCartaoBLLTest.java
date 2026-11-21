@@ -262,6 +262,16 @@ public class AcessoCartaoBLLTest {
         public boolean inserir(Quarto quarto) {
             return false;
         }
+
+        @Override
+        public boolean foiUsado(int numero) {
+            return false;
+        }
+
+        @Override
+        public boolean apagarSeNuncaUsado(int numero) {
+            return false;
+        }
     }
 
     private static class FuncionarioDALFalsa implements IFuncionarioDAL {

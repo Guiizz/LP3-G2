@@ -28,6 +28,7 @@ public class QuartoBLLTest {
         private List<Quarto> disponiveis = new ArrayList<>();
         private int quartoComReservasFuturas = -1;
         private int alteracoes = 0;
+        private int quartoUsado = -1;
 
         @Override
         public List<Quarto> listarComTarifa() {
@@ -76,6 +77,26 @@ public class QuartoBLLTest {
             }
             quartos.add(quarto);
             return true;
+        }
+
+        @Override
+        public boolean foiUsado(int numero) {
+            return numero == quartoUsado;
+        }
+
+        @Override
+        public boolean apagarSeNuncaUsado(int numero) {
+            if (numero == quartoUsado) {
+                return false;
+            }
+            for (Quarto quarto : quartos) {
+                if (quarto.getNumero() == numero) {
+                    quartos.remove(quarto);
+                    alteracoes++;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
@@ -145,6 +166,15 @@ public class QuartoBLLTest {
     private String mensagemAoReativar(Perfil perfil, int numero) {
         try {
             instance.reativar(perfil, numero);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    private String mensagemAoEliminar(Perfil perfil, int numero) {
+        try {
+            instance.eliminar(perfil, numero);
         } catch (IllegalArgumentException | IllegalStateException e) {
             return e.getMessage();
         }
@@ -538,5 +568,64 @@ public class QuartoBLLTest {
         String expResult = "Escolha a vista do quarto.";
         String result = mensagemAoCriar(Perfil.GESTOR, "311", "3", TipoQuarto.DUPLO, null);
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminar() {
+        System.out.println("eliminar (quarto criado por engano, nunca usado)");
+        instance.criar(Perfil.GESTOR, "331", "3", TipoQuarto.DUPLO, Vista.MAR);
+        instance.eliminar(Perfil.GESTOR, 331);
+        List<Quarto> expResult = List.of(criarQuarto(301, 3, TipoQuarto.DUPLO, Vista.NENHUMA, 2, "80.00"));
+        List<Quarto> result = instance.listar(TipoQuarto.DUPLO, 3);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminarOsOutrosFicam() {
+        System.out.println("eliminar (os outros quartos ficam)");
+        instance.eliminar(Perfil.GESTOR, 208);
+        List<Integer> expResult = List.of(201, 301, 308);
+        List<Integer> result = new ArrayList<>();
+        for (Quarto quarto : dal.quartos) {
+            result.add(quarto.getNumero());
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminarPermiteCriarONumeroOutraVez() {
+        System.out.println("eliminar (o número fica livre para criar o quarto certo)");
+        instance.eliminar(Perfil.GESTOR, 308);
+        Quarto expResult = new Quarto(308, 3, TipoQuarto.DUPLO, Vista.MAR, 2);
+        Quarto result = instance.criar(Perfil.GESTOR, "308", "3", TipoQuarto.DUPLO, Vista.MAR);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminarComoRececionista() {
+        System.out.println("eliminar (rececionista não pode)");
+        String expResult = "Só o gestor pode gerir quartos";
+        String result = mensagemAoEliminar(Perfil.RECECIONISTA, 201);
+        assertEquals(expResult, result);
+        assertEquals(4, dal.quartos.size());
+    }
+
+    @Test
+    public void testEliminarQuartoUsado() {
+        System.out.println("eliminar (quarto com reservas ou picagens só se desativa)");
+        dal.quartoUsado = 201;
+        String expResult = "O quarto 201 já teve reservas ou picagens: não pode ser eliminado, só desativado.";
+        String result = mensagemAoEliminar(Perfil.GESTOR, 201);
+        assertEquals(expResult, result);
+        assertEquals(4, dal.quartos.size());
+    }
+
+    @Test
+    public void testEliminarQuartoInexistente() {
+        System.out.println("eliminar (o quarto não existe)");
+        String expResult = "O quarto 999 não existe";
+        String result = mensagemAoEliminar(Perfil.GESTOR, 999);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
     }
 }

@@ -173,6 +173,17 @@ public class QuartoBLL {
         }
         return Integer.parseInt(limpo);
     }
+    public void eliminar(Perfil perfilAtual, int numero) {
+        exigirGestor(perfilAtual);
+        if (quartoDAL.foiUsado(numero)) {
+            throw new IllegalArgumentException("O quarto " + numero
+                    + " já teve reservas ou picagens: não pode ser eliminado, só desativado.");
+        }
+        if (!quartoDAL.apagarSeNuncaUsado(numero)) {
+            throw new IllegalArgumentException("O quarto " + numero + " não existe");
+        }
+    }
+
 
     private void exigirGestor(Perfil perfilAtual) {
         if (perfilAtual != Perfil.GESTOR) {

@@ -5,12 +5,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import pt.isep.lp3.g2.hotel4youg2.bll.QuartoBLL;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
+
+import java.util.Optional;
 
 /**
  * Controlador do ecrã "Gestão de quartos": o gestor vê todos os quartos e desativa ou reativa cada um.
@@ -61,6 +65,36 @@ public class GestaoQuartosController {
             Mensagens.erro(mensagemLabel, e.getMessage());
         }
     }
+
+    @FXML
+    private void aoEliminar() {
+        Quarto escolhido = tabela.getSelectionModel().getSelectedItem();
+        if (escolhido == null) {
+            Mensagens.erro(mensagemLabel, "Escolha um quarto na tabela.");
+            return;
+        }
+        if (!confirmarEliminar(escolhido)) {
+            return;
+        }
+        try {
+            quartoBLL.eliminar(Sessao.getUtilizador().getPerfil(), escolhido.getNumero());
+            Mensagens.sucesso(mensagemLabel, "Quarto " + escolhido.getNumero() + " eliminado.");
+            carregar();
+        } catch (RuntimeException e) {
+            Mensagens.erro(mensagemLabel, e.getMessage());
+        }
+    }
+
+    private boolean confirmarEliminar(Quarto quarto) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION, "Tem a certeza que quer eliminar o quarto "
+                + quarto.getNumero() + "?\nSó é possível se o quarto nunca teve reservas nem picagens, "
+                + "e não se pode desfazer.", ButtonType.YES, ButtonType.NO);
+        alerta.setTitle("Eliminar quarto");
+        alerta.setHeaderText(null);
+        Optional<ButtonType> resposta = alerta.showAndWait();
+        return resposta.isPresent() && resposta.get() == ButtonType.YES;
+    }
+
 
     @FXML
     private void aoDesativar() {
