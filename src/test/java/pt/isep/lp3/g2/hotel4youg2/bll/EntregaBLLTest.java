@@ -810,7 +810,6 @@ public class EntregaBLLTest {
         return EntregaBLLTest.class.getResourceAsStream("/pt/isep/lp3/g2/hotel4youg2/json/" + nome);
     }
 
-    // lê um JSON que devia ser recusado e devolve a lista de erros
     private List<String> errosAoLerJson(String nome) {
         try {
             instance.lerFicheiroJson(ficheiroJson(nome));
@@ -869,17 +868,22 @@ public class EntregaBLLTest {
     @Test
     public void testLerFicheiroJsonIvaErrado() {
         System.out.println("lerFicheiroJson (IVA errado é recusado)");
+        List<String> expResult = List.of(
+                "Linha 3, campo TaxAmount: o IVA de 20% devia ser 42,40 €, mas o ficheiro diz 50,00 €.",
+                "Linha 3, campo LineBaseAmount: o total devia ser 262,00 €, mas o ficheiro diz 254,40 €.");
         List<String> result = errosAoLerJson("entrega-iva-errado.json");
-        String expResult = "Linha 3, campo TaxAmount: o IVA de 20% devia ser 42,40 €, mas o ficheiro diz 50,00 €.";
-        assertEquals(expResult, result.get(0));
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testLerFicheiroJsonQuantidadeZero() {
         System.out.println("lerFicheiroJson (quantidade zero é recusada)");
+        List<String> expResult = List.of(
+                "Linha 2, campo Quantity: a quantidade tem de ser maior que zero.",
+                "Linha 2, campo MonetaryAdjustmentStartAmount: a quantidade vezes o preço dá 0,00 €, "
+                        + "mas o ficheiro diz 212,00 €.");
         List<String> result = errosAoLerJson("entrega-quantidade-zero.json");
-        String expResult = "Linha 2, campo Quantity: a quantidade tem de ser maior que zero.";
-        assertEquals(expResult, result.get(0));
+        assertEquals(expResult, result);
     }
 
     @Test

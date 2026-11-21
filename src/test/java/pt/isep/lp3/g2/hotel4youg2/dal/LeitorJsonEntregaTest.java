@@ -176,4 +176,13 @@ public class LeitorJsonEntregaTest {
         instance.ler(ficheiro("entrega-caixas-sem-unidades.json"), erros);
         assertEquals(expResult, erros);
     }
+
+
+    @Test
+    public void testLerNumeroEnorme() {
+        System.out.println("ler (número demasiado grande para uma quantidade)");
+        List<String> expResult = List.of("Linha 1, Quantity.Value, campo Value: tem de ser um número inteiro.");
+        List<String> result = errosAoLer("entrega-numero-enorme.json");
+        assertEquals(expResult, result);
+    }
 }

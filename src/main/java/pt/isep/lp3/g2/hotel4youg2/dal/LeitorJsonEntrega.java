@@ -217,7 +217,8 @@ public class LeitorJsonEntrega {
                         && elemento.getAsJsonObject().get("Value").isJsonObject()) {
                     JsonObject valor = elemento.getAsJsonObject().getAsJsonObject("Value");
                     BigDecimal unidades = numero(valor.get("Value"));
-                    if ("Unit".equals(opcional(valor, "UOM")) && unidades != null && unidades.signum() > 0) {
+                    if ("Unit".equals(opcional(valor, "UOM")) && unidades != null && unidades.signum() > 0
+                            && unidades.compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) <= 0) {
                         return unidades.intValue();
                     }
                 }
@@ -280,7 +281,12 @@ public class LeitorJsonEntrega {
             estrutura.add(onde + ", campo " + nome + ": tem de ser um número inteiro.");
             return null;
         }
-        return lido.intValueExact();
+        try {
+            return lido.intValueExact();
+        } catch (ArithmeticException e) {
+            estrutura.add(onde + ", campo " + nome + ": tem de ser um número inteiro.");
+            return null;
+        }
     }
 
     private static BigDecimal numero(JsonElement campo) {
