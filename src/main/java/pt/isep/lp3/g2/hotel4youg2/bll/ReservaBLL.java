@@ -557,14 +557,16 @@ public class ReservaBLL {
     /**
      * Faz o check-in de uma reserva confirmada (US35): passa a em curso e o cliente recebe o cartão
      * do quarto. Só no dia de entrada e a partir da hora de check-in (ou da de early check-in,
-     * se a reserva o tiver).
+     * se a reserva o tiver). Na mesma transação, os materiais da reserva saem do stock (US76): os consumíveis
+     * de vez e os não consumíveis temporariamente; se faltar stock, nada é feito.
      *
      * @param quemAge o utilizador com a sessão iniciada (rececionista ou gestor)
      * @param reserva a reserva
      * @param agora   a data e hora do check-in (nos testes, uma hora fixa)
      * @return o número do cartão a entregar ao cliente
      * @throws IllegalStateException se quem age não for rececionista nem gestor, ou se a reserva
-     *                               não puder fazer check-in agora (cancelada, repetido, outro dia ou cedo demais)
+     *                               não puder fazer check-in agora (cancelada, repetido, outro dia ou cedo demais),
+     *                               ou se não houver stock suficiente dos materiais da reserva (US76)
      * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se outro funcionário
      *                               a cancelou ou fez o check-in entretanto
      */
@@ -576,7 +578,7 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         reserva.fazerCheckin(agora, horarioReservaDAL.obter().horaMinimaCheckin(reserva.isEarlyCheckin()));
-        if (!reservaDAL.registarCheckin(reserva)) {
+        if (!reservaDAL.registarCheckin(reserva, quemAge.getFuncionarioId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-in: foi cancelada ou já tem o check-in feito");
         }
@@ -618,6 +620,7 @@ public class ReservaBLL {
 
     /**
      * Faz o check-out de uma reserva em curso (US36): passa a concluída e o cartão deixa de dar acesso.
+     * Na mesma transação, as saídas temporárias da reserva voltam ao stock (US76).
      *
      * @param quemAge o utilizador com a sessão iniciada (rececionista ou gestor)
      * @param reserva a reserva em curso
@@ -631,7 +634,7 @@ public class ReservaBLL {
     public BigDecimal fazerCheckout(Utilizador quemAge, Reserva reserva, LocalDateTime agora) {
         BigDecimal total = totalAPagar(quemAge, reserva);
         reserva.fazerCheckout(agora);
-        if (!reservaDAL.registarCheckout(reserva)) {
+        if (!reservaDAL.registarCheckout(reserva, quemAge.getFuncionarioId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-out: já não está em curso");
         }
