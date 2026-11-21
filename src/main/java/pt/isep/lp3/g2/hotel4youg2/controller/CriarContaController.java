@@ -42,8 +42,23 @@ public class CriarContaController {
     private Label mensagemLabel;
 
     @FXML
+    private Label empresaLabel;
+    @FXML
+    private TextField campoEmpresa;
+
+    @FXML
     private void initialize() {
         campoPerfil.getItems().setAll(Perfil.values());
+        aoEscolherPerfil();
+    }
+
+    @FXML
+    private void aoEscolherPerfil() {
+        boolean restauracao = campoPerfil.getValue() == Perfil.RESTAURACAO;
+        empresaLabel.setVisible(restauracao);
+        empresaLabel.setManaged(restauracao);
+        campoEmpresa.setVisible(restauracao);
+        campoEmpresa.setManaged(restauracao);
     }
 
     @FXML
@@ -51,6 +66,7 @@ public class CriarContaController {
         Funcionario dados = new Funcionario(0, campoNome.getText(), campoCc.getText(), campoNif.getText(),
                 campoMorada.getText(), campoTelemovel.getText(), campoDataNascimento.getValue(),
                 campoEmail.getText(), 0, null);
+        dados.setEmpresa(campoEmpresa.getText());
         try {
             funcionarioBLL.criarConta(Sessao.getUtilizador(), dados, campoNomeUtilizador.getText(),
                     campoPassword.getText(), campoPerfil.getValue());
@@ -72,5 +88,7 @@ public class CriarContaController {
         campoNomeUtilizador.clear();
         campoPassword.clear();
         campoPerfil.setValue(null);
+        campoEmpresa.clear();
+        aoEscolherPerfil();
     }
 }

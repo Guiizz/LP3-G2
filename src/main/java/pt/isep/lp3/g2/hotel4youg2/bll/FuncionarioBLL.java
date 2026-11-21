@@ -101,6 +101,10 @@ public class FuncionarioBLL {
         if (perfil == null) {
             throw new IllegalArgumentException("Escolha o perfil.");
         }
+        String empresa = perfil == Perfil.RESTAURACAO ? limpar(dados.getEmpresa()) : null;
+        if (perfil == Perfil.RESTAURACAO && (empresa == null || empresa.length() > 100)) {
+            throw new IllegalArgumentException("Escreva o nome da empresa de restauração (até 100 caracteres).");
+        }
         if (funcionarioDAL.existeNif(nif)) {
             throw new IllegalArgumentException("Já existe uma pessoa com esse NIF.");
         }
@@ -113,6 +117,8 @@ public class FuncionarioBLL {
 
         Funcionario funcionario = new Funcionario(0, nome, cc, nif, morada, telemovel,
                 dataNascimento, email, 0, LocalDate.now());
+        funcionario.setEmpresa(empresa);
+        funcionario.setPerfil(perfil);
         Utilizador conta = new Utilizador(0, 0, utilizador, hash, salt, perfil, true);
         funcionarioDAL.criarConta(funcionario, conta);
     }
