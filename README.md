@@ -88,6 +88,7 @@ Os controladores só falam com a BLL, e a BLL só fala com a base de dados atrav
 | `mssql-jdbc` (Microsoft) | Driver JDBC para o SQL Server | O enunciado exige SQL Server, e este é o driver oficial |
 | `dotenv-java` | Ler as credenciais do ficheiro `.env` | Evita passwords no código e no repositório |
 | JavaFX (`javafx-controls`, `javafx-fxml`) | Interface gráfica | Recomendada no enunciado, com os ecrãs separados da lógica |
+| `gson` | Ler o ficheiro JSON da entrega (US64) | Biblioteca da Google, leve e sem outras dependências; o modo estrito recusa JSON mal formado e indica a linha |
 | JUnit 5 | Testes unitários | Exigidos no enunciado |
 | `java.xml` (já vem com o Java) | Ler o XML das entregas e validá-lo com o XSD | É a usada nas aulas (DOM e `Validator`) e não obriga a juntar mais nenhuma biblioteca ao projeto |
 
