@@ -7,6 +7,7 @@ import javafx.scene.layout.BorderPane;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
@@ -30,6 +31,18 @@ public class InicialController {
     private Label utilizadorLabel;
 
     @FXML
+    private Button clientesButton;
+
+    @FXML
+    private Button reservasButton;
+
+    @FXML
+    private Button quartosButton;
+
+    @FXML
+    private Button stockButton;
+
+    @FXML
     private Button servicosButton;
 
     @FXML
@@ -45,6 +58,21 @@ public class InicialController {
         boolean gestor = Permissoes.eGestor(utilizador);
         mostrar(servicosButton, gestor);
         mostrar(administracaoButton, gestor);
+        if (utilizador != null && utilizador.getPerfil() == Perfil.RESTAURACAO) {
+            mostrarSoOCartao();
+        }
+    }
+
+    private void mostrarSoOCartao() {
+        mostrar(clientesButton, false);
+        mostrar(reservasButton, false);
+        mostrar(quartosButton, false);
+        mostrar(stockButton, false);
+        try {
+            Navegador.mostrar("acesso-cartao-view.fxml");
+        } catch (IOException e) {
+            estadoLabel.setText("Não foi possível abrir o seu cartão. Use o botão \"O meu cartão\".");
+        }
     }
 
     @FXML

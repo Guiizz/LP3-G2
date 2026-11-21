@@ -270,6 +270,48 @@ public class FuncionarioBLLTest {
     }
 
     @Test
+    public void testCriarContaRestauracaoGuardaAEmpresa() {
+        System.out.println("criarConta (restauração, com o nome da empresa externa)");
+        dados.setEmpresa("  Sabores do Norte Lda ");
+        instance.criarConta(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
+        Funcionario expResult = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
+                LocalDate.now());
+        expResult.setEmpresa("Sabores do Norte Lda");
+        Funcionario result = dal.funcionarioGravado;
+        assertEquals(expResult, result);
+        assertEquals(Perfil.RESTAURACAO, dal.contaGravada.getPerfil());
+    }
+
+    @Test
+    public void testCriarContaRestauracaoSemEmpresa() {
+        System.out.println("criarConta (restauração sem o nome da empresa)");
+        dados.setEmpresa("   ");
+        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres).";
+        String result = mensagemAoCriar(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.contasCriadas);
+    }
+
+    @Test
+    public void testCriarContaRestauracaoEmpresaDemasiadoLonga() {
+        System.out.println("criarConta (restauração com empresa de mais de 100 caracteres)");
+        dados.setEmpresa("a".repeat(101));
+        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres).";
+        String result = mensagemAoCriar(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaRececionistaSemEmpresa() {
+        System.out.println("criarConta (a empresa só fica guardada na restauração)");
+        dados.setEmpresa("Sabores do Norte Lda");
+        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        String expResult = null;
+        String result = dal.funcionarioGravado.getEmpresa();
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testCriarContaNascimentoNoFuturo() {
         System.out.println("criarConta (data de nascimento no futuro)");
         dados.setDataNascimento(LocalDate.now().plusDays(1));

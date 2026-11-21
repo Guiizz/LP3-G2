@@ -1,5 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.model;
 
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
+
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -11,7 +13,11 @@ public class Funcionario extends Pessoa {
     /** Letra com que começa o cartão de um funcionário, seguida do número de funcionário (US52). */
     public static final String PREFIXO_CARTAO = "F";
 
+    public static final String PREFIXO_CARTAO_RESTAURACAO = "R";
+
     private int numeroFuncionario;
+    private Perfil perfil;
+    private String empresa;
     private LocalDate dataAdmissao;
 
     public int getNumeroFuncionario() {
@@ -22,7 +28,27 @@ public class Funcionario extends Pessoa {
      * @return o número do cartão do funcionário, por exemplo {@code "F12"} (US52)
      */
     public String getCartao() {
-        return PREFIXO_CARTAO + numeroFuncionario;
+        return (isRestauracao() ? PREFIXO_CARTAO_RESTAURACAO : PREFIXO_CARTAO) + numeroFuncionario;
+    }
+
+    public Perfil getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(Perfil perfil) {
+        this.perfil = perfil;
+    }
+
+    public boolean isRestauracao() {
+        return perfil == Perfil.RESTAURACAO;
+    }
+
+    public String getEmpresa() {
+        return empresa;
+    }
+
+    public void setEmpresa(String empresa) {
+        this.empresa = empresa;
     }
 
     public void setNumeroFuncionario(int numeroFuncionario) {
@@ -68,12 +94,13 @@ public class Funcionario extends Pessoa {
         }
         Funcionario outro = (Funcionario) o;
         return numeroFuncionario == outro.numeroFuncionario
-                && Objects.equals(dataAdmissao, outro.dataAdmissao);
+                && Objects.equals(dataAdmissao, outro.dataAdmissao)
+                && Objects.equals(empresa, outro.empresa);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), numeroFuncionario, dataAdmissao);
+        return Objects.hash(super.hashCode(), numeroFuncionario, dataAdmissao, empresa);
     }
 
     @Override

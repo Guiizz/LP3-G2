@@ -263,9 +263,22 @@ public class AcessoCartaoBLLTest {
         private final Funcionario ana = new Funcionario(7, "Ana Silva", null, "123456789", null, null, null, null,
                 12, LocalDate.of(2026, 10, 1));
         private boolean contaAtiva = true;
+        private final Funcionario rita = funcionariaDaRestauracao();
+        private boolean contaDaRitaAtiva = true;
+
+        private static Funcionario funcionariaDaRestauracao() {
+            Funcionario rita = new Funcionario(9, "Rita Sousa", null, "234567891", null, null, null, null, 13,
+                    LocalDate.of(2026, 11, 1));
+            rita.setPerfil(Perfil.RESTAURACAO);
+            rita.setEmpresa("Sabores do Norte Lda");
+            return rita;
+        }
 
         @Override
         public boolean temContaAtiva(int pessoaId) {
+            if (pessoaId == rita.getId()) {
+                return contaDaRitaAtiva;
+            }
             return contaAtiva && pessoaId == ana.getId();
         }
 
@@ -280,11 +293,17 @@ public class AcessoCartaoBLLTest {
 
         @Override
         public Funcionario procurarPorNumero(int numeroFuncionario) {
+            if (numeroFuncionario == rita.getNumeroFuncionario()) {
+                return rita;
+            }
             return numeroFuncionario == ana.getNumeroFuncionario() ? ana : null;
         }
 
         @Override
         public Funcionario procurarPorId(int pessoaId) {
+            if (pessoaId == rita.getId()) {
+                return rita;
+            }
             return pessoaId == ana.getId() ? ana : null;
         }
 
@@ -1270,6 +1289,102 @@ public class AcessoCartaoBLLTest {
                 new LocalPicagem(LocalHotel.PISCINA, 0), new LocalPicagem(LocalHotel.COZINHA, 0),
                 new LocalPicagem(LocalHotel.GARAGEM, 0), new LocalPicagem(LocalHotel.ARMAZEM, 0));
         List<LocalPicagem> result = instance.listarLocais();
+        assertEquals(expResult, result);
+    }
+
+    private static final Utilizador RESTAURACAO = new Utilizador(5, 9, "rita", "h", "s", Perfil.RESTAURACAO, true);
+    private static final String SO_COZINHA_E_RESTAURANTE =
+            "Acesso recusado: o cartão R13 é da restauração e só abre a cozinha e o restaurante.";
+
+    private AcessoCartao picagemDaRita(LocalHotel local) {
+        AcessoCartao picagem = new AcessoCartao(1, "R13", local, 0, 0, acessoDAL.agora);
+        picagem.setFuncionario(9, "Rita Sousa");
+        return picagem;
+    }
+
+    private void esperarRecusaDaRestauracao(LocalHotel local, int quarto, String expResult) {
+        try {
+            instance.picar(RESTAURACAO, local, quarto);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            assertEquals(expResult, expected.getMessage());
+            assertEquals(0, acessoDAL.registados.size());
+        }
+    }
+
+    @Test
+    public void testCartaoDoUtilizadorRestauracao() {
+        System.out.println("cartaoDoUtilizador (a restauração tem o cartão R e o número)");
+        String expResult = "R13";
+        String result = instance.cartaoDoUtilizador(RESTAURACAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarRestauracaoNaCozinha() {
+        System.out.println("picar (o cartão da restauração abre a cozinha)");
+        AcessoCartao expResult = picagemDaRita(LocalHotel.COZINHA);
+        AcessoCartao result = instance.picar(RESTAURACAO, LocalHotel.COZINHA, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarRestauracaoNoRestaurante() {
+        System.out.println("picar (o cartão da restauração abre o restaurante)");
+        AcessoCartao expResult = picagemDaRita(LocalHotel.RESTAURANTE);
+        AcessoCartao result = instance.picar(RESTAURACAO, LocalHotel.RESTAURANTE, 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarRestauracaoNoBar() {
+        System.out.println("picar (a restauração é recusada no bar, mesmo no piso 0)");
+        esperarRecusaDaRestauracao(LocalHotel.BAR, 0, SO_COZINHA_E_RESTAURANTE);
+    }
+
+    @Test
+    public void testPicarRestauracaoNaPiscina() {
+        System.out.println("picar (a restauração é recusada na piscina, mesmo no piso 1)");
+        esperarRecusaDaRestauracao(LocalHotel.PISCINA, 0, SO_COZINHA_E_RESTAURANTE);
+    }
+
+    @Test
+    public void testPicarRestauracaoNoArmazem() {
+        System.out.println("picar (a restauração é recusada no armazém)");
+        esperarRecusaDaRestauracao(LocalHotel.ARMAZEM, 0, SO_COZINHA_E_RESTAURANTE);
+    }
+
+    @Test
+    public void testPicarRestauracaoNumQuarto() {
+        System.out.println("picar (a restauração é recusada nos quartos)");
+        esperarRecusaDaRestauracao(LocalHotel.QUARTO, 201, SO_COZINHA_E_RESTAURANTE);
+    }
+
+    @Test
+    public void testPicarRestauracaoComContaDesativada() {
+        System.out.println("picar (conta da restauração desativada)");
+        funcionarioDAL.contaDaRitaAtiva = false;
+        esperarRecusaDaRestauracao(LocalHotel.COZINHA, 0,
+                "Acesso recusado: o cartão R13 é de um funcionário com a conta desativada.");
+    }
+
+    @Test
+    public void testCartaoFDeUmFuncionarioDaRestauracao() {
+        System.out.println("registarPassagem (o funcionário da restauração não tem cartão F)");
+        esperarRecusa("F13", LocalHotel.COZINHA, 0, "Acesso recusado: o cartão F13 não é de nenhum funcionário.");
+    }
+
+    @Test
+    public void testCartaoRDeUmFuncionarioDaRececao() {
+        System.out.println("registarPassagem (um funcionário da receção não tem cartão R)");
+        esperarRecusa("R12", LocalHotel.COZINHA, 0, "Acesso recusado: o cartão R12 não é de nenhum funcionário.");
+    }
+
+    @Test
+    public void testLocaisDoCartaoRestauracao() {
+        System.out.println("locaisDoCartao (a restauração vê todos os locais, para ver o motivo da recusa)");
+        List<LocalHotel> expResult = List.of(LocalHotel.values());
+        List<LocalHotel> result = instance.locaisDoCartao(RESTAURACAO);
         assertEquals(expResult, result);
     }
 }
