@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.EstatisticasController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Estatísticas do hotel" styleClass="titulo"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="De:"/>
+        <DatePicker fx:id="inicioPicker" prefWidth="130.0"/>
+        <Label text="Até:"/>
+        <DatePicker fx:id="fimPicker" prefWidth="130.0"/>
+        <Button text="Mostrar" onAction="#aoMostrar" defaultButton="true"/>
+        <Button text="Últimos 12 meses" onAction="#aoRepor"/>
+    </HBox>
+
+    <GridPane hgap="10.0" vgap="10.0">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="25.0" hgrow="ALWAYS"/>
+            <ColumnConstraints percentWidth="25.0" hgrow="ALWAYS"/>
+            <ColumnConstraints percentWidth="25.0" hgrow="ALWAYS"/>
+            <ColumnConstraints percentWidth="25.0" hgrow="ALWAYS"/>
+        </columnConstraints>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="0">
+            <Label text="Ocupação média" styleClass="passo"/>
+            <Label fx:id="ocupacaoLabel" styleClass="total"/>
+            <Label text="quartos ocupados por noite" wrapText="true"/>
+        </VBox>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="0">
+            <Label text="Preço médio por noite (ADR)" styleClass="passo"/>
+            <Label fx:id="precoMedioLabel" styleClass="total"/>
+            <Label text="receita dos quartos ÷ noites vendidas" wrapText="true"/>
+        </VBox>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="0">
+            <Label text="Receita por quarto (RevPAR)" styleClass="passo"/>
+            <Label fx:id="revparLabel" styleClass="total"/>
+            <Label text="receita dos quartos ÷ quartos disponíveis por noite" wrapText="true"/>
+        </VBox>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="0">
+            <Label text="Receita do período" styleClass="passo"/>
+            <Label fx:id="receitaLabel" styleClass="total"/>
+            <Label fx:id="previstaLabel" wrapText="true"/>
+        </VBox>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <Label text="Duração média da estadia" styleClass="passo"/>
+            <Label fx:id="duracaoLabel" styleClass="total"/>
+            <Label text="noites por reserva" wrapText="true"/>
+        </VBox>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1">
+            <Label text="Antecedência média" styleClass="passo"/>
+            <Label fx:id="antecedenciaLabel" styleClass="total"/>
+            <Label text="dias entre a reserva e a entrada" wrapText="true"/>
+        </VBox>
+        <VBox styleClass="cartao" spacing="2.0" maxHeight="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="1">
+            <Label text="Taxa de cancelamento" styleClass="passo"/>
+            <Label fx:id="cancelamentoLabel" styleClass="total"/>
+            <Label text="reservas canceladas" wrapText="true"/>
+        </VBox>
+    </GridPane>
+
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <Tab text="Ocupação por mês">
+            <BarChart fx:id="ocupacaoChart" legendVisible="false" animated="false">
+                <xAxis><CategoryAxis/></xAxis>
+                <yAxis><NumberAxis label="Ocupação (%)" autoRanging="false" lowerBound="0" upperBound="100" tickUnit="10"/></yAxis>
+            </BarChart>
+        </Tab>
+        <Tab text="Receita por tipo de quarto">
+            <PieChart fx:id="receitaQuartosChart" animated="false" labelsVisible="true" legendSide="RIGHT"/>
+        </Tab>
+        <Tab text="Receita por serviço">
+            <PieChart fx:id="receitaServicosChart" animated="false" labelsVisible="true" legendSide="RIGHT"/>
+        </Tab>
+        <Tab text="Serviços mais usados">
+            <BarChart fx:id="servicosChart" legendVisible="false" animated="false">
+                <xAxis><NumberAxis label="Vezes usado" minorTickVisible="false"/></xAxis>
+                <yAxis><CategoryAxis/></yAxis>
+            </BarChart>
+        </Tab>
+        <Tab text="Materiais mais gastos">
+            <BarChart fx:id="materiaisChart" legendVisible="false" animated="false">
+                <xAxis><NumberAxis label="Unidades gastas" minorTickVisible="false"/></xAxis>
+                <yAxis><CategoryAxis/></yAxis>
+            </BarChart>
+        </Tab>
+    </TabPane>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>
