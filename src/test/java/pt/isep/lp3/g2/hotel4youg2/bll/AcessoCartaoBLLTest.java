@@ -335,6 +335,11 @@ public class AcessoCartaoBLLTest {
         @Override
         public void criarConta(Funcionario funcionario, Utilizador utilizador) {
         }
+
+        @Override
+        public boolean editar(Funcionario funcionario, int utilizadorId, Perfil perfil) {
+            return false;
+        }
     }
 
     private static final String SO_PISOS_0_E_1 =

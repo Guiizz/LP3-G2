@@ -32,6 +32,11 @@ public class FuncionarioDAL implements IFuncionarioDAL {
             + "FROM Funcionario f JOIN Pessoa p ON p.id = f.pessoaId ";
     private static final String PROCURAR_POR_NUMERO = PROCURAR + "WHERE f.numeroFuncionario = ?";
     private static final String PROCURAR_POR_ID = PROCURAR + "WHERE f.pessoaId = ?";
+    private static final String EDITAR_PESSOA =
+            "UPDATE Pessoa SET nome = ?, telemovel = ?, email = ?, morada = ? WHERE id = ?";
+    private static final String EDITAR_EMPRESA = "UPDATE Funcionario SET empresa = ? WHERE pessoaId = ?";
+    private static final String EDITAR_PERFIL =
+            "UPDATE Utilizador SET perfil = ? WHERE id = ? AND funcionarioId = ?";
     private static final String TEM_CONTA_ATIVA = "SELECT 1 FROM Utilizador WHERE funcionarioId = ? AND ativo = 1";
     private static final String LISTAR_COM_CONTA_ATIVA = PROCURAR
             + "JOIN Utilizador u ON u.funcionarioId = f.pessoaId WHERE u.ativo = 1 ORDER BY f.numeroFuncionario";
@@ -65,6 +70,30 @@ public class FuncionarioDAL implements IFuncionarioDAL {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Erro ao criar a conta", e);
+        }
+    }
+
+    @Override
+    public boolean editar(Funcionario funcionario, int utilizadorId, Perfil perfil) {
+        try (Connection conn = ConexaoBD.abrir()) {
+            conn.setAutoCommit(false);
+            try {
+                int contas = executar(conn, EDITAR_PERFIL, perfil.name(), utilizadorId, funcionario.getId());
+                if (contas == 0) {
+                    conn.rollback();
+                    return false;
+                }
+                executar(conn, EDITAR_PESSOA, funcionario.getNome(), funcionario.getTelemovel(),
+                        funcionario.getEmail(), funcionario.getMorada(), funcionario.getId());
+                executar(conn, EDITAR_EMPRESA, funcionario.getEmpresa(), funcionario.getId());
+                conn.commit();
+                return true;
+            } catch (SQLException | RuntimeException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Erro ao editar o funcionário", e);
         }
     }
 
@@ -127,10 +156,10 @@ public class FuncionarioDAL implements IFuncionarioDAL {
         }
     }
 
-    private static void executar(Connection conn, String sql, Object... params) throws SQLException {
+    private static int executar(Connection conn, String sql, Object... params) throws SQLException {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             definirParametros(ps, params);
-            ps.executeUpdate();
+            return ps.executeUpdate();
         }
     }
 
