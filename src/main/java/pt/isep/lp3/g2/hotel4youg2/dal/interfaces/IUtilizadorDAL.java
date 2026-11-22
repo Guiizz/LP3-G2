@@ -35,4 +35,6 @@ public interface IUtilizadorDAL {
      * @throws DataAccessException se não for possível alterar a base de dados
      */
     boolean atualizarAtivo(int utilizadorId, boolean ativo);
+
+    boolean definirPassword(int utilizadorId, String passwordHash, String passwordSalt, boolean mudarPassword);
 }

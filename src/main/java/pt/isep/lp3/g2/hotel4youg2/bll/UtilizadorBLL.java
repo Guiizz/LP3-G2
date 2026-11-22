@@ -9,6 +9,9 @@ import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
+import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
+
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +22,11 @@ public class UtilizadorBLL {
 
     private final IUtilizadorDAL utilizadorDAL;
     private final IFornecedorDAL fornecedorDAL;
+    private final PasswordUtils passwordUtils = new PasswordUtils();
+    private final SecureRandom random = new SecureRandom();
+
+    private static final String LETRAS_TEMPORARIAS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    private static final int TAMANHO_TEMPORARIA = 10;
 
     /**
      * Cria o BLL ligado à base de dados.
@@ -96,6 +104,35 @@ public class UtilizadorBLL {
      */
     public void reativarConta(Utilizador quemAge, Conta conta) {
         reativar(quemAge, utilizadorDe(conta));
+    }
+
+    public String reporPassword(Utilizador quemAge, Conta conta) {
+        if (quemAge == null || quemAge.getPerfil() != Perfil.GESTOR) {
+            throw new IllegalStateException("Só o gestor pode gerir contas.");
+        }
+        if (conta == null) {
+            throw new IllegalArgumentException("Escolha uma conta.");
+        }
+        if (conta.isDeFornecedor()) {
+            throw new IllegalArgumentException("Só se repõe a palavra-passe das contas dos funcionários.");
+        }
+        Utilizador utilizador = conta.getUtilizador();
+        String temporaria = gerarTemporaria();
+        String salt = passwordUtils.gerarSalt();
+        String hash = passwordUtils.hashPassword(temporaria, salt);
+        if (!utilizadorDAL.definirPassword(utilizador.getId(), hash, salt, true)) {
+            throw new IllegalArgumentException("A conta não existe.");
+        }
+        utilizador.definirPassword(hash, salt, true);
+        return temporaria;
+    }
+
+    private String gerarTemporaria() {
+        StringBuilder texto = new StringBuilder();
+        for (int i = 0; i < TAMANHO_TEMPORARIA; i++) {
+            texto.append(LETRAS_TEMPORARIAS.charAt(random.nextInt(LETRAS_TEMPORARIAS.length())));
+        }
+        return texto.toString();
     }
 
     private Utilizador utilizadorDe(Conta conta) {

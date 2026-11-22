@@ -16,6 +16,21 @@ public class Utilizador {
     private String passwordSalt;
     private Perfil perfil;
     private boolean ativo;
+    private boolean mudarPassword;
+
+    public boolean isMudarPassword() {
+        return mudarPassword;
+    }
+
+    public void setMudarPassword(boolean mudarPassword) {
+        this.mudarPassword = mudarPassword;
+    }
+
+    public void definirPassword(String passwordHash, String passwordSalt, boolean mudarPassword) {
+        this.passwordHash = passwordHash;
+        this.passwordSalt = passwordSalt;
+        this.mudarPassword = mudarPassword;
+    }
 
     public int getId() {
         return id;
@@ -121,6 +136,7 @@ public class Utilizador {
         return id == outro.id
                 && funcionarioId == outro.funcionarioId
                 && ativo == outro.ativo
+                && mudarPassword == outro.mudarPassword
                 && perfil == outro.perfil
                 && Objects.equals(nomeUtilizador, outro.nomeUtilizador)
                 && Objects.equals(passwordHash, outro.passwordHash)
@@ -129,6 +145,7 @@ public class Utilizador {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo);
+        return Objects.hash(id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo,
+                mudarPassword);
     }
 }

@@ -65,4 +65,29 @@ public class AutenticacaoBLL {
         }
         return utilizador;
     }
+
+    public void mudarPassword(Utilizador utilizador, String nova, String confirmacao) {
+        if (utilizador == null) {
+            throw new IllegalStateException("Entre com a palavra-passe temporária.");
+        }
+        if (!utilizador.isMudarPassword()) {
+            throw new IllegalArgumentException("A palavra-passe desta conta não foi reposta.");
+        }
+        if (nova == null || nova.length() < FuncionarioBLL.TAMANHO_MINIMO_PASSWORD) {
+            throw new IllegalArgumentException("A palavra-passe tem de ter pelo menos "
+                    + FuncionarioBLL.TAMANHO_MINIMO_PASSWORD + " caracteres.");
+        }
+        if (!nova.equals(confirmacao)) {
+            throw new IllegalArgumentException("As duas palavras-passe não são iguais.");
+        }
+        if (passwordUtils.verificarPassword(nova, utilizador.getPasswordSalt(), utilizador.getPasswordHash())) {
+            throw new IllegalArgumentException("Escolha uma palavra-passe diferente da temporária.");
+        }
+        String salt = passwordUtils.gerarSalt();
+        String hash = passwordUtils.hashPassword(nova, salt);
+        if (!utilizadorDAL.definirPassword(utilizador.getId(), hash, salt, false)) {
+            throw new IllegalArgumentException("A conta já não existe.");
+        }
+        utilizador.definirPassword(hash, salt, false);
+    }
 }

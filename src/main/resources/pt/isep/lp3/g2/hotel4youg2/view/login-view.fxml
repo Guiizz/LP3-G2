@@ -35,7 +35,8 @@
         <Button text="Entrar como fornecedor" maxWidth="Infinity" onAction="#aoEntrarComoFornecedor"/>
 
         <VBox fx:id="primeiroAcessoBox" spacing="10.0" visible="false" managed="false">
-            <Label text="Primeiro acesso: escolha a sua palavra-passe, com pelo menos 6 caracteres."
+            <Label fx:id="primeiroAcessoLabel"
+                   text="Primeiro acesso: escolha a sua palavra-passe, com pelo menos 6 caracteres."
                    wrapText="true" maxWidth="300"/>
             <PasswordField fx:id="novaPasswordField" promptText="Nova palavra-passe"/>
             <PasswordField fx:id="confirmarPasswordField" promptText="Repita a palavra-passe"
