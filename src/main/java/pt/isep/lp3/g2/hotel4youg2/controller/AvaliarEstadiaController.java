@@ -20,6 +20,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Controlador do ecrã "Avaliar estadia": o cliente dá de 1 a 5 estrelas e um comentário.
+ */
 public class AvaliarEstadiaController {
 
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -50,6 +53,13 @@ public class AvaliarEstadiaController {
     @FXML
     private Label mensagemLabel;
 
+    /**
+     * Abre a avaliação de uma estadia.
+     *
+     * @param reserva     a reserva concluída
+     * @param ecraDaLista o ecrã da lista, para onde se volta
+     * @throws IOException se não for possível ler o FXML
+     */
     public static void abrir(Reserva reserva, Node ecraDaLista) throws IOException {
         FXMLLoader loader = Navegador.carregar("avaliar-estadia-view.fxml");
         AvaliarEstadiaController controller = loader.getController();

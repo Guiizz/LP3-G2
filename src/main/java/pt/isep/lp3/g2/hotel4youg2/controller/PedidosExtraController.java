@@ -10,6 +10,9 @@ import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.PedidoExtra;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Pedidos dos clientes": a receção aceita ou recusa os pedidos extra.
+ */
 public class PedidosExtraController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";

@@ -111,6 +111,9 @@ public class SugestaoQueixa {
         return "Quarto " + quartoNumero + " (reserva n.º " + reservaId + ")";
     }
 
+    /**
+     * @return quando foi registada (ex.: 17/11/2026 09:05)
+     */
     public String getRegistadaEmTexto() {
         return registadaEm == null ? "" : registadaEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }

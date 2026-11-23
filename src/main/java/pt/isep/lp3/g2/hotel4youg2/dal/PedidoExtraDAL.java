@@ -14,6 +14,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IPedidoExtraDAL}.
+ */
 public class PedidoExtraDAL implements IPedidoExtraDAL {
 
     private static final String INSERIR_SE_EM_CURSO =

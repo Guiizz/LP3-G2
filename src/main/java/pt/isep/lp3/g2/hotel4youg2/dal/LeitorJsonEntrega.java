@@ -28,10 +28,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Lê e valida o ficheiro JSON de uma entrega, com as mesmas regras do XML.
+ */
 public class LeitorJsonEntrega {
 
     private static final Pattern LINHA_COLUNA = Pattern.compile("line (\\d+) column (\\d+)");
 
+    /**
+     * Lê e valida o ficheiro JSON de uma entrega.
+     *
+     * @param ficheiro o ficheiro JSON da entrega
+     * @param erros    onde ficam os erros do conteúdo encontrados ao converter
+     * @return a entrega lida (só é válida se {@code erros} continuar vazia)
+     * @throws ErrosFicheiroException se o ficheiro não abrir, não for um JSON bem formado ou faltarem campos
+     */
     public Entrega ler(File ficheiro, List<String> erros) {
         try {
             return ler(Files.readAllBytes(ficheiro.toPath()), erros);
@@ -40,6 +51,14 @@ public class LeitorJsonEntrega {
         }
     }
 
+    /**
+     * Como {@link #ler(File, List)}, mas lê de um fluxo de dados já aberto.
+     *
+     * @param entrada o fluxo com o conteúdo do JSON
+     * @param erros   onde ficam os erros do conteúdo encontrados ao converter
+     * @return a entrega lida (só é válida se {@code erros} continuar vazia)
+     * @throws ErrosFicheiroException se o fluxo não puder ser lido, não for um JSON bem formado ou faltarem campos
+     */
     public Entrega ler(InputStream entrada, List<String> erros) {
         try {
             return ler(entrada.readAllBytes(), erros);

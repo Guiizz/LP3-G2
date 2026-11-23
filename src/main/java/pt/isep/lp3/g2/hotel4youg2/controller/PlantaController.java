@@ -29,6 +29,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Planta do hotel": mostra os locais de cada piso e pica o cartão com um clique.
+ */
 public class PlantaController {
 
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM");

@@ -15,6 +15,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Controlador do ecrã "Avaliações das estadias": o gestor vê as avaliações de cada mês e a média.
+ */
 public class AvaliacoesController {
 
     private static final DateTimeFormatter MES = DateTimeFormatter.ofPattern("MMMM 'de' yyyy",

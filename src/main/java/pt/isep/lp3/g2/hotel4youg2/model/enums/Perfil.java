@@ -9,5 +9,6 @@ public enum Perfil {
     GESTOR,
     /** Trata dos clientes e das reservas na receção. */
     RECECIONISTA,
+    /** Funcionário da restauração: só entra na cozinha e no restaurante. */
     RESTAURACAO
 }

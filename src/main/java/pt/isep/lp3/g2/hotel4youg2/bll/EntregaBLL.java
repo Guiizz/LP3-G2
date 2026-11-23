@@ -52,14 +52,21 @@ public class EntregaBLL {
         this(new LeitorXmlEntrega(), new LeitorJsonEntrega(), new EntregaDAL());
     }
 
+    /**
+     * Cria o BLL com outro leitor de XML e outro DAL (usado nos testes).
+     *
+     * @param leitor     quem lê e valida o ficheiro XML
+     * @param entregaDAL onde as entregas são gravadas
+     */
     public EntregaBLL(LeitorXmlEntrega leitor, IEntregaDAL entregaDAL) {
         this(leitor, new LeitorJsonEntrega(), entregaDAL);
     }
 
     /**
-     * Cria o BLL com outro leitor de XML e outro DAL.
+     * Cria o BLL com outros leitores de XML e de JSON e outro DAL.
      *
      * @param leitor     quem lê e valida o ficheiro XML
+     * @param leitorJson quem lê e valida o ficheiro JSON
      * @param entregaDAL onde as entregas são gravadas
      */
     public EntregaBLL(LeitorXmlEntrega leitor, LeitorJsonEntrega leitorJson, IEntregaDAL entregaDAL) {
@@ -116,6 +123,13 @@ public class EntregaBLL {
         return validar(entrega, erros);
     }
 
+    /**
+     * Como {@link #lerFicheiro(File)} para um ficheiro XML, mas lê de um fluxo de dados já aberto.
+     *
+     * @param entrada o fluxo com o conteúdo do XML
+     * @return a entrega lida, sem erros
+     * @throws ErrosFicheiroException se o ficheiro tiver erros
+     */
     public Entrega lerFicheiro(InputStream entrada) {
         List<String> erros = new ArrayList<>();
         Entrega entrega = leitor.ler(entrada, erros);

@@ -76,6 +76,16 @@ public class ReservaBLL {
         return horarioReservaDAL.obter().calcularTaxa(earlyCheckin, lateCheckout);
     }
 
+    /**
+     * Explica porque não há quartos e que alternativas existem.
+     *
+     * @param entrada  o dia de chegada
+     * @param saida    o dia de partida
+     * @param hospedes o número de hóspedes
+     * @param early    se o cliente quer early check-in
+     * @param late     se o cliente quer late check-out
+     * @return a mensagem para mostrar no ecrã
+     */
     public String avisoSemQuartos(LocalDate entrada, LocalDate saida, int hospedes, boolean early, boolean late) {
         if (!early && !late) {
             return "Não há quartos livres para estas datas e hóspedes.";
@@ -101,11 +111,36 @@ public class ReservaBLL {
         return aviso.toString();
     }
 
+    /**
+     * Como {@link #resumoDoTotal(Quarto, LocalDate, LocalDate, boolean, boolean, List, HorarioReserva)},
+     * com as horas e taxas que estão na base de dados.
+     *
+     * @param quarto   o quarto escolhido
+     * @param entrada  o dia de chegada
+     * @param saida    o dia de partida
+     * @param early    se tem early check-in
+     * @param late     se tem late check-out
+     * @param servicos os serviços extra escolhidos
+     * @return o resumo, uma parcela por linha, com o total na última
+     */
     public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
                                 List<ServicoReserva> servicos) {
         return resumoDoTotal(quarto, entrada, saida, early, late, servicos, horarioReservaDAL.obter());
     }
 
+    /**
+     * Monta o resumo do total da reserva: o alojamento, o early check-in, o late check-out, os serviços
+     * e o total.
+     *
+     * @param quarto   o quarto escolhido
+     * @param entrada  o dia de chegada
+     * @param saida    o dia de partida
+     * @param early    se tem early check-in
+     * @param late     se tem late check-out
+     * @param servicos os serviços extra escolhidos
+     * @param horario  as horas e taxas do hotel
+     * @return o resumo, uma parcela por linha, com o total na última
+     */
     public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
                                 List<ServicoReserva> servicos, HorarioReserva horario) {
         BigDecimal alojamento = calcularPreco(quarto, entrada, saida);
@@ -308,10 +343,21 @@ public class ReservaBLL {
         return reservaDAL.listar();
     }
 
+    /**
+     * Cancela as reservas confirmadas que não tiveram check-in e cuja data de entrada já passou.
+     *
+     * @return quantas reservas foram canceladas
+     */
     public int cancelarSemCheckin() {
         return cancelarSemCheckin(LocalDate.now());
     }
 
+    /**
+     * Como {@link #cancelarSemCheckin()}, com outro dia de hoje (usado nos testes).
+     *
+     * @param hoje o dia de hoje
+     * @return quantas reservas foram canceladas
+     */
     public int cancelarSemCheckin(LocalDate hoje) {
         return reservaDAL.cancelarSemCheckin(hoje);
     }

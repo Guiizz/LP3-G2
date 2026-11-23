@@ -53,6 +53,11 @@ public final class Sessao {
         return fornecedor;
     }
 
+    /**
+     * Guarda o cliente que entrou na aplicação.
+     *
+     * @param contaAutenticada a conta do cliente
+     */
     public static void iniciarCliente(ContaCliente contaAutenticada) {
         contaCliente = contaAutenticada;
     }

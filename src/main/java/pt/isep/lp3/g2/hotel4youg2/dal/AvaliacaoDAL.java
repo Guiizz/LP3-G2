@@ -10,6 +10,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IAvaliacaoDAL}.
+ */
 public class AvaliacaoDAL implements IAvaliacaoDAL {
 
     private static final String INSERIR =

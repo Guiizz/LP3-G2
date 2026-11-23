@@ -23,6 +23,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Pedir extra": o cliente pede um serviço ou um material na reserva em curso.
+ */
 public class PedirExtraController {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
@@ -47,6 +50,13 @@ public class PedirExtraController {
     @FXML
     private TableView<PedidoExtra> tabela;
 
+    /**
+     * Abre o pedido de extras de uma reserva em curso.
+     *
+     * @param reserva     a reserva em curso
+     * @param ecraDaLista o ecrã da lista, para onde se volta
+     * @throws IOException se não for possível ler o FXML
+     */
     public static void abrir(Reserva reserva, Node ecraDaLista) throws IOException {
         FXMLLoader loader = Navegador.carregar("pedir-extra-view.fxml");
         PedirExtraController controller = loader.getController();

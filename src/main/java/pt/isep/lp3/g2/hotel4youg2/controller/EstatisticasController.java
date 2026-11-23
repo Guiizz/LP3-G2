@@ -16,6 +16,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "Estatísticas": os números e os gráficos do hotel no período escolhido.
+ */
 public class EstatisticasController {
 
     private static final String SEM_DADOS = "sem dados";

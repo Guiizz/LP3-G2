@@ -5,9 +5,13 @@ package pt.isep.lp3.g2.hotel4youg2.model.enums;
  * e devolução de uma saída temporária, quando o material volta ao stock (US77).
  */
 public enum TipoMovimento {
+    /** Entrada de material numa entrega aceite. */
     ENTRADA("Entrada"),
+    /** Saída de material que volta ao stock. */
     SAIDA_TEMPORARIA("Saída temporária"),
+    /** Saída de material que não volta. */
     SAIDA_DEFINITIVA("Saída definitiva"),
+    /** Material de uma saída temporária que voltou ao stock. */
     DEVOLUCAO("Devolução");
 
     private final String descricao;

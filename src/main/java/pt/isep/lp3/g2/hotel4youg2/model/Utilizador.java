@@ -26,6 +26,13 @@ public class Utilizador {
         this.mudarPassword = mudarPassword;
     }
 
+    /**
+     * Muda a palavra-passe do utilizador.
+     *
+     * @param passwordHash  o hash da palavra-passe nova
+     * @param passwordSalt  o salt da palavra-passe nova
+     * @param mudarPassword se o utilizador tem de escolher outra no próximo login
+     */
     public void definirPassword(String passwordHash, String passwordSalt, boolean mudarPassword) {
         this.passwordHash = passwordHash;
         this.passwordSalt = passwordSalt;

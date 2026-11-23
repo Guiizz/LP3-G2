@@ -25,8 +25,21 @@ public interface IAcessoCartaoDAL {
      */
     List<AcessoCartao> listarPorCartao(String cartao);
 
+    /**
+     * Lista os acessos com os filtros escolhidos. Um filtro vazio, 0 ou {@code null} não conta.
+     *
+     * @param cartao       o número do cartão
+     * @param quartoNumero o número do quarto
+     * @param local        o local do hotel
+     * @param dia          o dia
+     * @return os acessos, do mais recente para o mais antigo
+     */
     List<AcessoCartao> listar(String cartao, int quartoNumero, LocalHotel local, LocalDate dia);
 
+    /**
+     * @param clienteId o id do cliente
+     * @return as picagens do cliente, da mais recente para a mais antiga
+     */
     List<AcessoCartao> listarPorCliente(int clienteId);
 
     /**
@@ -37,5 +50,8 @@ public interface IAcessoCartaoDAL {
      */
     boolean apagar(int id);
 
+    /**
+     * @return os cartões que já foram usados, cada um com a pessoa que o usou
+     */
     List<CartaoAtivo> listarCartoesUsados();
 }

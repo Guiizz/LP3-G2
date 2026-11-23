@@ -105,6 +105,9 @@ public class AcessoCartao {
         return local == null ? "" : local.getDescricao();
     }
 
+    /**
+     * @return o número da reserva, ou {@code "-"} se não houver
+     */
     public String getReservaTexto() {
         return reservaId > 0 ? String.valueOf(reservaId) : "-";
     }
@@ -124,6 +127,9 @@ public class AcessoCartao {
         this.clienteNome = clienteNome;
     }
 
+    /**
+     * @return quem picou o cartão: o funcionário, o cliente ou o gestor
+     */
     public String getPessoaTexto() {
         if (funcionarioId > 0) {
             return funcionarioNome;
@@ -137,14 +143,23 @@ public class AcessoCartao {
         return "-";
     }
 
+    /**
+     * @return a data e a hora da passagem (ex.: 17/11/2026 09:05)
+     */
     public String getRegistadoEmTexto() {
         return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }
 
+    /**
+     * @return a data da passagem (ex.: 17/11/2026)
+     */
     public String getDataTexto() {
         return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
+    /**
+     * @return a hora da passagem (ex.: 09:05)
+     */
     public String getHoraTexto() {
         return registadoEm == null ? "" : registadoEm.format(DateTimeFormatter.ofPattern("HH:mm"));
     }

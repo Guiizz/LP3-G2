@@ -63,5 +63,13 @@ public interface IFuncionarioDAL {
      */
     List<Funcionario> listarComContaAtiva();
 
+    /**
+     * Muda os dados de um funcionário e o perfil da sua conta, tudo de uma vez.
+     *
+     * @param funcionario  o funcionário, já com os dados novos
+     * @param utilizadorId o id da conta do funcionário
+     * @param perfil       o perfil novo
+     * @return {@code true} se foi alterado; {@code false} se a conta não é desse funcionário
+     */
     boolean editar(Funcionario funcionario, int utilizadorId, Perfil perfil);
 }

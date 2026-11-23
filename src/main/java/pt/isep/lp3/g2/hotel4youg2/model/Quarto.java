@@ -100,10 +100,16 @@ public class Quarto {
         this.ativo = ativo;
     }
 
+    /**
+     * @return {@code "Ativo"} ou {@code "Desativado"}
+     */
     public String getEstado() {
         return ativo ? "Ativo" : "Desativado";
     }
 
+    /**
+     * @return os dados do quarto, um por linha (número, piso, tipo, vista, capacidade, estado e preço por noite)
+     */
     public String getDetalhes() {
         String texto = "Quarto " + numero
                 + "\nPiso: " + piso
@@ -117,6 +123,9 @@ public class Quarto {
         return texto;
     }
 
+    /**
+     * @return o tipo e a vista (ex.: Individual · Mar)
+     */
     public String getResumo() {
         return textoDoTipo() + " · " + textoDaVista();
     }

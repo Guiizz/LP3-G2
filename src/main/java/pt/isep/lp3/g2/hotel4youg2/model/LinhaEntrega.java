@@ -73,18 +73,30 @@ public class LinhaEntrega {
         return quantidade;
     }
 
+    /**
+     * @return a quantidade com a unidade (ex.: 10 Caixa)
+     */
     public String getQuantidadeTexto() {
         return quantidade + " " + unidade.getDescricao();
     }
 
+    /**
+     * @return o preço unitário em euros
+     */
     public String getPrecoTexto() {
         return euros(precoUnitario);
     }
 
+    /**
+     * @return a taxa e o valor do IVA (ex.: 23% (2,30 €))
+     */
     public String getIvaTexto() {
         return taxaIva + "% (" + euros(valorIva) + ")";
     }
 
+    /**
+     * @return o total da linha em euros
+     */
     public String getTotalTexto() {
         return euros(total);
     }

@@ -45,6 +45,7 @@ public class AcessoCartaoBLL {
     /** Início da designação do serviço extra que dá acesso à piscina. */
     public static final String SERVICO_PISCINA = "Piscina";
 
+    /** Mensagem para o cliente que não tem nenhuma reserva em curso. */
     public static final String SEM_RESERVA_EM_CURSO =
             "Não tem nenhuma reserva em curso, por isso não tem cartão. O cartão é entregue no check-in.";
 
@@ -159,6 +160,11 @@ public class AcessoCartaoBLL {
         return funcionario.getCartao();
     }
 
+    /**
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return os locais que o cartão abre: todos para o gestor, os dos pisos 0 e 1 para os funcionários
+     * @throws IllegalStateException se não houver sessão iniciada ou a conta não tiver cartão
+     */
     public List<LocalHotel> locaisDoCartao(Utilizador quemAge) {
         String cartao = cartaoDoUtilizador(quemAge);
         boolean todos = AcessoCartao.CARTAO_MESTRE.equals(cartao)
@@ -172,14 +178,42 @@ public class AcessoCartaoBLL {
         return locais;
     }
 
+    /**
+     * Pica o cartão de quem tem a sessão iniciada num local do hotel.
+     *
+     * @param quemAge      o utilizador com a sessão iniciada
+     * @param local        o local
+     * @param quartoNumero o número do quarto (só conta se o local for o quarto)
+     * @return a passagem registada
+     * @throws IllegalStateException    se não houver sessão iniciada ou a conta não tiver cartão
+     * @throws IllegalArgumentException se faltar o local ou o quarto
+     * @throws ValidacaoException       se o cartão não abrir esse local
+     */
     public AcessoCartao picar(Utilizador quemAge, LocalHotel local, int quartoNumero) {
         return registarPassagem(quemAge, cartaoDoUtilizador(quemAge), local, quartoNumero);
     }
 
+    /**
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return as passagens do seu cartão, da mais recente para a mais antiga
+     * @throws IllegalStateException se não houver sessão iniciada ou a conta não tiver cartão
+     */
     public List<AcessoCartao> listarAsMinhasPassagens(Utilizador quemAge) {
         return acessoCartaoDAL.listarPorCartao(cartaoDoUtilizador(quemAge));
     }
 
+    /**
+     * Lista todos os acessos com cartão, com os filtros escolhidos. Um filtro vazio não conta.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param cartao  o número do cartão
+     * @param quarto  o número do quarto, como foi escrito no ecrã
+     * @param local   o local, ou {@code null} para todos
+     * @param dia     o dia, ou {@code null} para todos
+     * @return os acessos, do mais recente para o mais antigo
+     * @throws IllegalStateException    se quem age não for o gestor
+     * @throws IllegalArgumentException se o quarto não for um número inteiro
+     */
     public List<AcessoCartao> consultar(Utilizador quemAge, String cartao, String quarto, LocalHotel local,
                                         LocalDate dia) {
         Permissoes.exigirGestor(quemAge);
@@ -194,11 +228,21 @@ public class AcessoCartaoBLL {
         return acessoCartaoDAL.listar(normalizar(cartao), quartoNumero, local, dia);
     }
 
+    /**
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return os cartões que já foram usados, cada um com a pessoa que o usou
+     * @throws IllegalStateException se quem age não for o gestor
+     */
     public List<CartaoAtivo> listarCartoesUsados(Utilizador quemAge) {
         Permissoes.exigirGestor(quemAge);
         return acessoCartaoDAL.listarCartoesUsados();
     }
 
+    /**
+     * @param conta a conta do cliente com a sessão iniciada
+     * @return as reservas em curso do cliente com cartão, da entrada mais antiga para a mais recente
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<Reserva> reservasComCartao(ContaCliente conta) {
         if (conta == null) {
             throw new IllegalStateException("Entre na sua conta para usar o cartão.");
@@ -213,10 +257,29 @@ public class AcessoCartaoBLL {
         return reservas;
     }
 
+    /**
+     * Pica o cartão do cliente, quando tem só uma reserva em curso.
+     *
+     * @param conta a conta do cliente com a sessão iniciada
+     * @param local o local
+     * @return a passagem registada
+     * @throws IllegalArgumentException se faltar o local, o quarto não existir ou houver mais do que uma reserva
+     * @throws ValidacaoException       se não houver reserva em curso ou o cartão não abrir esse local
+     */
     public AcessoCartao picarComoCliente(ContaCliente conta, LocalPicagem local) {
         return picarComoCliente(conta, null, local);
     }
 
+    /**
+     * Pica o cartão de uma das reservas em curso do cliente.
+     *
+     * @param conta     a conta do cliente com a sessão iniciada
+     * @param escolhida a reserva do cartão escolhido, ou {@code null} se só houver uma
+     * @param local     o local
+     * @return a passagem registada
+     * @throws IllegalArgumentException se faltar o local, o quarto não existir ou faltar escolher o cartão
+     * @throws ValidacaoException       se a reserva não for do cliente ou o cartão não abrir esse local
+     */
     public AcessoCartao picarComoCliente(ContaCliente conta, Reserva escolhida, LocalPicagem local) {
         List<Reserva> reservas = reservasComCartao(conta);
         if (local == null) {
@@ -264,6 +327,11 @@ public class AcessoCartaoBLL {
         }
     }
 
+    /**
+     * @param conta a conta do cliente com a sessão iniciada
+     * @return as picagens do cliente, da mais recente para a mais antiga
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<AcessoCartao> listarPicagensDoCliente(ContaCliente conta) {
         if (conta == null) {
             throw new IllegalStateException("Entre na sua conta para ver as suas picagens.");
@@ -271,6 +339,9 @@ public class AcessoCartaoBLL {
         return acessoCartaoDAL.listarPorCliente(conta.getClienteId());
     }
 
+    /**
+     * @return os locais onde o cliente pode picar: cada quarto e os outros locais do hotel
+     */
     public List<LocalPicagem> listarLocais() {
         List<LocalPicagem> locais = new ArrayList<>();
         for (Quarto quarto : quartoDAL.listarTodos()) {
@@ -284,10 +355,21 @@ public class AcessoCartaoBLL {
         return locais;
     }
 
+    /**
+     * @return a planta do hotel, com todos os quartos
+     */
     public PlantaHotel planta() {
         return new PlantaHotel(quartoDAL.listarTodos());
     }
 
+    /**
+     * Diz que locais o cartão da reserva em curso abre: o quarto e, se a reserva os tiver, o restaurante e a piscina.
+     *
+     * @param conta     a conta do cliente
+     * @param escolhida a reserva escolhida, quando o cliente tem mais do que uma em curso
+     * @return os locais que o cartão abre; vazia se o cliente não tem nenhuma reserva em curso
+     * @throws IllegalArgumentException se o cliente tem mais do que uma reserva em curso e não escolheu nenhuma
+     */
     public List<LocalPicagem> locaisQueAbre(ContaCliente conta, Reserva escolhida) {
         List<LocalPicagem> locais = new ArrayList<>();
         List<Reserva> reservas = reservasComCartao(conta);

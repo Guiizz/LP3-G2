@@ -4,9 +4,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+/**
+ * Avaliação de uma estadia, feita pelo cliente depois do check-out (de 1 a 5 estrelas).
+ */
 public class Avaliacao {
 
+    /** Número mínimo de estrelas. */
     public static final int MINIMO_ESTRELAS = 1;
+    /** Número máximo de estrelas. */
     public static final int MAXIMO_ESTRELAS = 5;
 
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -19,6 +24,15 @@ public class Avaliacao {
     private String nomeCliente;
     private int quartoNumero;
 
+    /**
+     * Cria uma avaliação.
+     *
+     * @param id         o id da avaliação (0 se ainda não foi gravada)
+     * @param reservaId  o id da reserva avaliada
+     * @param estrelas   as estrelas (de 1 a 5)
+     * @param comentario o comentário, ou {@code null} se não tiver
+     * @param avaliadaEm a data e a hora da avaliação ({@code null} antes de gravar)
+     */
     public Avaliacao(int id, int reservaId, int estrelas, String comentario, LocalDateTime avaliadaEm) {
         this.id = id;
         this.reservaId = reservaId;
@@ -71,18 +85,33 @@ public class Avaliacao {
         this.quartoNumero = quartoNumero;
     }
 
+    /**
+     * @return as estrelas desenhadas (ex.: ★★★★☆)
+     */
     public String getEstrelasTexto() {
         return desenharEstrelas(estrelas);
     }
 
+    /**
+     * @return o comentário, ou "-" se não tiver
+     */
     public String getComentarioTexto() {
         return comentario == null ? "-" : comentario;
     }
 
+    /**
+     * @return a data da avaliação (ex.: 23/11/2026), ou vazio se ainda não foi gravada
+     */
     public String getDataTexto() {
         return avaliadaEm == null ? "" : avaliadaEm.format(DATA);
     }
 
+    /**
+     * Desenha as cinco estrelas, cheias e vazias.
+     *
+     * @param quantas quantas estrelas ficam cheias
+     * @return as estrelas (ex.: ★★★☆☆)
+     */
     public static String desenharEstrelas(int quantas) {
         StringBuilder texto = new StringBuilder();
         for (int i = MINIMO_ESTRELAS; i <= MAXIMO_ESTRELAS; i++) {

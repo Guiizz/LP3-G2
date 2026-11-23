@@ -7,10 +7,15 @@ import java.util.List;
  * Motivo de uma saída definitiva de material (US77). No "Outro" é obrigatório escrever o motivo.
  */
 public enum MotivoSaida {
+    /** O material estragou-se. */
     ESTRAGADO("Estragado"),
+    /** O material foi roubado. */
     ROUBADO("Roubado"),
+    /** O material foi devolvido ao fornecedor. */
     DEVOLVIDO_FORNECEDOR("Devolvido ao fornecedor"),
+    /** Outro motivo, escrito por quem regista a saída. */
     OUTRO("Outro"),
+    /** Gasto numa reserva. É posto pela aplicação. */
     CONSUMO_RESERVA("Consumo da reserva");
 
     private final String descricao;
@@ -19,6 +24,9 @@ public enum MotivoSaida {
         this.descricao = descricao;
     }
 
+    /**
+     * @return os motivos que se podem escolher na saída de materiais
+     */
     public static List<MotivoSaida> escolhiveis() {
         List<MotivoSaida> motivos = new ArrayList<>();
         for (MotivoSaida motivo : values()) {

@@ -142,6 +142,13 @@ public class DetalhesReservaController {
         totalLabel.setText("Total: " + reserva.getTotal() + " €");
     }
 
+    /**
+     * Abre os detalhes de uma reserva só para ver, sem os botões de alterar (usado na área do cliente).
+     *
+     * @param reserva     a reserva
+     * @param ecraDaLista o ecrã da lista, para onde se volta
+     * @throws IOException se não for possível ler o FXML
+     */
     public static void abrirSoParaVer(Reserva reserva, Node ecraDaLista) throws IOException {
         FXMLLoader loader = Navegador.carregar("detalhes-reserva-view.fxml");
         DetalhesReservaController controller = loader.getController();
