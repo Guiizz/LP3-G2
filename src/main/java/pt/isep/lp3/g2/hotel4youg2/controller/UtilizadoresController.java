@@ -28,6 +28,7 @@ public class UtilizadoresController {
     private void initialize() {
         carregar();
     }
+
     @FXML
     private void aoEditar() {
         Conta escolhida = tabela.getSelectionModel().getSelectedItem();
