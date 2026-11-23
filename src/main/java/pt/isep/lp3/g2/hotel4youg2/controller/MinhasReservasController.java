@@ -100,6 +100,21 @@ public class MinhasReservasController {
         }
     }
 
+    @FXML
+    private void aoAvaliar() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null || escolhida.getEstado() != EstadoReserva.CONCLUIDA) {
+            Mensagens.erro(mensagemLabel, "Escolha uma estadia concluída no separador Histórico para a avaliar.");
+            return;
+        }
+        try {
+            mensagemLabel.setText("");
+            AvaliarEstadiaController.abrir(escolhida, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir a avaliação da estadia.");
+        }
+    }
+
     private Reserva escolhida() {
         int separador = separadores.getSelectionModel().getSelectedIndex();
         TableView<Reserva> tabela = separador == 0 ? tabelaPorFazer : separador == 1 ? tabelaEmCurso : tabelaHistorico;

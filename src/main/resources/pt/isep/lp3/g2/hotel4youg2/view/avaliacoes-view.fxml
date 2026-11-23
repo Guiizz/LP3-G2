@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.AvaliacoesController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Avaliações das estadias" styleClass="titulo"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="◀" onAction="#aoMesAnterior"/>
+        <Label fx:id="mesLabel" styleClass="passo" minWidth="150.0" alignment="CENTER"/>
+        <Button text="▶" onAction="#aoMesSeguinte"/>
+        <Button text="Este mês" onAction="#aoEsteMes"/>
+    </HBox>
+
+    <HBox spacing="12.0" alignment="CENTER_LEFT" styleClass="cartao">
+        <Label fx:id="mediaLabel" styleClass="total"/>
+        <Label fx:id="mediaEstrelasLabel" styleClass="estrelas-avaliacao"/>
+        <Label fx:id="quantasLabel"/>
+    </HBox>
+
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <placeholder>
+            <Label text="Ainda não há avaliações neste mês."/>
+        </placeholder>
+        <columns>
+            <TableColumn text="Data" prefWidth="90.0">
+                <cellValueFactory><PropertyValueFactory property="dataTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Cliente" prefWidth="180.0">
+                <cellValueFactory><PropertyValueFactory property="nomeCliente"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Quarto" prefWidth="70.0">
+                <cellValueFactory><PropertyValueFactory property="quartoNumero"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Estrelas" prefWidth="110.0">
+                <cellValueFactory><PropertyValueFactory property="estrelasTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Comentário" prefWidth="420.0">
+                <cellValueFactory><PropertyValueFactory property="comentarioTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>
