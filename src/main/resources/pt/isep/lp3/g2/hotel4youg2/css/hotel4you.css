@@ -130,6 +130,19 @@
     -fx-font-weight: bold;
     -fx-text-fill: #1B3461;
 }
+.button.estrela {
+    -fx-background-color: transparent;
+    -fx-text-fill: #C9A24A;
+    -fx-font-size: 28px;
+    -fx-padding: 0 4;
+}
+.button.estrela:hover {
+    -fx-background-color: #F1E8D2;
+}
+.estrelas-avaliacao {
+    -fx-text-fill: #C9A24A;
+    -fx-font-size: 26px;
+}
 .cartao-planta {
     -fx-font-size: 15px;
     -fx-font-weight: bold;
