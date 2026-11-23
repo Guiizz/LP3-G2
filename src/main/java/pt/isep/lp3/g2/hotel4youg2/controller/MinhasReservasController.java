@@ -19,6 +19,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "As minhas reservas" do cliente: por fazer, em curso e histórico.
+ */
 public class MinhasReservasController {
 
     private final ReservaBLL reservaBLL = new ReservaBLL();

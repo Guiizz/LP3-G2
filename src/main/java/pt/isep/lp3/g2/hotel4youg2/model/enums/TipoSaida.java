@@ -5,7 +5,9 @@ package pt.isep.lp3.g2.hotel4youg2.model.enums;
  * depois de uma reparação), ou definitiva, quando não volta.
  */
 public enum TipoSaida {
+    /** O material volta ao stock. */
     TEMPORARIA("Temporária"),
+    /** O material não volta ao stock. */
     DEFINITIVA("Definitiva");
 
     private final String descricao;

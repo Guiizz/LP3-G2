@@ -9,6 +9,7 @@ import java.util.List;
  */
 public class ErrosFicheiroException extends IllegalArgumentException {
 
+    /** Os erros encontrados no ficheiro. */
     private final List<String> erros;
 
     /**

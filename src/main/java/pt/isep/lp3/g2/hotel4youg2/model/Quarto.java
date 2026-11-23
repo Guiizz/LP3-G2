@@ -100,6 +100,9 @@ public class Quarto {
         this.ativo = ativo;
     }
 
+    /**
+     * @return {@code "Ativo"} ou {@code "Desativado"}
+     */
     public String getEstado() {
         return ativo ? "Ativo" : "Desativado";
     }

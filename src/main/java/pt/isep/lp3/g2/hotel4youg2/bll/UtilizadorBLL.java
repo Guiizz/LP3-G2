@@ -106,6 +106,15 @@ public class UtilizadorBLL {
         reativar(quemAge, utilizadorDe(conta));
     }
 
+    /**
+     * Repõe a palavra-passe de um funcionário. No próximo login tem de escolher outra.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param conta   a conta escolhida
+     * @return a palavra-passe temporária para dar ao funcionário
+     * @throws IllegalStateException    se quem age não for o gestor
+     * @throws IllegalArgumentException se não houver conta, for de um fornecedor ou já não existir
+     */
     public String reporPassword(Utilizador quemAge, Conta conta) {
         if (quemAge == null || quemAge.getPerfil() != Perfil.GESTOR) {
             throw new IllegalStateException("Só o gestor pode gerir contas.");

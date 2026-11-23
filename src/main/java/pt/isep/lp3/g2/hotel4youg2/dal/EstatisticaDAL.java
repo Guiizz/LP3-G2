@@ -13,6 +13,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IEstatisticaDAL}.
+ */
 public class EstatisticaDAL implements IEstatisticaDAL {
 
     private static final String NAO_CANCELADA = "r.estado <> 'CANCELADA' AND r.dataEntrada BETWEEN ? AND ? ";

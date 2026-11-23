@@ -13,6 +13,7 @@ public class Funcionario extends Pessoa {
     /** Letra com que começa o cartão de um funcionário, seguida do número de funcionário (US52). */
     public static final String PREFIXO_CARTAO = "F";
 
+    /** Letra do cartão dos funcionários da restauração (ex.: R3). */
     public static final String PREFIXO_CARTAO_RESTAURACAO = "R";
 
     private int numeroFuncionario;
@@ -39,6 +40,9 @@ public class Funcionario extends Pessoa {
         this.perfil = perfil;
     }
 
+    /**
+     * @return {@code true} se o funcionário for da restauração
+     */
     public boolean isRestauracao() {
         return perfil == Perfil.RESTAURACAO;
     }

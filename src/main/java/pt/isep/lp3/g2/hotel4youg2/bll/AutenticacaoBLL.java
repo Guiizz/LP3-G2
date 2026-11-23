@@ -66,6 +66,16 @@ public class AutenticacaoBLL {
         return utilizador;
     }
 
+    /**
+     * Muda a palavra-passe temporária que o gestor repôs pela escolhida pelo funcionário.
+     *
+     * @param utilizador  o utilizador que entrou com a palavra-passe temporária
+     * @param nova        a palavra-passe nova
+     * @param confirmacao a palavra-passe nova, outra vez
+     * @throws IllegalStateException    se não houver utilizador
+     * @throws IllegalArgumentException se a palavra-passe não foi reposta, for curta, não coincidir
+     *                                  ou for igual à temporária
+     */
     public void mudarPassword(Utilizador utilizador, String nova, String confirmacao) {
         if (utilizador == null) {
             throw new IllegalStateException("Entre com a palavra-passe temporária.");

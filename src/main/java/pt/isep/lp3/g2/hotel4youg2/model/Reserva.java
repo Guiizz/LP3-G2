@@ -202,6 +202,9 @@ public class Reserva {
         return totalServicos;
     }
 
+    /**
+     * @param totalServicos o total dos serviços extra, ou {@code null} para 0
+     */
     public void setTotalServicos(BigDecimal totalServicos) {
         this.totalServicos = totalServicos == null ? BigDecimal.ZERO : totalServicos;
     }
@@ -226,6 +229,9 @@ public class Reserva {
         return taxaHorario;
     }
 
+    /**
+     * @param taxaHorario a taxa do early check-in e do late check-out, ou {@code null} para 0
+     */
     public void setTaxaHorario(BigDecimal taxaHorario) {
         this.taxaHorario = taxaHorario == null ? BigDecimal.ZERO : taxaHorario;
     }
@@ -359,6 +365,9 @@ public class Reserva {
         checkoutEm = agora;
     }
 
+    /**
+     * @return o número de noites da reserva
+     */
     public long getNoites() {
         return ChronoUnit.DAYS.between(dataEntrada, dataSaida);
     }

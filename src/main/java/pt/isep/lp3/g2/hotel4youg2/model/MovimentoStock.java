@@ -65,6 +65,9 @@ public class MovimentoStock {
         return quantidade;
     }
 
+    /**
+     * @return o nome do funcionário, ou {@code "-"} se não houver
+     */
     public String getFuncionario() {
         return funcionario == null || funcionario.isBlank() ? "-" : funcionario;
     }

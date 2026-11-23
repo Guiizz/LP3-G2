@@ -75,6 +75,12 @@ public interface IReservaDAL {
      */
     boolean cancelar(int id);
 
+    /**
+     * Cancela as reservas confirmadas que não tiveram check-in e cuja data de entrada já passou.
+     *
+     * @param hoje o dia de hoje
+     * @return quantas reservas foram canceladas
+     */
     int cancelarSemCheckin(LocalDate hoje);
 
     /**

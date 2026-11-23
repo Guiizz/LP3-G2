@@ -8,6 +8,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
 
+/**
+ * Controlador da área do cliente: o menu com as reservas, o cartão e as sugestões.
+ */
 public class AreaClienteController {
 
     @FXML

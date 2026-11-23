@@ -8,6 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Implementação em SQL Server de {@link IContaClienteDAL}.
+ */
 public class ContaClienteDAL implements IContaClienteDAL {
 
     private static final String INSERIR =

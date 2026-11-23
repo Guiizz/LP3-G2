@@ -4,8 +4,11 @@ package pt.isep.lp3.g2.hotel4youg2.model.enums;
  * Separadores do ecrã "Gerir reservas" (US55): cada reserva aparece no separador do seu estado.
  */
 public enum SeparadorReserva {
+    /** Reservas confirmadas, ainda sem check-in. */
     POR_FAZER("Por fazer"),
+    /** Reservas com check-in feito, ainda sem check-out. */
     EM_CURSO("Em curso"),
+    /** Reservas concluídas ou canceladas. */
     HISTORICO("Histórico");
 
     private final String descricao;

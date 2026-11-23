@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
  */
 public class FuncionarioBLL {
 
+    /** Número mínimo de caracteres da palavra-passe dos funcionários. */
     public static final int TAMANHO_MINIMO_PASSWORD = 8;
     private static final Pattern NIF = Pattern.compile("\\d{9}");
     private static final Pattern EMAIL = Pattern.compile("[^@\\s]+@[^@\\s]+\\.[^@\\s]+");
@@ -110,6 +111,13 @@ public class FuncionarioBLL {
         funcionarioDAL.criarConta(funcionario, conta);
     }
 
+    /**
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param conta   a conta escolhida
+     * @return o funcionário dessa conta, para editar
+     * @throws IllegalStateException    se quem age não for o gestor
+     * @throws IllegalArgumentException se não houver conta ou o funcionário já não existir
+     */
     public Funcionario procurarDaConta(Utilizador quemAge, Utilizador conta) {
         exigirGestor(quemAge);
         if (conta == null) {
@@ -122,6 +130,16 @@ public class FuncionarioBLL {
         return funcionario;
     }
 
+    /**
+     * Muda o nome, os contactos e o perfil de um funcionário.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param conta   a conta do funcionário
+     * @param dados   o funcionário com os dados novos
+     * @param perfil  o perfil novo
+     * @throws IllegalStateException    se quem age não for o gestor
+     * @throws IllegalArgumentException se algum dado não for válido ou o gestor tirar o perfil de gestor a si próprio
+     */
     public void editar(Utilizador quemAge, Utilizador conta, Funcionario dados, Perfil perfil) {
         exigirGestor(quemAge);
         if (conta == null) {

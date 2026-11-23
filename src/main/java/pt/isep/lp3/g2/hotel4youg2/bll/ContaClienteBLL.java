@@ -12,8 +12,12 @@ import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.security.SecureRandom;
 
+/**
+ * Regras de negócio das contas dos clientes: criar a conta, entrar e escolher a palavra-passe.
+ */
 public class ContaClienteBLL {
 
+    /** Número mínimo de caracteres da palavra-passe do cliente. */
     public static final int MINIMO_PALAVRA_PASSE = 6;
 
     private static final int LIMITE_CODIGO = 1000000;
@@ -23,16 +27,35 @@ public class ContaClienteBLL {
     private final PasswordUtils passwordUtils;
     private final SecureRandom random = new SecureRandom();
 
+    /**
+     * Cria o BLL ligado à base de dados.
+     */
     public ContaClienteBLL() {
         this(new ContaClienteDAL(), new ClienteDAL(), new PasswordUtils());
     }
 
+    /**
+     * Cria o BLL com outros DAL (usado nos testes).
+     *
+     * @param contaClienteDAL onde ficam as contas
+     * @param clienteDAL      onde procurar os clientes
+     * @param passwordUtils   quem gera o salt e o hash
+     */
     public ContaClienteBLL(IContaClienteDAL contaClienteDAL, IClienteDAL clienteDAL, PasswordUtils passwordUtils) {
         this.contaClienteDAL = contaClienteDAL;
         this.clienteBLL = new ClienteBLL(clienteDAL);
         this.passwordUtils = passwordUtils;
     }
 
+    /**
+     * Cria a conta de um cliente e devolve o código do primeiro acesso.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param nif     o NIF do cliente
+     * @return o código de 6 dígitos para dar ao cliente
+     * @throws IllegalStateException se quem age não for da receção nem gestor
+     * @throws ValidacaoException    se o cliente não existir ou já tiver conta
+     */
     public String criarConta(Utilizador quemAge, String nif) {
         exigirRececao(quemAge);
         Cliente cliente = procurarCliente(nif);
@@ -48,6 +71,15 @@ public class ContaClienteBLL {
         return codigo;
     }
 
+    /**
+     * Gera um código novo para um cliente que se esqueceu da palavra-passe.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param nif     o NIF do cliente
+     * @return o código de 6 dígitos para dar ao cliente
+     * @throws IllegalStateException se quem age não for da receção nem gestor
+     * @throws ValidacaoException    se o cliente não existir ou ainda não tiver conta
+     */
     public String gerarNovoCodigo(Utilizador quemAge, String nif) {
         exigirRececao(quemAge);
         Cliente cliente = procurarCliente(nif);
@@ -63,6 +95,14 @@ public class ContaClienteBLL {
         return codigo;
     }
 
+    /**
+     * Verifica o NIF e a palavra-passe (ou o código do primeiro acesso) do cliente.
+     *
+     * @param nif      o NIF do cliente
+     * @param password a palavra-passe ou o código
+     * @return a conta do cliente
+     * @throws IllegalArgumentException se faltar algum dado, não houver conta ou a palavra-passe estiver errada
+     */
     public ContaCliente autenticar(String nif, String password) {
         if (nif == null || nif.isBlank()) {
             throw new IllegalArgumentException("Escreva o seu NIF.");
@@ -83,6 +123,15 @@ public class ContaClienteBLL {
         return conta;
     }
 
+    /**
+     * Guarda a palavra-passe escolhida pelo cliente no primeiro acesso.
+     *
+     * @param conta       a conta do cliente
+     * @param nova        a palavra-passe nova
+     * @param confirmacao a palavra-passe nova, outra vez
+     * @throws IllegalStateException se não houver conta
+     * @throws ValidacaoException    se a palavra-passe já foi escolhida, for curta, não coincidir ou for igual ao código
+     */
     public void definirPalavraPasse(ContaCliente conta, String nova, String confirmacao) {
         if (conta == null) {
             throw new IllegalStateException("Entre com o NIF e o código do primeiro acesso.");

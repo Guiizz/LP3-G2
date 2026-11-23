@@ -21,9 +21,14 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Regras de negócio dos pedidos extra: o cliente pede, a receção aceita ou recusa.
+ */
 public class PedidoExtraBLL {
 
+    /** Quantidade máxima de um pedido. */
     public static final int QUANTIDADE_MAXIMA = 99;
+    /** Número máximo de caracteres do motivo da recusa. */
     public static final int TAMANHO_MAXIMO_MOTIVO = 200;
 
     private final IPedidoExtraDAL pedidoExtraDAL;
@@ -31,10 +36,21 @@ public class PedidoExtraBLL {
     private final IServicoDAL servicoDAL;
     private final IStockDAL stockDAL;
 
+    /**
+     * Cria o BLL ligado à base de dados.
+     */
     public PedidoExtraBLL() {
         this(new PedidoExtraDAL(), new ReservaDAL(), new ServicoDAL(), new StockDAL());
     }
 
+    /**
+     * Cria o BLL com outros DAL (usado nos testes).
+     *
+     * @param pedidoExtraDAL onde ficam os pedidos
+     * @param reservaDAL     onde procurar as reservas do cliente
+     * @param servicoDAL     de onde vêm os serviços
+     * @param stockDAL       de onde vem o stock
+     */
     public PedidoExtraBLL(IPedidoExtraDAL pedidoExtraDAL, IReservaDAL reservaDAL, IServicoDAL servicoDAL,
                           IStockDAL stockDAL) {
         this.pedidoExtraDAL = pedidoExtraDAL;
@@ -43,6 +59,9 @@ public class PedidoExtraBLL {
         this.stockDAL = stockDAL;
     }
 
+    /**
+     * @return os serviços ativos, para o cliente escolher
+     */
     public List<Servico> listarServicos() {
         List<Servico> ativos = new ArrayList<>();
         for (Servico servico : servicoDAL.listar()) {
@@ -53,10 +72,24 @@ public class PedidoExtraBLL {
         return ativos;
     }
 
+    /**
+     * @return os materiais do stock, para o cliente escolher
+     */
     public List<MaterialStock> listarMateriais() {
         return stockDAL.listar();
     }
 
+    /**
+     * Regista o pedido de um serviço.
+     *
+     * @param conta      a conta do cliente com a sessão iniciada
+     * @param reserva    a reserva em curso
+     * @param servico    o serviço pedido
+     * @param quantidade a quantidade (1 a 99)
+     * @return o pedido gravado
+     * @throws IllegalStateException se não houver sessão iniciada
+     * @throws ValidacaoException    se a reserva não for do cliente ou não estiver em curso, ou faltar algum dado
+     */
     public PedidoExtra pedirServico(ContaCliente conta, Reserva reserva, Servico servico, int quantidade) {
         exigirReservaEmCurso(conta, reserva);
         if (servico == null) {
@@ -66,6 +99,17 @@ public class PedidoExtraBLL {
         return gravar(PedidoExtra.deServico(reserva.getId(), servico, quantidade));
     }
 
+    /**
+     * Regista o pedido de um material.
+     *
+     * @param conta      a conta do cliente com a sessão iniciada
+     * @param reserva    a reserva em curso
+     * @param material   o material pedido
+     * @param quantidade a quantidade (1 a 99)
+     * @return o pedido gravado
+     * @throws IllegalStateException se não houver sessão iniciada
+     * @throws ValidacaoException    se a reserva não for do cliente ou não estiver em curso, ou faltar algum dado
+     */
     public PedidoExtra pedirMaterial(ContaCliente conta, Reserva reserva, MaterialStock material, int quantidade) {
         exigirReservaEmCurso(conta, reserva);
         if (material == null) {
@@ -75,6 +119,11 @@ public class PedidoExtraBLL {
         return gravar(PedidoExtra.deMaterial(reserva.getId(), material, quantidade));
     }
 
+    /**
+     * @param conta a conta do cliente com a sessão iniciada
+     * @return os pedidos do cliente, do mais recente para o mais antigo
+     * @throws IllegalStateException se não houver sessão iniciada
+     */
     public List<PedidoExtra> listarDoCliente(ContaCliente conta) {
         if (conta == null) {
             throw new IllegalStateException("Entre na sua conta para ver os seus pedidos.");
@@ -82,11 +131,24 @@ public class PedidoExtraBLL {
         return pedidoExtraDAL.listarPorCliente(conta.getClienteId());
     }
 
+    /**
+     * @param quemAge o utilizador com a sessão iniciada
+     * @return os pedidos por decidir
+     * @throws IllegalStateException se quem age não for da receção nem gestor
+     */
     public List<PedidoExtra> listarPendentes(Utilizador quemAge) {
         exigirRececao(quemAge);
         return pedidoExtraDAL.listarPendentes();
     }
 
+    /**
+     * Aceita um pedido: o serviço entra na reserva ou o material sai do stock.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param pedido  o pedido
+     * @throws IllegalStateException se quem age não for da receção nem gestor
+     * @throws ValidacaoException    se o pedido já foi decidido, a reserva já não está em curso ou não há stock
+     */
     public void aceitar(Utilizador quemAge, PedidoExtra pedido) {
         exigirRececao(quemAge);
         exigirPendente(pedido);
@@ -105,6 +167,15 @@ public class PedidoExtraBLL {
         pedido.aceitar();
     }
 
+    /**
+     * Recusa um pedido, com o motivo.
+     *
+     * @param quemAge o utilizador com a sessão iniciada
+     * @param pedido  o pedido
+     * @param motivo  o motivo da recusa
+     * @throws IllegalStateException se quem age não for da receção nem gestor
+     * @throws ValidacaoException    se o pedido já foi decidido ou o motivo estiver vazio ou for longo
+     */
     public void recusar(Utilizador quemAge, PedidoExtra pedido, String motivo) {
         exigirRececao(quemAge);
         exigirPendente(pedido);

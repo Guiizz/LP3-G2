@@ -128,6 +128,9 @@ public class QuartoBLL {
         }
     }
 
+    /**
+     * @return os pisos que têm quartos, por ordem
+     */
     public List<Integer> listarPisos() {
         List<Integer> pisos = new ArrayList<>();
         for (Quarto quarto : quartoDAL.listarComTarifa()) {
@@ -139,6 +142,18 @@ public class QuartoBLL {
         return pisos;
     }
 
+    /**
+     * Cria um quarto novo. A capacidade vem do tipo de quarto.
+     *
+     * @param perfilAtual o perfil de quem está a usar a aplicação
+     * @param numero      o número do quarto, como foi escrito (ex.: 210)
+     * @param piso        o piso, como foi escrito (2 ou 3)
+     * @param tipo        o tipo de quarto
+     * @param vista       a vista
+     * @return o quarto criado
+     * @throws IllegalStateException    se quem cria não for gestor
+     * @throws IllegalArgumentException se algum dado não for válido ou o número já existir
+     */
     public Quarto criar(Perfil perfilAtual, String numero, String piso, TipoQuarto tipo, Vista vista) {
         exigirGestor(perfilAtual);
         int numeroQuarto = lerInteiro(numero, "Indique o número do quarto.", "O número do quarto tem de ser um número inteiro.");
@@ -173,6 +188,14 @@ public class QuartoBLL {
         }
         return Integer.parseInt(limpo);
     }
+    /**
+     * Elimina um quarto que nunca foi usado.
+     *
+     * @param perfilAtual o perfil de quem está a usar a aplicação
+     * @param numero      o número do quarto
+     * @throws IllegalStateException    se quem elimina não for gestor
+     * @throws IllegalArgumentException se o quarto já teve reservas ou picagens, ou não existir
+     */
     public void eliminar(Perfil perfilAtual, int numero) {
         exigirGestor(perfilAtual);
         if (quartoDAL.foiUsado(numero)) {

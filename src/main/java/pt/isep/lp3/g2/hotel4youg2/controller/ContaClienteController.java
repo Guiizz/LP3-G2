@@ -8,6 +8,9 @@ import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
+/**
+ * Controlador do ecrã "Conta do cliente": a receção cria a conta ou gera um código novo.
+ */
 public class ContaClienteController {
 
     private final ContaClienteBLL contaClienteBLL = new ContaClienteBLL();

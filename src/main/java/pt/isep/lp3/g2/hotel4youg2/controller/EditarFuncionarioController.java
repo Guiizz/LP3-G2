@@ -15,6 +15,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
 
+/**
+ * Controlador do ecrã "Editar funcionário": o gestor muda o nome, os contactos e o perfil.
+ */
 public class EditarFuncionarioController {
 
     private final FuncionarioBLL funcionarioBLL = new FuncionarioBLL();
@@ -40,6 +43,12 @@ public class EditarFuncionarioController {
     @FXML
     private Label mensagemLabel;
 
+    /**
+     * Abre a edição do funcionário de uma conta.
+     *
+     * @param conta a conta escolhida
+     * @throws IOException se não for possível ler o FXML
+     */
     public static void abrir(Utilizador conta) throws IOException {
         FXMLLoader loader = Navegador.carregar("editar-funcionario-view.fxml");
         EditarFuncionarioController controller = loader.getController();

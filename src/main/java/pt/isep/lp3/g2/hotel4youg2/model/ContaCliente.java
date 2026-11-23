@@ -2,6 +2,9 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 
 import java.util.Objects;
 
+/**
+ * Conta de um cliente na aplicação. O cliente entra com o NIF e a palavra-passe.
+ */
 public class ContaCliente {
 
     private int id;
@@ -12,6 +15,17 @@ public class ContaCliente {
     private String passwordSalt;
     private boolean primeiroAcesso;
 
+    /**
+     * Cria a conta de um cliente.
+     *
+     * @param id             o id da conta (0 se ainda não foi gravada)
+     * @param clienteId      o id do cliente
+     * @param nif            o NIF do cliente
+     * @param nome           o nome do cliente
+     * @param passwordHash   o hash da palavra-passe
+     * @param passwordSalt   o salt da palavra-passe
+     * @param primeiroAcesso se o cliente ainda tem de escolher a palavra-passe
+     */
     public ContaCliente(int id, int clienteId, String nif, String nome, String passwordHash, String passwordSalt,
                         boolean primeiroAcesso) {
         this.id = id;
@@ -55,6 +69,13 @@ public class ContaCliente {
         return primeiroAcesso;
     }
 
+    /**
+     * Muda a palavra-passe da conta.
+     *
+     * @param passwordHash   o hash da palavra-passe nova
+     * @param passwordSalt   o salt da palavra-passe nova
+     * @param primeiroAcesso se o cliente ainda tem de escolher a palavra-passe
+     */
     public void definirPassword(String passwordHash, String passwordSalt, boolean primeiroAcesso) {
         this.passwordHash = passwordHash;
         this.passwordSalt = passwordSalt;

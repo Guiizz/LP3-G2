@@ -17,6 +17,9 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Controlador do ecrã "O meu cartão" do cliente: pica o cartão da reserva em curso e vê as picagens.
+ */
 public class MeuCartaoController {
 
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");

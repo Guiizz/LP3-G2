@@ -3,10 +3,19 @@ package pt.isep.lp3.g2.hotel4youg2.model;
 import java.time.LocalDate;
 import java.util.Objects;
 
+/**
+ * Datas de entrada e de saída de uma reserva, usadas para contar a ocupação.
+ */
 public class Estadia {
     private final LocalDate dataEntrada;
     private final LocalDate dataSaida;
 
+    /**
+     * Cria uma estadia.
+     *
+     * @param dataEntrada o dia de chegada
+     * @param dataSaida   o dia de partida
+     */
     public Estadia(LocalDate dataEntrada, LocalDate dataSaida) {
         this.dataEntrada = dataEntrada;
         this.dataSaida = dataSaida;
@@ -20,6 +29,10 @@ public class Estadia {
         return dataSaida;
     }
 
+    /**
+     * @param dia o dia a ver
+     * @return {@code true} se o quarto está ocupado na noite desse dia
+     */
     public boolean ocupaNoite(LocalDate dia) {
         return !dia.isBefore(dataEntrada) && dia.isBefore(dataSaida);
     }
