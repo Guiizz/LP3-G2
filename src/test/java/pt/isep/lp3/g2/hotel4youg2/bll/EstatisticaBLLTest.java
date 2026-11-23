@@ -10,6 +10,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -217,6 +218,20 @@ public class EstatisticaBLLTest {
         System.out.println("receitaPorQuartoDisponivel (RevPAR: 400 € em 2 quartos durante 30 dias)");
         receitaDosQuartos();
         BigDecimal expResult = new BigDecimal("6.67");
+        BigDecimal result = instance.receitaPorQuartoDisponivel(GESTOR, INICIO_NOVEMBRO, FIM_NOVEMBRO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReceitaPorQuartoDisponivelBateComPrecoMedioVezesOcupacao() {
+        System.out.println("receitaPorQuartoDisponivel (é o preço médio × a ocupação: 100 € × 1 % = 1 €)");
+        estatisticaDAL.quartosAtivos = 10;
+        estatisticaDAL.estadias.add(new Estadia(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 4)));
+        estatisticaDAL.receitaQuartos.add(estatistica("DUPLO", "300.00"));
+        estatisticaDAL.noitesVendidas = 3;
+        BigDecimal expResult = instance.precoMedioPorNoite(GESTOR, INICIO_NOVEMBRO, FIM_NOVEMBRO)
+                .multiply(instance.ocupacaoMedia(GESTOR, INICIO_NOVEMBRO, FIM_NOVEMBRO))
+                .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
         BigDecimal result = instance.receitaPorQuartoDisponivel(GESTOR, INICIO_NOVEMBRO, FIM_NOVEMBRO);
         assertEquals(expResult, result);
     }

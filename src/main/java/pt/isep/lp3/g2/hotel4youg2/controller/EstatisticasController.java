@@ -77,9 +77,9 @@ public class EstatisticasController {
             LocalDate fim = dataEscolhida(fimPicker);
             mostrarNumeros(quemAge, inicio, fim);
             mostrarGraficos(quemAge, inicio, fim);
-            Mensagens.info(mensagemLabel, "A receita conta as reservas em curso e concluídas que entram no período; "
-                    + "a ocupação conta também as confirmadas. Passe o rato por cima de uma barra ou de uma fatia "
-                    + "para ver o valor.");
+            Mensagens.info(mensagemLabel, "A ocupação, a receita e o RevPAR contam as reservas em curso e "
+                    + "concluídas; as confirmadas só entram na receita prevista. Passe o rato por cima de uma barra "
+                    + "ou de uma fatia para ver o valor.");
         } catch (DateTimeParseException e) {
             limpar();
             Mensagens.erro(mensagemLabel, "A data não é válida. Escolha-a no calendário.");

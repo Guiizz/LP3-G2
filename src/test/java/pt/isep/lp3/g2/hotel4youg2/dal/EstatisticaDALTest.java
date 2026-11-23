@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EstatisticaDALTest {
 
-    private static final LocalDate INICIO_ANTIGO = LocalDate.of(1990, 1, 1);
-    private static final LocalDate FIM_ANTIGO = LocalDate.of(1990, 12, 31);
+    private static final LocalDate INICIO_ANTIGO = LocalDate.of(1950, 1, 1);
+    private static final LocalDate FIM_ANTIGO = LocalDate.of(1950, 12, 31);
     private static final LocalDate SEMPRE_INICIO = LocalDate.of(1900, 1, 1);
     private static final LocalDate SEMPRE_FIM = LocalDate.of(2999, 12, 31);
 
@@ -42,9 +42,9 @@ public class EstatisticaDALTest {
     }
 
     @Test
-    public void testListarEstadiasSoReservasNaoCanceladas() {
-        System.out.println("listarEstadias (não conta as reservas canceladas)");
-        int expResult = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado <> 'CANCELADA'",
+    public void testListarEstadiasSoReservasFeitas() {
+        System.out.println("listarEstadias (só as reservas em curso e concluídas, como a receita)");
+        int expResult = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado IN ('EM_CURSO', 'CONCLUIDA')",
                 new InteiroMapper()).get(0);
         int result = instance.listarEstadias(SEMPRE_INICIO, SEMPRE_FIM).size();
         assertEquals(expResult, result);

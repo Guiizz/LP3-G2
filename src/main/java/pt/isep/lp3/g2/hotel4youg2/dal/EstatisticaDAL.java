@@ -21,7 +21,8 @@ public class EstatisticaDAL implements IEstatisticaDAL {
     private static final String CONTAR_QUARTOS_ATIVOS = "SELECT COUNT(*) FROM Quarto WHERE ativo = 1";
     private static final String LISTAR_ESTADIAS =
             "SELECT dataEntrada, dataSaida FROM Reserva "
-            + "WHERE estado <> 'CANCELADA' AND dataEntrada <= ? AND dataSaida > ? ORDER BY dataEntrada, id";
+            + "WHERE estado IN ('EM_CURSO', 'CONCLUIDA') AND dataEntrada <= ? AND dataSaida > ? "
+            + "ORDER BY dataEntrada, id";
     private static final String RECEITA_POR_TIPO_QUARTO =
             "SELECT q.tipo AS rotulo, SUM(r.precoTotal + r.taxaHorario) AS valor "
             + "FROM Reserva r JOIN Quarto q ON q.numero = r.quartoNumero WHERE " + FEITA
