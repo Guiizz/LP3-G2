@@ -18,6 +18,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -181,8 +182,9 @@ public class EntregaBLLTest {
     public void testLerFicheiro() {
         System.out.println("lerFicheiro");
         String expResult = "OC56974";
-        Entrega result = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        assertEquals(expResult, result.getNumeroEncomenda());
+        Entrega obtido = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        String result = "" + obtido.getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -217,20 +219,18 @@ public class EntregaBLLTest {
     public void testRegistar() {
         System.out.println("registar");
         Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        int expResult = 1;
-        int result = instance.registar(RECECAO, entrega);
+        String expResult = "1 / 7";
+        String result = instance.registar(RECECAO, entrega) + " / " + entregaDAL.ultimoFuncionario;
         assertEquals(expResult, result);
-        assertEquals(7, entregaDAL.ultimoFuncionario);
     }
 
     @Test
     public void testCarregar() {
         System.out.println("carregar");
         Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        int expResult = 1;
-        int result = instance.carregar(fornecedorDoFicheiro(), entrega);
+        String expResult = "1 / " + EstadoEntrega.PENDENTE;
+        String result = instance.carregar(fornecedorDoFicheiro(), entrega) + " / " + entrega.getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
     }
 
     @Test
@@ -261,10 +261,10 @@ public class EntregaBLLTest {
         entregaPendente("MINHA-1");
         Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
         entregaDAL.carregar(new Entrega(0, "DELE-1", java.time.LocalDate.of(2026, 11, 4), outro));
-        List<ResumoEntrega> result = instance.historico(fornecedorDoFicheiro());
-        int expResult = 1;
-        assertEquals(expResult, result.size());
-        assertEquals("MINHA-1", result.get(0).getNumeroEncomenda());
+        List<ResumoEntrega> obtido = instance.historico(fornecedorDoFicheiro());
+        String expResult = "1 / MINHA-1";
+        String result = obtido.size() + " / " + obtido.get(0).getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -285,10 +285,9 @@ public class EntregaBLLTest {
         System.out.println("aceitar");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.aceitar(RECECAO, entrega.getId());
-        EstadoEntrega expResult = EstadoEntrega.ACEITE;
-        EstadoEntrega result = entrega.getEstado();
+        String expResult = EstadoEntrega.ACEITE + " / 7";
+        String result = entrega.getEstado() + " / " + entregaDAL.ultimoDecisor;
         assertEquals(expResult, result);
-        assertEquals(7, entregaDAL.ultimoDecisor);
     }
 
     @Test
@@ -296,11 +295,9 @@ public class EntregaBLLTest {
         System.out.println("recusar");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "Faltam toalhas");
-        EstadoEntrega expResult = EstadoEntrega.RECUSADA;
-        EstadoEntrega result = entrega.getEstado();
+        String expResult = EstadoEntrega.RECUSADA + " / Faltam toalhas / 7";
+        String result = entrega.getEstado() + " / " + entregaDAL.ultimoMotivo + " / " + entregaDAL.ultimoDecisor;
         assertEquals(expResult, result);
-        assertEquals("Faltam toalhas", entregaDAL.ultimoMotivo);
-        assertEquals(7, entregaDAL.ultimoDecisor);
     }
 
     @Test
@@ -308,10 +305,9 @@ public class EntregaBLLTest {
         System.out.println("recusar (sem motivo)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "   ");
-        EstadoEntrega expResult = EstadoEntrega.RECUSADA;
-        EstadoEntrega result = entrega.getEstado();
+        String expResult = EstadoEntrega.RECUSADA + " / null";
+        String result = entrega.getEstado() + " / " + entregaDAL.ultimoMotivo;
         assertEquals(expResult, result);
-        assertEquals(null, entregaDAL.ultimoMotivo);
     }
 
     @Test
@@ -319,10 +315,9 @@ public class EntregaBLLTest {
         System.out.println("recusar (motivo só com símbolos)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "....................");
-        EstadoEntrega expResult = EstadoEntrega.RECUSADA;
-        EstadoEntrega result = entrega.getEstado();
+        String expResult = EstadoEntrega.RECUSADA + " / null";
+        String result = entrega.getEstado() + " / " + entregaDAL.ultimoMotivo;
         assertEquals(expResult, result);
-        assertEquals(null, entregaDAL.ultimoMotivo);
     }
 
     private Fornecedor fornecedorDoFicheiro() {
@@ -360,20 +355,20 @@ public class EntregaBLLTest {
     public void testListarParaHotel() {
         System.out.println("listarParaHotel");
         entregaPendente("PENDENTE-1");
-        List<ResumoEntregaHotel> result = instance.listarParaHotel(RECECAO);
-        int expResult = 1;
-        assertEquals(expResult, result.size());
-        assertEquals("PENDENTE-1", result.get(0).getNumeroEncomenda());
+        List<ResumoEntregaHotel> obtido = instance.listarParaHotel(RECECAO);
+        String expResult = "1 / PENDENTE-1";
+        String result = obtido.size() + " / " + obtido.get(0).getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testHistoricoFiltradoPorEstado() {
         System.out.println("historico (só as aceites)");
         entregasEmTresEstados();
-        List<ResumoEntrega> result = instance.historico(fornecedorDoFicheiro(), EstadoEntrega.ACEITE);
-        int expResult = 1;
-        assertEquals(expResult, result.size());
-        assertEquals("OC-ACEITE", result.get(0).getNumeroEncomenda());
+        List<ResumoEntrega> obtido = instance.historico(fornecedorDoFicheiro(), EstadoEntrega.ACEITE);
+        String expResult = "1 / OC-ACEITE";
+        String result = obtido.size() + " / " + obtido.get(0).getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -398,10 +393,10 @@ public class EntregaBLLTest {
     public void testListarParaHotelFiltradoPorEstado() {
         System.out.println("listarParaHotel (só as recusadas)");
         entregasEmTresEstados();
-        List<ResumoEntregaHotel> result = instance.listarParaHotel(RECECAO, EstadoEntrega.RECUSADA);
-        int expResult = 1;
-        assertEquals(expResult, result.size());
-        assertEquals("OC-RECUSADA", result.get(0).getNumeroEncomenda());
+        List<ResumoEntregaHotel> obtido = instance.listarParaHotel(RECECAO, EstadoEntrega.RECUSADA);
+        String expResult = "1 / OC-RECUSADA";
+        String result = obtido.size() + " / " + obtido.get(0).getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -464,11 +459,12 @@ public class EntregaBLLTest {
     @Test
     public void testFaturaParaFornecedor() {
         System.out.println("faturaParaFornecedor");
-        Entrega expResult = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        int id = instance.carregar(fornecedorDoFicheiro(), expResult);
-        Entrega result = instance.faturaParaFornecedor(fornecedorDoFicheiro(), id);
+        Entrega esperado = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        int id = instance.carregar(fornecedorDoFicheiro(), esperado);
+        List<Object> expResult = Arrays.asList(esperado, 5);
+        Entrega obtido = instance.faturaParaFornecedor(fornecedorDoFicheiro(), id);
+        List<Object> result = Arrays.asList(obtido, obtido.getLinhas().size());
         assertEquals(expResult, result);
-        assertEquals(5, result.getLinhas().size());
     }
 
     @Test
@@ -484,8 +480,9 @@ public class EntregaBLLTest {
     public void testLerFicheiroJson() {
         System.out.println("lerFicheiroJson (o JSON de exemplo do enunciado passa em todas as validações)");
         String expResult = "X012X";
-        Entrega result = instance.lerFicheiroJson(ficheiroJson("entrega-valida.json"));
-        assertEquals(expResult, result.getNumeroEncomenda());
+        Entrega obtido = instance.lerFicheiroJson(ficheiroJson("entrega-valida.json"));
+        String result = "" + obtido.getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -502,8 +499,9 @@ public class EntregaBLLTest {
         java.io.File ficheiro = new java.io.File(EntregaBLLTest.class
                 .getResource("/pt/isep/lp3/g2/hotel4youg2/json/entrega-valida.json").toURI());
         String expResult = "X012X";
-        Entrega result = instance.lerFicheiro(ficheiro);
-        assertEquals(expResult, result.getNumeroEncomenda());
+        Entrega obtido = instance.lerFicheiro(ficheiro);
+        String result = "" + obtido.getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -611,10 +609,9 @@ public class EntregaBLLTest {
             instance.registar(RECECAO, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            String expResult = "A entrega OC56974 do fornecedor ProductHero já foi registada.";
-            String result = expected.getMessage();
+            String expResult = "A entrega OC56974 do fornecedor ProductHero já foi registada. / 1";
+            String result = expected.getMessage() + " / " + entregaDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(1, entregaDAL.registadas.size());
         }
     }
 
@@ -650,14 +647,13 @@ public class EntregaBLLTest {
         System.out.println("carregar (ficheiro de outro fornecedor)");
         Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
         Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
+        String expResult = "O ficheiro é do fornecedor " + entrega.getFornecedor().getCodigo()
+                + ". Só pode carregar entregas do seu fornecedor. / 0";
         try {
             instance.carregar(outro, entrega);
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("O ficheiro é do fornecedor " + entrega.getFornecedor().getCodigo()
-                    + ". Só pode carregar entregas do seu fornecedor.", expected.getMessage());
-            int expResult = 0;
-            int result = entregaDAL.registadas.size();
+            String result = expected.getMessage() + " / " + entregaDAL.registadas.size();
             assertEquals(expResult, result);
         }
     }
@@ -680,10 +676,9 @@ public class EntregaBLLTest {
             instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            String expResult = "A entrega OC56974 já foi carregada.";
-            String result = expected.getMessage();
+            String expResult = "A entrega OC56974 já foi carregada. / 1";
+            String result = expected.getMessage() + " / " + entregaDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(1, entregaDAL.registadas.size());
         }
     }
 
@@ -698,10 +693,9 @@ public class EntregaBLLTest {
             instance.carregar(fornecedorDoFicheiro(), entrega);
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            String expResult = "Tem 5 entregas por aprovar. Aguarde a decisão do hotel.";
-            String result = expected.getMessage();
+            String expResult = "Tem 5 entregas por aprovar. Aguarde a decisão do hotel. / " + EntregaBLL.MAX_PENDENTES;
+            String result = expected.getMessage() + " / " + entregaDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(EntregaBLL.MAX_PENDENTES, entregaDAL.registadas.size());
         }
     }
 
@@ -736,10 +730,9 @@ public class EntregaBLLTest {
     public void testAceitarSemSessao() {
         System.out.println("aceitar (sem sessão)");
         Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = "Entre na aplicação para decidir entregas.";
-        String result = mensagemAoAceitar(null, entrega.getId());
+        String expResult = "Entre na aplicação para decidir entregas. / " + EstadoEntrega.PENDENTE;
+        String result = mensagemAoAceitar(null, entrega.getId()) + " / " + entrega.getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
     }
 
     @Test
@@ -764,30 +757,27 @@ public class EntregaBLLTest {
     public void testRecusarMotivoComMuitosSimbolos() {
         System.out.println("recusar (201 pontos não dá erro, não há motivo)");
         Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = null;
-        String result = mensagemAoRecusar(RECECAO, entrega.getId(), ".".repeat(201));
+        String expResult = "null / null";
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), ".".repeat(201)) + " / " + entregaDAL.ultimoMotivo;
         assertEquals(expResult, result);
-        assertEquals(null, entregaDAL.ultimoMotivo);
     }
 
     @Test
     public void testRecusarMotivoComMuitosCaracteres() {
         System.out.println("recusar (motivo com 201 caracteres)");
         Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = "O motivo pode ter no máximo 200 caracteres.";
-        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(201));
+        String expResult = "O motivo pode ter no máximo 200 caracteres. / " + EstadoEntrega.PENDENTE;
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(201)) + " / " + entrega.getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
     }
 
     @Test
     public void testRecusarMotivoComOLimiteDeCaracteres() {
         System.out.println("recusar (motivo com 200 caracteres)");
         Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = null;
-        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(200));
+        String expResult = "null / " + EstadoEntrega.RECUSADA;
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(200)) + " / " + entrega.getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
     }
 
     @Test
@@ -804,10 +794,9 @@ public class EntregaBLLTest {
         System.out.println("recusar (já foi aceite)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.aceitar(RECECAO, entrega.getId());
-        String expResult = "Esta entrega já foi decidida.";
-        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "Tarde de mais");
+        String expResult = "Esta entrega já foi decidida. / " + EstadoEntrega.ACEITE;
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "Tarde de mais") + " / " + entrega.getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.ACEITE, entrega.getEstado());
     }
 
     @Test

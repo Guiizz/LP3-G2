@@ -197,10 +197,9 @@ public class SugestaoQueixaTest {
     public void testSetReserva() {
         System.out.println("setReserva");
         instance.setReserva(30, 201);
-        int expResult = 201;
-        int result = instance.getQuartoNumero();
+        String expResult = "201 / 30";
+        String result = instance.getQuartoNumero() + " / " + instance.getReservaId();
         assertEquals(expResult, result);
-        assertEquals(30, instance.getReservaId());
     }
 
     @Test

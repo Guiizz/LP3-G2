@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,11 +57,10 @@ public class FornecedorDALTest {
     @Test
     public void testProcurarPorCodigo() {
         System.out.println("procurarPorCodigo");
-        Fornecedor result = instance.procurarPorCodigo(codigo).orElseThrow();
-        String expResult = "Fornecedor de teste";
-        assertEquals(expResult, result.getNome());
-        assertEquals("a".repeat(64), result.getPasswordHash());
-        assertEquals("b".repeat(32), result.getPasswordSalt());
+        Fornecedor obtido = instance.procurarPorCodigo(codigo).orElseThrow();
+        List<Object> expResult = Arrays.asList("Fornecedor de teste", "a".repeat(64), "b".repeat(32));
+        List<Object> result = Arrays.asList(obtido.getNome(), obtido.getPasswordHash(), obtido.getPasswordSalt());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -91,11 +91,11 @@ public class FornecedorDALTest {
         Fornecedor fornecedor = new Fornecedor(0, codigoCriado, "Fornecedor novo", null, null, null, null, null, null);
         fornecedor.definirPassword("c".repeat(64), "d".repeat(32));
         int id = instance.criar(fornecedor);
-        Fornecedor result = instance.procurarPorCodigo(codigoCriado).orElseThrow();
-        int expResult = id;
-        assertEquals(expResult, result.getId());
-        assertEquals("Fornecedor novo", result.getNome());
-        assertEquals("c".repeat(64), result.getPasswordHash());
+        Fornecedor obtido = instance.procurarPorCodigo(codigoCriado).orElseThrow();
+        int esperado = id;
+        List<Object> expResult = Arrays.asList(esperado, "Fornecedor novo", "c".repeat(64));
+        List<Object> result = Arrays.asList(obtido.getId(), obtido.getNome(), obtido.getPasswordHash());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -104,21 +104,20 @@ public class FornecedorDALTest {
         codigoCriado = codigo + "N";
         ConexaoBD.executar("INSERT INTO Fornecedor (codigo, nome) VALUES (?, ?)", codigoCriado, "Sem conta");
         int id = instance.procurarPorCodigo(codigoCriado).orElseThrow().getId();
-        boolean expResult = true;
-        boolean result = instance.definirPassword(id, "e".repeat(64), "f".repeat(32));
-        assertEquals(expResult, result);
+        List<Object> expResult = Arrays.asList(true, "e".repeat(64), "f".repeat(32));
+        boolean definida = instance.definirPassword(id, "e".repeat(64), "f".repeat(32));
         Fornecedor atualizado = instance.procurarPorCodigo(codigoCriado).orElseThrow();
-        assertEquals("e".repeat(64), atualizado.getPasswordHash());
-        assertEquals("f".repeat(32), atualizado.getPasswordSalt());
+        List<Object> result = Arrays.asList(definida, atualizado.getPasswordHash(), atualizado.getPasswordSalt());
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testDefinirPasswordQueJaExiste() {
         System.out.println("definirPassword (já tem password)");
         int id = instance.procurarPorCodigo(codigo).orElseThrow().getId();
-        boolean expResult = false;
-        boolean result = instance.definirPassword(id, "e".repeat(64), "f".repeat(32));
+        List<Object> expResult = Arrays.asList(false, "a".repeat(64));
+        List<Object> result = Arrays.asList(instance.definirPassword(id, "e".repeat(64), "f".repeat(32)),
+                instance.procurarPorCodigo(codigo).orElseThrow().getPasswordHash());
         assertEquals(expResult, result);
-        assertEquals("a".repeat(64), instance.procurarPorCodigo(codigo).orElseThrow().getPasswordHash());
     }
 }

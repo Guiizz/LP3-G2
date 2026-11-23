@@ -80,10 +80,9 @@ public class PlantaHotelTest {
         System.out.println("getDetalhes (quarto individual sem tarifa)");
         Quarto instance = new Quarto(301, 3, TipoQuarto.INDIVIDUAL, Vista.MONTANHA, 1);
         String detalhes = instance.getDetalhes();
-        boolean expResult = true;
-        boolean result = detalhes.contains("Capacidade: 1 pessoa");
+        String expResult = "true / false";
+        String result = detalhes.contains("Capacidade: 1 pessoa") + " / " + detalhes.contains("Preço por noite");
         assertEquals(expResult, result);
-        assertEquals(false, detalhes.contains("Preço por noite"));
     }
 
     private List<Quarto> tresQuartosNoPiso2() {
@@ -116,20 +115,20 @@ public class PlantaHotelTest {
     public void testPisoDeUmQuartoEDeUmLocal() {
         System.out.println("pisoDe (quarto 301 no piso 3, piscina no piso 1)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        int expResult = 3;
-        int result = instance.pisoDe(LocalPicagem.quarto(301));
+        String expResult = "3 / 1";
+        String result = instance.pisoDe(LocalPicagem.quarto(301))
+                + " / "
+                + instance.pisoDe(new LocalPicagem(LocalHotel.PISCINA, 0));
         assertEquals(expResult, result);
-        assertEquals(1, instance.pisoDe(new LocalPicagem(LocalHotel.PISCINA, 0)));
     }
 
     @Test
     public void testTemQuartos() {
         System.out.println("temQuartos (piso 2 sim, piso 0 não)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        boolean expResult = true;
-        boolean result = instance.temQuartos(2);
+        String expResult = "true / false";
+        String result = instance.temQuartos(2) + " / " + instance.temQuartos(0);
         assertEquals(expResult, result);
-        assertEquals(false, instance.temQuartos(0));
     }
 
     @Test

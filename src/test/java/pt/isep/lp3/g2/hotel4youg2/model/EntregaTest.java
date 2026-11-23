@@ -69,37 +69,38 @@ public class EntregaTest {
     public void testGetTotalSemIva() {
         System.out.println("getTotalSemIva");
         adicionarLinhaComIvaErrado();
-        BigDecimal expResult = new BigDecimal("823.50");
-        BigDecimal result = instance.getTotalSemIva();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("823.50").stripTrailingZeros();
+        BigDecimal result = instance.getTotalSemIva().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testGetTotalIva() {
         System.out.println("getTotalIva");
         adicionarLinhaComIvaErrado();
-        BigDecimal expResult = new BigDecimal("189.38");
-        BigDecimal result = instance.getTotalIva();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("189.38").stripTrailingZeros();
+        BigDecimal result = instance.getTotalIva().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testGetTotal() {
         System.out.println("getTotal");
         adicionarLinhaComIvaErrado();
-        BigDecimal expResult = new BigDecimal("1012.91");
-        BigDecimal result = instance.getTotal();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("1012.91").stripTrailingZeros();
+        BigDecimal result = instance.getTotal().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testGetTotaisSemLinhas() {
         System.out.println("getTotalSemIva e getTotalIva (sem linhas dão zero)");
         Entrega semLinhas = new Entrega(0, "OC-1", LocalDate.of(2026, 10, 5), null);
-        int expResult = 0;
-        int result = BigDecimal.ZERO.compareTo(semLinhas.getTotalSemIva());
+        String expResult = "0 / 0";
+        String result = BigDecimal.ZERO.compareTo(semLinhas.getTotalSemIva())
+                + " / "
+                + BigDecimal.ZERO.compareTo(semLinhas.getTotalIva());
         assertEquals(expResult, result);
-        assertEquals(0, BigDecimal.ZERO.compareTo(semLinhas.getTotalIva()));
     }
 
     @Test

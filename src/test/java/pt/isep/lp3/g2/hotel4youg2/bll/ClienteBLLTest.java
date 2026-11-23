@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -149,13 +150,13 @@ public class ClienteBLLTest {
     @Test
     public void testRegistar() {
         System.out.println("registar");
-        Cliente expResult = new Cliente(8, "Maria Costa", "12345678", "987654321", "Rua A", "923456789", ADULTO,
+        Cliente esperado = new Cliente(8, "Maria Costa", "12345678", "987654321", "Rua A", "923456789", ADULTO,
                 "maria@mail.pt");
-        Cliente result = instance.registar("Maria Costa", "987654321", ADULTO, "923456789", "maria@mail.pt",
+        Cliente obtido = instance.registar("Maria Costa", "987654321", ADULTO, "923456789", "maria@mail.pt",
                 "12345678", "Rua A");
+        List<Object> expResult = Arrays.asList(esperado, esperado, 1);
+        List<Object> result = Arrays.asList(obtido, dal.clientes.get(1), dal.insercoes);
         assertEquals(expResult, result);
-        assertEquals(expResult, dal.clientes.get(1));
-        assertEquals(1, dal.insercoes);
     }
 
     @Test
@@ -186,12 +187,12 @@ public class ClienteBLLTest {
     @Test
     public void testRegistarFuncionarioComoCliente() {
         System.out.println("registar (funcionário passa a cliente, o nome e os dados que já tinha ficam)");
-        Cliente expResult = new Cliente(20, "Rui Costa", "CC123", "111222333", "Rua F", "922222222", ADULTO,
+        Cliente esperado = new Cliente(20, "Rui Costa", "CC123", "111222333", "Rua F", "922222222", ADULTO,
                 "rui@hotel.pt");
-        Cliente result = instance.registar("Outro Nome", "111222333", ADULTO, "922222222", null, null, null);
+        Cliente obtido = instance.registar("Outro Nome", "111222333", ADULTO, "922222222", null, null, null);
+        List<Object> expResult = Arrays.asList(esperado, esperado, 1);
+        List<Object> result = Arrays.asList(obtido, dal.clientes.get(1), dal.insercoes);
         assertEquals(expResult, result);
-        assertEquals(expResult, dal.clientes.get(1));
-        assertEquals(1, dal.insercoes);
     }
 
     @Test
@@ -230,11 +231,11 @@ public class ClienteBLLTest {
     @Test
     public void testPesquisar() {
         System.out.println("pesquisar");
-        List<Cliente> expResult = new ArrayList<>();
-        expResult.add(new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null));
-        List<Cliente> result = instance.pesquisar("  ana ");
+        List<Cliente> esperado = new ArrayList<>();
+        esperado.add(new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null));
+        List<Object> expResult = Arrays.asList(esperado, "ana");
+        List<Object> result = Arrays.asList(instance.pesquisar("  ana "), dal.ultimoTermo);
         assertEquals(expResult, result);
-        assertEquals("ana", dal.ultimoTermo);
     }
 
     @Test
@@ -248,10 +249,10 @@ public class ClienteBLLTest {
     @Test
     public void testPesquisarSemTermoMostraTodos() {
         System.out.println("pesquisar (sem termo mostra todos)");
-        List<Cliente> expResult = dal.clientes;
-        List<Cliente> result = instance.pesquisar(null);
+        List<Cliente> esperado = dal.clientes;
+        List<Object> expResult = Arrays.asList(esperado, "");
+        List<Object> result = Arrays.asList(instance.pesquisar(null), dal.ultimoTermo);
         assertEquals(expResult, result);
-        assertEquals("", dal.ultimoTermo);
     }
 
     @Test
@@ -265,10 +266,9 @@ public class ClienteBLLTest {
     @Test
     public void testPesquisarPorNifInexistente() {
         System.out.println("pesquisarPorNif (o NIF não existe)");
-        Cliente expResult = null;
-        Cliente result = instance.pesquisarPorNif("987654321");
+        List<Object> expResult = Arrays.asList(null, 1);
+        List<Object> result = Arrays.asList(instance.pesquisarPorNif("987654321"), dal.procurasPorNif);
         assertEquals(expResult, result);
-        assertEquals(1, dal.procurasPorNif);
     }
 
     @Test
@@ -282,10 +282,9 @@ public class ClienteBLLTest {
     @Test
     public void testRegistarNomeVazio() {
         System.out.println("registar (nome vazio)");
-        String expResult = "O nome é obrigatório";
-        String result = mensagemAoRegistar("   ", "987654321", ADULTO, "923456789", null);
+        String expResult = "O nome é obrigatório / 0";
+        String result = mensagemAoRegistar("   ", "987654321", ADULTO, "923456789", null) + " / " + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     // ---------- US43: funcionário que passa a cliente ----------
@@ -293,55 +292,57 @@ public class ClienteBLLTest {
     @Test
     public void testRegistarNomeMuitoLongo() {
         System.out.println("registar (nome com mais de 100 caracteres)");
-        String expResult = "O nome não pode ter mais de 100 caracteres";
-        String result = mensagemAoRegistar("A".repeat(101), "987654321", ADULTO, "923456789", null);
+        String expResult = "O nome não pode ter mais de 100 caracteres / 0";
+        String result = mensagemAoRegistar("A".repeat(101), "987654321", ADULTO, "923456789", null)
+                + " / "
+                + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarSemNif() {
         System.out.println("registar (sem NIF)");
-        String expResult = "O NIF é obrigatório";
-        String result = mensagemAoRegistar("Maria Costa", "  ", ADULTO, "923456789", null);
+        String expResult = "O NIF é obrigatório / 0";
+        String result = mensagemAoRegistar("Maria Costa", "  ", ADULTO, "923456789", null) + " / " + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarNifComOitoDigitos() {
         System.out.println("registar (NIF com oito dígitos)");
-        String expResult = "O NIF tem de ter exatamente 9 dígitos";
-        String result = mensagemAoRegistar("Maria Costa", "12345678", ADULTO, "923456789", null);
+        String expResult = "O NIF tem de ter exatamente 9 dígitos / 0";
+        String result = mensagemAoRegistar("Maria Costa", "12345678", ADULTO, "923456789", null)
+                + " / "
+                + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarNifComLetras() {
         System.out.println("registar (NIF com letras)");
-        String expResult = "O NIF tem de ter exatamente 9 dígitos";
-        String result = mensagemAoRegistar("Maria Costa", "12AB56789", ADULTO, "923456789", null);
+        String expResult = "O NIF tem de ter exatamente 9 dígitos / 0";
+        String result = mensagemAoRegistar("Maria Costa", "12AB56789", ADULTO, "923456789", null)
+                + " / "
+                + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarNifRepetido() {
         System.out.println("registar (NIF repetido)");
-        String expResult = "Já existe uma pessoa registada com o NIF 123456789";
-        String result = mensagemAoRegistar("Maria Costa", "123456789", ADULTO, "923456789", null);
+        String expResult = "Já existe uma pessoa registada com o NIF 123456789 / 0";
+        String result = mensagemAoRegistar("Maria Costa", "123456789", ADULTO, "923456789", null)
+                + " / "
+                + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarSemDataDeNascimento() {
         System.out.println("registar (sem data de nascimento)");
-        String expResult = "A data de nascimento é obrigatória";
-        String result = mensagemAoRegistar("Maria Costa", "987654321", null, "923456789", null);
+        String expResult = "A data de nascimento é obrigatória / 0";
+        String result = mensagemAoRegistar("Maria Costa", "987654321", null, "923456789", null) + " / " + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     // ---------- US14: pesquisar clientes ----------
@@ -349,93 +350,89 @@ public class ClienteBLLTest {
     @Test
     public void testRegistarDataNoFuturo() {
         System.out.println("registar (data de nascimento no futuro)");
-        String expResult = "A data de nascimento não pode ser no futuro";
-        String result = mensagemAoRegistar("Maria Costa", "987654321", LocalDate.now().plusDays(1), "923456789",
-                null);
+        String expResult = "A data de nascimento não pode ser no futuro / 0";
+        String result = mensagemAoRegistar("Maria Costa", "987654321", LocalDate.now().plusDays(1), "923456789", null)
+                + " / "
+                + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarMenorDe18Anos() {
         System.out.println("registar (menor de 18 anos)");
-        String expResult = "O cliente tem de ter pelo menos 18 anos";
-        String result = mensagemAoRegistar("Maria Costa", "987654321",
+        String expResult = "O cliente tem de ter pelo menos 18 anos / 0";
+        String obtido = mensagemAoRegistar("Maria Costa", "987654321",
                 LocalDate.now().minusYears(18).plusDays(1), "923456789", null);
+        String result = obtido + " / " + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarSemTelemovelNemEmail() {
         System.out.println("registar (sem telemóvel nem email)");
-        String expResult = "Indique pelo menos o telemóvel ou o email";
-        String result = mensagemAoRegistar("Maria Costa", "987654321", ADULTO, null, "  ");
+        String expResult = "Indique pelo menos o telemóvel ou o email / 0";
+        String result = mensagemAoRegistar("Maria Costa", "987654321", ADULTO, null, "  ") + " / " + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarTelemovelInvalido() {
         System.out.println("registar (telemóvel inválido)");
-        String expResult = "O telemóvel tem de ter 9 dígitos e começar por 9";
-        String result = mensagemAoRegistar("Maria Costa", "987654321", ADULTO, "12345", null);
+        String expResult = "O telemóvel tem de ter 9 dígitos e começar por 9 / 0";
+        String result = mensagemAoRegistar("Maria Costa", "987654321", ADULTO, "12345", null) + " / " + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarEmailInvalido() {
         System.out.println("registar (email inválido)");
-        String expResult = "O email não é válido";
-        String result = mensagemAoRegistar("Maria Costa", "987654321", ADULTO, null, "maria.mail.pt");
+        String expResult = "O email não é válido / 0";
+        String result = mensagemAoRegistar("Maria Costa", "987654321", ADULTO, null, "maria.mail.pt")
+                + " / "
+                + dal.insercoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.insercoes);
     }
 
     @Test
     public void testRegistarFuncionarioJaRegistadoComoCliente() {
         System.out.println("registar (funcionário já foi registado como cliente)");
         dal.tornarClienteFalha = true;
-        String expResult = "Este funcionário já foi registado como cliente";
-        String result = mensagemAoRegistar("Rui Costa", "111222333", ADULTO, "922222222", null);
+        String expResult = "Este funcionário já foi registado como cliente / 1";
+        String result = mensagemAoRegistar("Rui Costa", "111222333", ADULTO, "922222222", null)
+                + " / "
+                + dal.clientes.size();
         assertEquals(expResult, result);
-        assertEquals(1, dal.clientes.size());
     }
 
     @Test
     public void testPesquisarPorNifVazio() {
         System.out.println("pesquisarPorNif (sem NIF)");
-        String expResult = "O NIF é obrigatório";
-        String result = mensagemAoPesquisarPorNif("   ");
+        String expResult = "O NIF é obrigatório / 0";
+        String result = mensagemAoPesquisarPorNif("   ") + " / " + dal.procurasPorNif;
         assertEquals(expResult, result);
-        assertEquals(0, dal.procurasPorNif);
     }
 
     @Test
     public void testPesquisarPorNifComLetras() {
         System.out.println("pesquisarPorNif (NIF com letras)");
-        String expResult = "O NIF tem de ter exatamente 9 dígitos";
-        String result = mensagemAoPesquisarPorNif("12AB56789");
+        String expResult = "O NIF tem de ter exatamente 9 dígitos / 0";
+        String result = mensagemAoPesquisarPorNif("12AB56789") + " / " + dal.procurasPorNif;
         assertEquals(expResult, result);
-        assertEquals(0, dal.procurasPorNif);
     }
 
     @Test
     public void testPesquisarPorNifCurto() {
         System.out.println("pesquisarPorNif (NIF curto)");
-        String expResult = "O NIF tem de ter exatamente 9 dígitos";
-        String result = mensagemAoPesquisarPorNif("12345678");
+        String expResult = "O NIF tem de ter exatamente 9 dígitos / 0";
+        String result = mensagemAoPesquisarPorNif("12345678") + " / " + dal.procurasPorNif;
         assertEquals(expResult, result);
-        assertEquals(0, dal.procurasPorNif);
     }
 
     @Test
     public void testPesquisarPorNifLongo() {
         System.out.println("pesquisarPorNif (NIF longo)");
-        String expResult = "O NIF tem de ter exatamente 9 dígitos";
-        String result = mensagemAoPesquisarPorNif("1234567890");
+        String expResult = "O NIF tem de ter exatamente 9 dígitos / 0";
+        String result = mensagemAoPesquisarPorNif("1234567890") + " / " + dal.procurasPorNif;
         assertEquals(expResult, result);
-        assertEquals(0, dal.procurasPorNif);
     }
 }

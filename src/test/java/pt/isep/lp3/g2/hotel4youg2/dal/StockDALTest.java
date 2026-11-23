@@ -17,6 +17,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -232,11 +233,12 @@ public class StockDALTest {
         instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         List<MovimentoStock> movimentos = instance.listarMovimentos(materialId);
         String expResult = "[Saída definitiva 3, Entrada 5]";
-        List<String> result = new ArrayList<>();
+        List<String> obtido = new ArrayList<>();
         for (MovimentoStock movimento : movimentos) {
-            result.add(movimento.getTipo() + " " + movimento.getQuantidade());
+            obtido.add(movimento.getTipo() + " " + movimento.getQuantidade());
         }
-        assertEquals(expResult, result.toString());
+        String result = "" + obtido.toString();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -296,34 +298,35 @@ public class StockDALTest {
     public void testRegistarSaidaGuardaOTipoEOMotivo() {
         System.out.println("registarSaida (guarda o tipo, o motivo e o texto)");
         instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "caiu ao chão");
-        String expResult = "DEFINITIVA";
-        String result = textoGuardado("tipo");
+        String expResult = "DEFINITIVA / OUTRO / caiu ao chão";
+        String result = textoGuardado("tipo")
+                + " / "
+                + textoGuardado("motivo")
+                + " / "
+                + textoGuardado("descricaoMotivo");
         assertEquals(expResult, result);
-        assertEquals("OUTRO", textoGuardado("motivo"));
-        assertEquals("caiu ao chão", textoGuardado("descricaoMotivo"));
     }
 
     @Test
     public void testRegistarSaidaTemporariaSemMotivo() {
         System.out.println("registarSaida (temporária, sem motivo da lista)");
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
-        String expResult = "TEMPORARIA";
-        String result = textoGuardado("tipo");
+        String expResult = "TEMPORARIA / null / 8";
+        String result = textoGuardado("tipo") + " / " + textoGuardado("motivo") + " / " + quantidadeEmStock();
         assertEquals(expResult, result);
-        assertEquals(null, textoGuardado("motivo"));
-        assertEquals(8, quantidadeEmStock());
     }
 
     @Test
     public void testListarPorDevolver() {
         System.out.println("listarPorDevolver (a temporária aparece com o motivo e o funcionário)");
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
-        SaidaStock result = aSaidaPorDevolver();
-        int expResult = 2;
-        assertEquals(expResult, result.getQuantidade());
-        assertEquals("M-1", result.getCodigo());
-        assertEquals("Reparação", result.getMotivo());
-        assertEquals(nomeDoFuncionario(), result.getFuncionario());
+        SaidaStock obtido = aSaidaPorDevolver();
+        List<Object> expResult = Arrays.asList(2, "M-1", "Reparação", nomeDoFuncionario());
+        List<Object> result = Arrays.asList(obtido.getQuantidade(),
+                obtido.getCodigo(),
+                obtido.getMotivo(),
+                obtido.getFuncionario());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -339,12 +342,10 @@ public class StockDALTest {
     public void testDevolver() {
         System.out.println("devolver (o material volta ao stock)");
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
+        List<Object> expResult = Arrays.asList(true, 10, null);
         boolean devolvida = instance.devolver(aSaidaPorDevolver().getId(), funcionarioId);
-        assertEquals(true, devolvida);
-        int expResult = 10;
-        int result = quantidadeEmStock();
+        List<Object> result = Arrays.asList(devolvida, quantidadeEmStock(), aSaidaPorDevolver());
         assertEquals(expResult, result);
-        assertEquals(null, aSaidaPorDevolver());
     }
 
     @Test
@@ -353,10 +354,10 @@ public class StockDALTest {
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
         int saidaId = aSaidaPorDevolver().getId();
         instance.devolver(saidaId, funcionarioId);
-        boolean result = instance.devolver(saidaId, funcionarioId);
-        boolean expResult = false;
+        boolean obtido = instance.devolver(saidaId, funcionarioId);
+        String expResult = "false / 10";
+        String result = obtido + " / " + quantidadeEmStock();
         assertEquals(expResult, result);
-        assertEquals(10, quantidadeEmStock());
     }
 
     @Test
@@ -365,10 +366,10 @@ public class StockDALTest {
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ESTRAGADO, null);
         int saidaId = ConexaoBD.select("SELECT id FROM MovimentoStock WHERE materialId = ?", new InteiroMapper(),
                 materialId).get(0);
-        boolean result = instance.devolver(saidaId, funcionarioId);
-        boolean expResult = false;
+        boolean obtido = instance.devolver(saidaId, funcionarioId);
+        String expResult = "false / 8";
+        String result = obtido + " / " + quantidadeEmStock();
         assertEquals(expResult, result);
-        assertEquals(8, quantidadeEmStock());
     }
 
     @Test
@@ -388,15 +389,19 @@ public class StockDALTest {
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
         instance.devolver(aSaidaPorDevolver().getId(), funcionarioId);
         instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.ROUBADO, null);
-        List<TipoMovimento> result = new ArrayList<>();
+        List<TipoMovimento> obtido = new ArrayList<>();
         for (MovimentoStock movimento : instance.listarMovimentos(materialId)) {
-            result.add(movimento.getTipo());
+            obtido.add(movimento.getTipo());
         }
-        int expResult = 3;
-        assertEquals(expResult, result.size());
-        assertEquals(true, result.contains(TipoMovimento.SAIDA_TEMPORARIA));
-        assertEquals(true, result.contains(TipoMovimento.DEVOLUCAO));
-        assertEquals(true, result.contains(TipoMovimento.SAIDA_DEFINITIVA));
+        String expResult = "3 / true / true / true";
+        String result = obtido.size()
+                + " / "
+                + obtido.contains(TipoMovimento.SAIDA_TEMPORARIA)
+                + " / "
+                + obtido.contains(TipoMovimento.DEVOLUCAO)
+                + " / "
+                + obtido.contains(TipoMovimento.SAIDA_DEFINITIVA);
+        assertEquals(expResult, result);
     }
 
     @Test

@@ -13,6 +13,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -282,23 +283,23 @@ public class QuartoBLLTest {
     @Test
     public void testDesativar() {
         System.out.println("desativar");
-        Quarto expResult = criarQuarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1, "50.00");
-        expResult.setAtivo(false);
+        Quarto esperado = criarQuarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1, "50.00");
+        esperado.setAtivo(false);
+        List<Object> expResult = Arrays.asList(esperado, 1);
         instance.desativar(Perfil.GESTOR, 201);
-        Quarto result = dal.quartos.get(0);
+        List<Object> result = Arrays.asList(dal.quartos.get(0), dal.alteracoes);
         assertEquals(expResult, result);
-        assertEquals(1, dal.alteracoes);
     }
 
     @Test
     public void testReativar() {
         System.out.println("reativar");
         dal.quartos.get(0).setAtivo(false);
-        Quarto expResult = criarQuarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1, "50.00");
+        Quarto esperado = criarQuarto(201, 2, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1, "50.00");
         instance.reativar(Perfil.GESTOR, 201);
-        Quarto result = dal.quartos.get(0);
+        List<Object> expResult = Arrays.asList(esperado, 1);
+        List<Object> result = Arrays.asList(dal.quartos.get(0), dal.alteracoes);
         assertEquals(expResult, result);
-        assertEquals(1, dal.alteracoes);
     }
 
     @Test
@@ -313,10 +314,11 @@ public class QuartoBLLTest {
     @Test
     public void testCriarDevolveOQuarto() {
         System.out.println("criar (devolve o quarto criado, ativo)");
-        Quarto expResult = new Quarto(212, 2, TipoQuarto.INDIVIDUAL, Vista.MONTANHA, 1);
-        Quarto result = instance.criar(Perfil.GESTOR, "212", "2", TipoQuarto.INDIVIDUAL, Vista.MONTANHA);
+        Quarto esperado = new Quarto(212, 2, TipoQuarto.INDIVIDUAL, Vista.MONTANHA, 1);
+        Quarto obtido = instance.criar(Perfil.GESTOR, "212", "2", TipoQuarto.INDIVIDUAL, Vista.MONTANHA);
+        List<Object> expResult = Arrays.asList(esperado, true);
+        List<Object> result = Arrays.asList(obtido, obtido.isAtivo());
         assertEquals(expResult, result);
-        assertEquals(true, result.isAtivo());
     }
 
     @Test
@@ -460,65 +462,62 @@ public class QuartoBLLTest {
     @Test
     public void testDesativarComoRececionista() {
         System.out.println("desativar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoDesativar(Perfil.RECECIONISTA, 201);
+        String expResult = "Só o gestor pode gerir quartos / 0";
+        String result = mensagemAoDesativar(Perfil.RECECIONISTA, 201) + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testDesativarComReservasFuturas() {
         System.out.println("desativar (quarto com reservas futuras)");
         dal.quartoComReservasFuturas = 201;
-        String expResult = "Não é possível desativar o quarto 201: tem reservas futuras";
-        String result = mensagemAoDesativar(Perfil.GESTOR, 201);
+        String expResult = "Não é possível desativar o quarto 201: tem reservas futuras / 0";
+        String result = mensagemAoDesativar(Perfil.GESTOR, 201) + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testDesativarQuartoInexistente() {
         System.out.println("desativar (o quarto não existe)");
-        String expResult = "O quarto 999 não existe";
-        String result = mensagemAoDesativar(Perfil.GESTOR, 999);
+        String expResult = "O quarto 999 não existe / 0";
+        String result = mensagemAoDesativar(Perfil.GESTOR, 999) + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testReativarComoRececionista() {
         System.out.println("reativar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoReativar(Perfil.RECECIONISTA, 201);
+        String expResult = "Só o gestor pode gerir quartos / 0";
+        String result = mensagemAoReativar(Perfil.RECECIONISTA, 201) + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testReativarQuartoInexistente() {
         System.out.println("reativar (o quarto não existe)");
-        String expResult = "O quarto 999 não existe";
-        String result = mensagemAoReativar(Perfil.GESTOR, 999);
+        String expResult = "O quarto 999 não existe / 0";
+        String result = mensagemAoReativar(Perfil.GESTOR, 999) + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testCriarComoRececionista() {
         System.out.println("criar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoCriar(Perfil.RECECIONISTA, "311", "3", TipoQuarto.DUPLO, Vista.MAR);
+        String expResult = "Só o gestor pode gerir quartos / 4";
+        String result = mensagemAoCriar(Perfil.RECECIONISTA, "311", "3", TipoQuarto.DUPLO, Vista.MAR)
+                + " / "
+                + dal.quartos.size();
         assertEquals(expResult, result);
-        assertEquals(4, dal.quartos.size());
     }
 
     @Test
     public void testCriarNumeroRepetido() {
         System.out.println("criar (número repetido)");
-        String expResult = "Já existe um quarto com o número 201.";
-        String result = mensagemAoCriar(Perfil.GESTOR, "201", "2", TipoQuarto.DUPLO, Vista.MAR);
+        String expResult = "Já existe um quarto com o número 201. / 4";
+        String result = mensagemAoCriar(Perfil.GESTOR, "201", "2", TipoQuarto.DUPLO, Vista.MAR)
+                + " / "
+                + dal.quartos.size();
         assertEquals(expResult, result);
-        assertEquals(4, dal.quartos.size());
     }
 
     @Test
@@ -604,28 +603,25 @@ public class QuartoBLLTest {
     @Test
     public void testEliminarComoRececionista() {
         System.out.println("eliminar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoEliminar(Perfil.RECECIONISTA, 201);
+        String expResult = "Só o gestor pode gerir quartos / 4";
+        String result = mensagemAoEliminar(Perfil.RECECIONISTA, 201) + " / " + dal.quartos.size();
         assertEquals(expResult, result);
-        assertEquals(4, dal.quartos.size());
     }
 
     @Test
     public void testEliminarQuartoUsado() {
         System.out.println("eliminar (quarto com reservas ou picagens só se desativa)");
         dal.quartoUsado = 201;
-        String expResult = "O quarto 201 já teve reservas ou picagens: não pode ser eliminado, só desativado.";
-        String result = mensagemAoEliminar(Perfil.GESTOR, 201);
+        String expResult = "O quarto 201 já teve reservas ou picagens: não pode ser eliminado, só desativado. / 4";
+        String result = mensagemAoEliminar(Perfil.GESTOR, 201) + " / " + dal.quartos.size();
         assertEquals(expResult, result);
-        assertEquals(4, dal.quartos.size());
     }
 
     @Test
     public void testEliminarQuartoInexistente() {
         System.out.println("eliminar (o quarto não existe)");
-        String expResult = "O quarto 999 não existe";
-        String result = mensagemAoEliminar(Perfil.GESTOR, 999);
+        String expResult = "O quarto 999 não existe / 0";
+        String result = mensagemAoEliminar(Perfil.GESTOR, 999) + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 }

@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,13 +63,14 @@ public class LeitorXmlEntregaTest {
         System.out.println("ler");
         Fornecedor fornecedor = new Fornecedor(0, "11PT920", "ProductHero", "Rua da Alegria", "nº1", "Porto",
                 "4000-032", "Portugal", "PT");
-        Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
-        String expResult = "OC56974";
-        assertEquals(expResult, result.getNumeroEncomenda());
-        assertEquals(LocalDate.of(2026, 10, 5), result.getDataEncomenda());
-        assertEquals(fornecedor, result.getFornecedor());
-        assertEquals(5, result.getLinhas().size());
-        assertEquals(0, erros.size());
+        Entrega obtido = instance.ler(ficheiro("entrega-valida.xml"), erros);
+        List<Object> expResult = Arrays.asList("OC56974", LocalDate.of(2026, 10, 5), fornecedor, 5, 0);
+        List<Object> result = Arrays.asList(obtido.getNumeroEncomenda(),
+                obtido.getDataEncomenda(),
+                obtido.getFornecedor(),
+                obtido.getLinhas().size(),
+                erros.size());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -83,20 +85,23 @@ public class LeitorXmlEntregaTest {
     @Test
     public void testLerUnidadesDeCadaLinha() {
         System.out.println("ler (unidades de cada linha)");
-        Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
+        Entrega obtido = instance.ler(ficheiro("entrega-valida.xml"), erros);
         // linha 1: 50 caixas, o ficheiro diz que são 500 unidades; as outras já vêm em unidades
-        int expResult = 500;
-        assertEquals(expResult, result.getLinhas().get(0).getUnidades());
-        assertEquals(200, result.getLinhas().get(1).getUnidades());
-        assertEquals(50, result.getLinhas().get(2).getUnidades());
+        String expResult = "500 / 200 / 50";
+        String result = obtido.getLinhas().get(0).getUnidades()
+                + " / "
+                + obtido.getLinhas().get(1).getUnidades()
+                + " / "
+                + obtido.getLinhas().get(2).getUnidades();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testLerTotal() {
         System.out.println("ler (total da entrega)");
-        BigDecimal expResult = new BigDecimal("17389.75");
-        BigDecimal result = instance.ler(ficheiro("entrega-valida.xml"), erros).getTotal();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("17389.75").stripTrailingZeros();
+        BigDecimal result = instance.ler(ficheiro("entrega-valida.xml"), erros).getTotal().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -157,10 +162,10 @@ public class LeitorXmlEntregaTest {
     public void testImportarXsdDoProjeto() {
         System.out.println("importarXsd (o XSD do projeto importado aceita o XML do professor)");
         LeitorXmlEntrega.importarXsd(ficheiroEmDisco("Hotel4You.xsd"));
-        Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
-        String expResult = "OC56974";
-        assertEquals(expResult, result.getNumeroEncomenda());
-        assertEquals("Hotel4You.xsd", LeitorXmlEntrega.getNomeXsdImportado());
+        Entrega obtido = instance.ler(ficheiro("entrega-valida.xml"), erros);
+        String expResult = "OC56974 / Hotel4You.xsd";
+        String result = obtido.getNumeroEncomenda() + " / " + LeitorXmlEntrega.getNomeXsdImportado();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -168,25 +173,25 @@ public class LeitorXmlEntregaTest {
         System.out.println("usarXsdDoProjeto (esquece o XSD importado)");
         LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-outra-raiz.xsd"));
         LeitorXmlEntrega.usarXsdDoProjeto();
-        Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
-        String expResult = "OC56974";
-        assertEquals(expResult, result.getNumeroEncomenda());
-        assertEquals(null, LeitorXmlEntrega.getNomeXsdImportado());
+        Entrega obtido = instance.ler(ficheiro("entrega-valida.xml"), erros);
+        String expResult = "OC56974 / null";
+        String result = obtido.getNumeroEncomenda() + " / " + LeitorXmlEntrega.getNomeXsdImportado();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testLerMalFormado() {
         System.out.println("ler (mal formado)");
-        List<String> result = null;
+        List<String> obtido = null;
         try {
             instance.ler(ficheiro("entrega-mal-formada.xml"), erros);
             fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
         } catch (ErrosFicheiroException expected) {
-            result = expected.getErros();
+            obtido = expected.getErros();
         }
-        int expResult = 1;
-        assertEquals(expResult, result.size());
-        assertEquals(true, result.get(0).contains("do ficheiro: o XML não está bem formado."));
+        String expResult = "1 / true";
+        String result = obtido.size() + " / " + obtido.get(0).contains("do ficheiro: o XML não está bem formado.");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -278,16 +283,16 @@ public class LeitorXmlEntregaTest {
     @Test
     public void testImportarXsdQueNaoEUmXsd() {
         System.out.println("importarXsd (um XML de entrega não é um XSD)");
-        List<String> result = null;
+        List<String> obtido = null;
         try {
             LeitorXmlEntrega.importarXsd(ficheiroEmDisco("entrega-valida.xml"));
             fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
         } catch (ErrosFicheiroException expected) {
-            result = expected.getErros();
+            obtido = expected.getErros();
         }
-        int expResult = 1;
-        assertEquals(expResult, result.size());
-        assertEquals(null, LeitorXmlEntrega.getNomeXsdImportado());
+        String expResult = "1 / null";
+        String result = obtido.size() + " / " + LeitorXmlEntrega.getNomeXsdImportado();
+        assertEquals(expResult, result);
     }
 
     @Test

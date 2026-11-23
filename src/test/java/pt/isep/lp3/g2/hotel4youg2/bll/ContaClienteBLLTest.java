@@ -14,6 +14,7 @@ import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -187,20 +188,22 @@ public class ContaClienteBLLTest {
     public void testAutenticarPrimeiroAcesso() {
         System.out.println("autenticar (com o código, a conta está no primeiro acesso)");
         String codigo = instance.criarConta(RECECAO, NIF);
-        ContaCliente expResult = contaDAL.procurarPorNif(NIF);
-        ContaCliente result = instance.autenticar(NIF, codigo);
+        ContaCliente esperado = contaDAL.procurarPorNif(NIF);
+        ContaCliente obtido = instance.autenticar(NIF, codigo);
+        List<Object> expResult = Arrays.asList(esperado, true);
+        List<Object> result = Arrays.asList(obtido, obtido.isPrimeiroAcesso());
         assertEquals(expResult, result);
-        assertEquals(true, result.isPrimeiroAcesso());
     }
 
     @Test
     public void testDefinirPalavraPasse() {
         System.out.println("definirPalavraPasse (depois disso entra com a palavra-passe)");
         contaAtivada("segredo123");
-        ContaCliente expResult = contaDAL.procurarPorNif(NIF);
-        ContaCliente result = instance.autenticar(NIF, "segredo123");
+        ContaCliente esperado = contaDAL.procurarPorNif(NIF);
+        ContaCliente obtido = instance.autenticar(NIF, "segredo123");
+        List<Object> expResult = Arrays.asList(esperado, false);
+        List<Object> result = Arrays.asList(obtido, obtido.isPrimeiroAcesso());
         assertEquals(expResult, result);
-        assertEquals(false, result.isPrimeiroAcesso());
     }
 
     @Test
@@ -217,24 +220,25 @@ public class ContaClienteBLLTest {
         System.out.println("gerarNovoCodigo (o cliente volta ao primeiro acesso com o código novo)");
         contaAtivada("segredo123");
         String codigo = instance.gerarNovoCodigo(RECECAO, NIF);
-        ContaCliente expResult = contaDAL.procurarPorNif(NIF);
-        ContaCliente result = instance.autenticar(NIF, codigo);
+        ContaCliente esperado = contaDAL.procurarPorNif(NIF);
+        ContaCliente obtido = instance.autenticar(NIF, codigo);
+        List<Object> expResult = Arrays.asList(esperado, true);
+        List<Object> result = Arrays.asList(obtido, obtido.isPrimeiroAcesso());
         assertEquals(expResult, result);
-        assertEquals(true, result.isPrimeiroAcesso());
     }
 
     @Test
     public void testCriarContaRepetida() {
         System.out.println("criarConta (o cliente já tem conta)");
         instance.criarConta(RECECAO, NIF);
-        String expResult = "O cliente Rui Costa já tem conta. Se ele se esqueceu da palavra-passe, gere um código novo.";
+        String expResult = "O cliente Rui Costa já tem conta. Se ele se esqueceu da palavra-passe, gere um código novo. / 1";
         try {
             instance.criarConta(RECECAO, NIF);
             fail("Devia ter recusado a segunda conta");
         } catch (ValidacaoException expected) {
-            String result = expected.getMessage();
+            String obtido = expected.getMessage();
+            String result = obtido + " / " + contaDAL.contas.size();
             assertEquals(expResult, result);
-            assertEquals(1, contaDAL.contas.size());
         }
     }
 
@@ -267,14 +271,13 @@ public class ContaClienteBLLTest {
     @Test
     public void testCriarContaSemSessao() {
         System.out.println("criarConta (sem sessão)");
-        String expResult = "Só a receção e o gestor podem tratar das contas dos clientes.";
+        String expResult = "Só a receção e o gestor podem tratar das contas dos clientes. / 0";
         try {
             instance.criarConta(null, NIF);
             fail("Devia ter exigido a sessão");
         } catch (IllegalStateException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + contaDAL.contas.size();
             assertEquals(expResult, result);
-            assertEquals(0, contaDAL.contas.size());
         }
     }
 
@@ -352,14 +355,13 @@ public class ContaClienteBLLTest {
         System.out.println("definirPalavraPasse (menos de 6 caracteres)");
         String codigo = instance.criarConta(RECECAO, NIF);
         ContaCliente conta = instance.autenticar(NIF, codigo);
-        String expResult = "A palavra-passe tem de ter pelo menos 6 caracteres.";
+        String expResult = "A palavra-passe tem de ter pelo menos 6 caracteres. / true";
         try {
             instance.definirPalavraPasse(conta, "abc", "abc");
             fail("Devia ter recusado a palavra-passe");
         } catch (ValidacaoException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + contaDAL.procurarPorNif(NIF).isPrimeiroAcesso();
             assertEquals(expResult, result);
-            assertEquals(true, contaDAL.procurarPorNif(NIF).isPrimeiroAcesso());
         }
     }
 

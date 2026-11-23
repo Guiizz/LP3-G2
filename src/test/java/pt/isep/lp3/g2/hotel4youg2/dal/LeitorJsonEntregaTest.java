@@ -45,8 +45,9 @@ public class LeitorJsonEntregaTest {
     public void testLer() {
         System.out.println("ler (JSON de exemplo do enunciado)");
         String expResult = "X012X";
-        Entrega result = instance.ler(ficheiro("entrega-valida.json"), erros);
-        assertEquals(expResult, result.getNumeroEncomenda());
+        Entrega obtido = instance.ler(ficheiro("entrega-valida.json"), erros);
+        String result = "" + obtido.getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -79,9 +80,9 @@ public class LeitorJsonEntregaTest {
     @Test
     public void testLerTotal() {
         System.out.println("ler (total da entrega)");
-        BigDecimal expResult = new BigDecimal("3508.80");
-        BigDecimal result = instance.ler(ficheiro("entrega-valida.json"), erros).getTotal();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("3508.80").stripTrailingZeros();
+        BigDecimal result = instance.ler(ficheiro("entrega-valida.json"), erros).getTotal().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -150,7 +151,7 @@ public class LeitorJsonEntregaTest {
     @Test
     public void testLerMalFormado() {
         System.out.println("ler (mal formado, diz a linha do ficheiro)");
-        String expResult = "Linha 5, coluna 8 do ficheiro: o JSON não está bem formado.";
+        List<String> expResult = List.of("Linha 5, coluna 8 do ficheiro: o JSON não está bem formado.");
         List<String> result = null;
         try {
             instance.ler(ficheiro("entrega-mal-formada.json"), erros);
@@ -158,7 +159,7 @@ public class LeitorJsonEntregaTest {
         } catch (ErrosFicheiroException expected) {
             result = expected.getErros();
         }
-        assertEquals(List.of(expResult), result);
+        assertEquals(expResult, result);
     }
 
     @Test

@@ -236,10 +236,11 @@ public class ServicoBLLTest {
         System.out.println("desativar");
         Servico sauna = instance.criar(GESTOR, "Sauna", new BigDecimal("15.00"), spa);
         instance.desativar(GESTOR, sauna.getId());
-        boolean expResult = false;
-        boolean result = servicoDAL.procurarPorId(sauna.getId()).orElseThrow().isAtivo();
+        String expResult = "false / 1";
+        String result = servicoDAL.procurarPorId(sauna.getId()).orElseThrow().isAtivo()
+                + " / "
+                + instance.listar().size();
         assertEquals(expResult, result);
-        assertEquals(1, instance.listar().size());
     }
 
     @Test
@@ -360,10 +361,9 @@ public class ServicoBLLTest {
             instance.criar(GESTOR, " SAUNA ", new BigDecimal("18"), spa);
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            String expResult = "Já existe o serviço \"SAUNA\". Para mudar o preço, edite o serviço que já existe.";
-            String result = expected.getMessage();
+            String expResult = "Já existe o serviço \"SAUNA\". Para mudar o preço, edite o serviço que já existe. / 1";
+            String result = expected.getMessage() + " / " + servicoDAL.tabela.size();
             assertEquals(expResult, result);
-            assertEquals(1, servicoDAL.tabela.size());
         }
     }
 

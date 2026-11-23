@@ -122,19 +122,22 @@ class AutenticacaoFornecedorBLLTest {
     @Test
     public void testAutenticarCamposVazios() {
         System.out.println("autenticar (campos vazios)");
+        String expResult = "Escreva o código de fornecedor. / Escreva a password.";
+        String codigoVazio = null;
         try {
             instance.autenticar(" ", "Forn#2026");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            String expResult = "Escreva o código de fornecedor.";
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
+            codigoVazio = expected.getMessage();
         }
+        String passwordVazia = null;
         try {
             instance.autenticar("F-1", "");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva a password.", expected.getMessage());
+            passwordVazia = expected.getMessage();
         }
+        String result = codigoVazio + " / " + passwordVazia;
+        assertEquals(expResult, result);
     }
 }

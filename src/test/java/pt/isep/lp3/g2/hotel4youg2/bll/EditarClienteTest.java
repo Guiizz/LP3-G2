@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,12 +96,13 @@ public class EditarClienteTest {
     @Test
     public void testEditar() {
         System.out.println("editar");
-        Cliente expResult = new Cliente(7, "Ana Costa", "12345678", "123456789", "Rua B", "934567890", ADULTO,
+        Cliente esperado = new Cliente(7, "Ana Costa", "12345678", "123456789", "Rua B", "934567890", ADULTO,
                 "ana@costa.pt");
-        Cliente result = instance.editar(ana, " Ana Costa ", ADULTO, "934567890", "ana@costa.pt", "12345678",
+        Cliente obtido = instance.editar(ana, " Ana Costa ", ADULTO, "934567890", "ana@costa.pt", "12345678",
                 "Rua B");
+        List<Object> expResult = Arrays.asList(esperado, 1);
+        List<Object> result = Arrays.asList(obtido, dal.atualizacoes);
         assertEquals(expResult, result);
-        assertEquals(1, dal.atualizacoes);
     }
 
     @Test
@@ -116,11 +118,10 @@ public class EditarClienteTest {
     @Test
     public void testEditarONifNaoMuda() {
         System.out.println("editar (o NIF nunca muda)");
-        String expResult = "123456789";
+        List<Object> expResult = Arrays.asList("123456789", "123456789");
         instance.editar(ana, "Ana Costa", ADULTO, "912345678", null, null, null);
-        String result = dal.atualizado.getNif();
+        List<Object> result = Arrays.asList(dal.atualizado.getNif(), ana.getNif());
         assertEquals(expResult, result);
-        assertEquals(expResult, ana.getNif());
     }
 
     @Test
@@ -134,69 +135,65 @@ public class EditarClienteTest {
     @Test
     public void testEditarSemClienteEscolhido() {
         System.out.println("editar (sem cliente escolhido)");
-        String expResult = "Escolha um cliente na pesquisa";
-        String result = mensagemAoEditar(null, "Ana", ADULTO, "912345678", null);
+        String expResult = "Escolha um cliente na pesquisa / 0";
+        String result = mensagemAoEditar(null, "Ana", ADULTO, "912345678", null) + " / " + dal.atualizacoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.atualizacoes);
     }
 
     @Test
     public void testEditarNomeVazio() {
         System.out.println("editar (nome vazio, o cliente fica como estava)");
-        Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", "Rua A", "912345678", ADULTO,
+        Cliente esperado = new Cliente(7, "Ana Silva", null, "123456789", "Rua A", "912345678", ADULTO,
                 "ana@mail.pt");
+        List<Object> expResult = Arrays.asList("O nome é obrigatório", esperado, 0);
         String mensagem = mensagemAoEditar(ana, "  ", ADULTO, "912345678", null);
-        assertEquals("O nome é obrigatório", mensagem);
-        Cliente result = ana;
+        List<Object> result = Arrays.asList(mensagem, ana, dal.atualizacoes);
         assertEquals(expResult, result);
-        assertEquals(0, dal.atualizacoes);
     }
 
     @Test
     public void testEditarMenorDe18Anos() {
         System.out.println("editar (menor de 18 anos)");
-        String expResult = "O cliente tem de ter pelo menos 18 anos";
-        String result = mensagemAoEditar(ana, "Ana", LocalDate.now().minusYears(17), "912345678", null);
+        String expResult = "O cliente tem de ter pelo menos 18 anos / 0";
+        String result = mensagemAoEditar(ana, "Ana", LocalDate.now().minusYears(17), "912345678", null)
+                + " / "
+                + dal.atualizacoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.atualizacoes);
     }
 
     @Test
     public void testEditarSemDataDeNascimento() {
         System.out.println("editar (sem data de nascimento)");
-        String expResult = "A data de nascimento é obrigatória";
-        String result = mensagemAoEditar(ana, "Ana", null, "912345678", null);
+        String expResult = "A data de nascimento é obrigatória / 0";
+        String result = mensagemAoEditar(ana, "Ana", null, "912345678", null) + " / " + dal.atualizacoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.atualizacoes);
     }
 
     @Test
     public void testEditarSemTelemovelNemEmail() {
         System.out.println("editar (sem telemóvel nem email)");
-        String expResult = "Indique pelo menos o telemóvel ou o email";
-        String result = mensagemAoEditar(ana, "Ana", ADULTO, " ", null);
+        String expResult = "Indique pelo menos o telemóvel ou o email / 0";
+        String result = mensagemAoEditar(ana, "Ana", ADULTO, " ", null) + " / " + dal.atualizacoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.atualizacoes);
     }
 
     @Test
     public void testEditarEmailInvalido() {
         System.out.println("editar (email inválido)");
-        String expResult = "O email não é válido";
-        String result = mensagemAoEditar(ana, "Ana", ADULTO, null, "ana.mail.pt");
+        String expResult = "O email não é válido / 0";
+        String result = mensagemAoEditar(ana, "Ana", ADULTO, null, "ana.mail.pt") + " / " + dal.atualizacoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.atualizacoes);
     }
 
     @Test
     public void testEditarClienteQueJaNaoExiste() {
         System.out.println("editar (o cliente já não existe, o objeto fica como estava)");
         dal.clienteExiste = false;
-        Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", "Rua A", "912345678", ADULTO,
+        Cliente esperado = new Cliente(7, "Ana Silva", null, "123456789", "Rua A", "912345678", ADULTO,
                 "ana@mail.pt");
+        List<Object> expResult = Arrays.asList("O cliente já não existe", esperado);
         String mensagem = mensagemAoEditar(ana, "Ana Costa", ADULTO, "912345678", null);
-        assertEquals("O cliente já não existe", mensagem);
-        Cliente result = ana;
+        List<Object> result = Arrays.asList(mensagem, ana);
         assertEquals(expResult, result);
     }
 }

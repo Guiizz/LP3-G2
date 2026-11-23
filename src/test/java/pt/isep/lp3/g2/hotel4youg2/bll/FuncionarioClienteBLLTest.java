@@ -105,10 +105,9 @@ public class FuncionarioClienteBLLTest {
     public void testRegistarFuncionarioFicaComDadosDoFormulario() {
         System.out.println("registar (funcionário fica com os dados do formulário)");
         instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", "rui@mail.pt", null, "Rua A");
-        String expResult = "912345678";
-        String result = clienteDAL.tornado.getTelemovel();
+        String expResult = "912345678 / rui@mail.pt";
+        String result = clienteDAL.tornado.getTelemovel() + " / " + clienteDAL.tornado.getEmail();
         assertEquals(expResult, result);
-        assertEquals("rui@mail.pt", clienteDAL.tornado.getEmail());
     }
 
     @Test
@@ -125,10 +124,9 @@ public class FuncionarioClienteBLLTest {
         System.out.println("registar (um campo vazio não apaga o que o funcionário já tem)");
         clienteDAL.funcionario = new Cliente(9, "Rui Costa", "11112222", NIF_FUNCIONARIO, "Rua B", null, null, null);
         instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, "  ", null);
-        String expResult = "11112222";
-        String result = clienteDAL.tornado.getCc();
+        String expResult = "11112222 / Rua B";
+        String result = clienteDAL.tornado.getCc() + " / " + clienteDAL.tornado.getMorada();
         assertEquals(expResult, result);
-        assertEquals("Rua B", clienteDAL.tornado.getMorada());
     }
 
     @Test
@@ -185,10 +183,9 @@ public class FuncionarioClienteBLLTest {
             instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, null, null, null, null);
             fail("Devia ter lançado ValidacaoException, mas não lançou");
         } catch (ValidacaoException expected) {
-            String expResult = "Indique pelo menos o telemóvel ou o email";
-            String result = expected.getMessage();
+            String expResult = "Indique pelo menos o telemóvel ou o email / null";
+            String result = expected.getMessage() + " / " + clienteDAL.tornado;
             assertEquals(expResult, result);
-            assertEquals(null, clienteDAL.tornado);
         }
     }
 
@@ -213,10 +210,10 @@ public class FuncionarioClienteBLLTest {
             instance.registar("Ana Silva", NIF_CLIENTE, ADULTO, "912345678", null, null, null);
             fail("Devia ter lançado ValidacaoException, mas não lançou");
         } catch (ValidacaoException expected) {
-            String expResult = "Já existe uma pessoa registada com o NIF " + NIF_CLIENTE;
-            String result = expected.getMessage();
+            String esperado = "Já existe uma pessoa registada com o NIF " + NIF_CLIENTE;
+            String expResult = esperado + " / false";
+            String result = expected.getMessage() + " / " + clienteDAL.inseriuPessoaNova;
             assertEquals(expResult, result);
-            assertEquals(false, clienteDAL.inseriuPessoaNova);
         }
     }
 }

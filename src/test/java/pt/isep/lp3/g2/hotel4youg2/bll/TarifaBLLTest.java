@@ -11,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -87,11 +88,11 @@ public class TarifaBLLTest {
     @Test
     public void testAlterarPreco() {
         System.out.println("alterarPreco");
-        Tarifa expResult = new Tarifa(TipoQuarto.DUPLO, Vista.MAR, new BigDecimal("120.50"));
+        Tarifa esperado = new Tarifa(TipoQuarto.DUPLO, Vista.MAR, new BigDecimal("120.50"));
         instance.alterarPreco(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(), new BigDecimal("120.50"));
-        Tarifa result = dal.tarifas.get(0);
+        List<Object> expResult = Arrays.asList(esperado, 1);
+        List<Object> result = Arrays.asList(dal.tarifas.get(0), dal.alteracoes);
         assertEquals(expResult, result);
-        assertEquals(1, dal.alteracoes);
     }
 
     @Test
@@ -106,56 +107,60 @@ public class TarifaBLLTest {
     @Test
     public void testAlterarPrecoComoRececionista() {
         System.out.println("alterarPreco (rececionista não pode)");
-        String expResult = "Só o gestor pode alterar tarifas";
-        String result = mensagemAoAlterar(Perfil.RECECIONISTA, duploMar.getTipo(), duploMar.getVista(),
+        String expResult = "Só o gestor pode alterar tarifas / 0";
+        String obtido = mensagemAoAlterar(Perfil.RECECIONISTA, duploMar.getTipo(), duploMar.getVista(),
                 new BigDecimal("100"));
+        String result = obtido + " / " + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testAlterarPrecoSemPerfil() {
         System.out.println("alterarPreco (sem perfil)");
-        String expResult = "Só o gestor pode alterar tarifas";
-        String result = mensagemAoAlterar(null, duploMar.getTipo(), duploMar.getVista(), new BigDecimal("100"));
+        String expResult = "Só o gestor pode alterar tarifas / 0";
+        String result = mensagemAoAlterar(null, duploMar.getTipo(), duploMar.getVista(), new BigDecimal("100"))
+                + " / "
+                + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testAlterarPrecoNegativo() {
         System.out.println("alterarPreco (preço negativo)");
-        String expResult = "O preço tem de ser maior que zero";
-        String result = mensagemAoAlterar(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(),
-                new BigDecimal("-5"));
+        String expResult = "O preço tem de ser maior que zero / 0";
+        String result = mensagemAoAlterar(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(), new BigDecimal("-5"))
+                + " / "
+                + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testAlterarPrecoZero() {
         System.out.println("alterarPreco (preço zero)");
-        String expResult = "O preço tem de ser maior que zero";
-        String result = mensagemAoAlterar(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(), BigDecimal.ZERO);
+        String expResult = "O preço tem de ser maior que zero / 0";
+        String result = mensagemAoAlterar(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(), BigDecimal.ZERO)
+                + " / "
+                + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testAlterarPrecoVazio() {
         System.out.println("alterarPreco (sem preço)");
-        String expResult = "O preço é obrigatório";
-        String result = mensagemAoAlterar(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(), null);
+        String expResult = "O preço é obrigatório / 0";
+        String result = mensagemAoAlterar(Perfil.GESTOR, duploMar.getTipo(), duploMar.getVista(), null)
+                + " / "
+                + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
     public void testAlterarPrecoTarifaInexistente() {
         System.out.println("alterarPreco (a tarifa não existe)");
-        String expResult = "A tarifa não existe";
-        String result = mensagemAoAlterar(Perfil.GESTOR, TipoQuarto.FAMILIA, Vista.MONTANHA, new BigDecimal("80"));
+        String expResult = "A tarifa não existe / 0";
+        String result = mensagemAoAlterar(Perfil.GESTOR, TipoQuarto.FAMILIA, Vista.MONTANHA, new BigDecimal("80"))
+                + " / "
+                + dal.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 }

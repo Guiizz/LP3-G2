@@ -173,10 +173,9 @@ public class MaterialReservaBLLTest {
             instance.ajustar(RECECAO, emCurso, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "1");
             fail("Devia ter recusado o ajuste");
         } catch (IllegalStateException expected) {
-            String expResult = "Os materiais só se ajustam antes do check-in, numa reserva confirmada.";
-            String result = expected.getMessage();
+            String expResult = "Os materiais só se ajustam antes do check-in, numa reserva confirmada. / 0";
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
             assertEquals(expResult, result);
-            assertEquals(0, materialReservaDAL.ajustes);
         }
     }
 
@@ -209,56 +208,52 @@ public class MaterialReservaBLLTest {
     @Test
     public void testAjustarSemMaterial() {
         System.out.println("ajustar (sem material escolhido)");
-        String expResult = "Escolha o material na tabela.";
+        String expResult = "Escolha o material na tabela. / 0";
         try {
             instance.ajustar(RECECAO, reserva, null, "1");
             fail("Devia ter recusado o ajuste");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
             assertEquals(expResult, result);
-            assertEquals(0, materialReservaDAL.ajustes);
         }
     }
 
     @Test
     public void testAjustarSemQuantidade() {
         System.out.println("ajustar (sem quantidade)");
-        String expResult = "Indique a quantidade.";
+        String expResult = "Indique a quantidade. / 0";
         try {
             instance.ajustar(RECECAO, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), " ");
             fail("Devia ter recusado o ajuste");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
             assertEquals(expResult, result);
-            assertEquals(0, materialReservaDAL.ajustes);
         }
     }
 
     @Test
     public void testAjustarQuantidadeAcimaDoMaximo() {
         System.out.println("ajustar (quantidade acima de 99)");
-        String expResult = "A quantidade tem de ser um número inteiro de 0 a 99.";
+        String expResult = "A quantidade tem de ser um número inteiro de 0 a 99. / 0";
         try {
             instance.ajustar(RECECAO, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "100");
             fail("Devia ter recusado o ajuste");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
             assertEquals(expResult, result);
-            assertEquals(0, materialReservaDAL.ajustes);
         }
     }
 
     @Test
     public void testAjustarQuantidadeNegativa() {
         System.out.println("ajustar (quantidade negativa)");
-        String expResult = "A quantidade tem de ser um número inteiro de 0 a 99.";
+        String expResult = "A quantidade tem de ser um número inteiro de 0 a 99. / 0";
         try {
             instance.ajustar(RECECAO, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "-1");
             fail("Devia ter recusado o ajuste");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
             assertEquals(expResult, result);
-            assertEquals(0, materialReservaDAL.ajustes);
         }
     }
 }

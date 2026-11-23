@@ -15,6 +15,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -137,10 +138,9 @@ public class PedidoExtraDALTest {
         System.out.println("listarPorCliente (com a quantidade e a reserva)");
         PedidoExtra pedido = pedir(4);
         PedidoExtra lido = procurar(instance.listarPorCliente(clienteId), pedido.getId());
-        int expResult = 4;
-        int result = lido.getQuantidade();
+        List<Object> expResult = Arrays.asList(4, reservaId);
+        List<Object> result = Arrays.asList(lido.getQuantidade(), lido.getReservaId());
         assertEquals(expResult, result);
-        assertEquals(reservaId, lido.getReservaId());
     }
 
     @Test
@@ -149,10 +149,9 @@ public class PedidoExtraDALTest {
         PedidoExtra pedido = pedir(1);
         instance.recusar(pedido.getId(), funcionarioId, "Teste: sem disponibilidade");
         PedidoExtra lido = procurar(instance.listarPorCliente(clienteId), pedido.getId());
-        String expResult = "Teste: sem disponibilidade";
-        String result = lido.getMotivoRecusa();
+        String expResult = "Teste: sem disponibilidade / null";
+        String result = lido.getMotivoRecusa() + " / " + procurar(instance.listarPendentes(), pedido.getId());
         assertEquals(expResult, result);
-        assertEquals(null, procurar(instance.listarPendentes(), pedido.getId()));
     }
 
     @Test

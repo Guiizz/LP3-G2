@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -127,10 +128,11 @@ public class AutenticacaoBLLTest {
         System.out.println("mudarPassword (depois entra com a nova e já não tem de mudar)");
         Utilizador conta = comPasswordReposta();
         instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
-        Utilizador expResult = conta;
-        Utilizador result = instance.autenticar("rita", "NovaPassword9");
+        Utilizador esperado = conta;
+        Utilizador obtido = instance.autenticar("rita", "NovaPassword9");
+        List<Object> expResult = Arrays.asList(esperado, false);
+        List<Object> result = Arrays.asList(obtido, obtido.isMudarPassword());
         assertEquals(expResult, result);
-        assertEquals(false, result.isMudarPassword());
     }
 
     @Test
@@ -233,10 +235,9 @@ public class AutenticacaoBLLTest {
     public void testMudarPasswordCurta() {
         System.out.println("mudarPassword (menos de 8 caracteres)");
         Utilizador conta = comPasswordReposta();
-        String expResult = "A palavra-passe tem de ter pelo menos 8 caracteres.";
-        String result = erroAoMudar(conta, "curta", "curta");
+        String expResult = "A palavra-passe tem de ter pelo menos 8 caracteres. / true";
+        String result = erroAoMudar(conta, "curta", "curta") + " / " + conta.isMudarPassword();
         assertEquals(expResult, result);
-        assertEquals(true, conta.isMudarPassword());
     }
 
     @Test

@@ -11,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Categoria;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -151,17 +152,21 @@ public class ServicoDALTest {
         Servico novo = new Servico(0, "Teste CRUD " + System.nanoTime(), new BigDecimal("999.00"), categoria, true);
 
         instance.inserir(novo);
-        assertEquals(true, instance.listar().contains(novo));
-        Servico expResult = novo;
-        Servico result = instance.procurarPorId(novo.getId()).orElseThrow();
-        assertEquals(expResult, result);
+        boolean listadoDepoisDeInserir = instance.listar().contains(novo);
+        Servico inserido = instance.procurarPorId(novo.getId()).orElseThrow();
+        Servico esperadoInserido = new Servico(novo.getId(), novo.getDesignacao(), new BigDecimal("999.00"),
+                categoria, true);
 
         novo.setPreco(new BigDecimal("1000.00"));
         instance.atualizar(novo);
-        assertEquals(novo, instance.procurarPorId(novo.getId()).orElseThrow());
+        Servico atualizado = instance.procurarPorId(novo.getId()).orElseThrow();
 
         instance.apagar(novo.getId());
-        assertEquals(false, instance.listar().contains(novo));
+        boolean listadoDepoisDeApagar = instance.listar().contains(novo);
+
+        List<Object> expResult = Arrays.asList(true, esperadoInserido, novo, false);
+        List<Object> result = Arrays.asList(listadoDepoisDeInserir, inserido, atualizado, listadoDepoisDeApagar);
+        assertEquals(expResult, result);
     }
 
     @Test

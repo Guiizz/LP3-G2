@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -158,14 +159,15 @@ public class ConexaoBDTest {
     public void testSelectDepoisDeUmErro() {
         System.out.println("select (um erro de SQL não estraga as consultas seguintes)");
         exigirBD();
+        List<Object> expResult = Arrays.asList("Erro ao executar a consulta", List.of(1));
+        String erro = null;
         try {
             ConexaoBD.select("SELECT * FROM TabelaQueNaoExiste", new InteiroMapper());
             fail("Devia ter recusado uma tabela que não existe");
         } catch (DataAccessException e) {
-            assertEquals("Erro ao executar a consulta", e.getMessage());
+            erro = e.getMessage();
         }
-        List<Integer> expResult = List.of(1);
-        List<Integer> result = ConexaoBD.select("SELECT 1", new InteiroMapper());
+        List<Object> result = Arrays.asList(erro, ConexaoBD.select("SELECT 1", new InteiroMapper()));
         assertEquals(expResult, result);
     }
 
@@ -173,14 +175,13 @@ public class ConexaoBDTest {
     public void testAbrirDesisteDepoisDasTentativas() {
         System.out.println("abrir (desiste depois das tentativas, com uma mensagem clara)");
         FonteQueFalha fonte = new FonteQueFalha(5);
+        String expResult = ConexaoBD.SEM_LIGACAO + " / " + ConexaoBD.TENTATIVAS;
         try {
             ConexaoBD.abrir(fonte, ConexaoBD.TENTATIVAS);
             fail("Devia ter desistido de ligar");
         } catch (DataAccessException e) {
-            assertEquals(ConexaoBD.SEM_LIGACAO, e.getMessage());
+            String result = e.getMessage() + " / " + fonte.chamadas;
+            assertEquals(expResult, result);
         }
-        int expResult = ConexaoBD.TENTATIVAS;
-        int result = fonte.chamadas;
-        assertEquals(expResult, result);
     }
 }

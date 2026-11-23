@@ -134,10 +134,9 @@ public class ConfiguracaoQuartoBLLTest {
     public void testAlterarConsumivel() {
         System.out.println("alterarConsumivel (a toalha passa a consumível)");
         instance.alterarConsumivel(GESTOR, toalha, true);
-        boolean expResult = true;
-        boolean result = toalha.isConsumivel();
+        String expResult = "true / 1";
+        String result = toalha.isConsumivel() + " / " + configuracaoDAL.alteracoes;
         assertEquals(expResult, result);
-        assertEquals(1, configuracaoDAL.alteracoes);
     }
 
     @Test
@@ -248,11 +247,9 @@ public class ConfiguracaoQuartoBLLTest {
             instance.alterarConsumivel(RECECAO, toalha, true);
             fail("Devia ter recusado");
         } catch (IllegalStateException expected) {
-            String expResult = "Só o gestor pode alterar os materiais dos quartos.";
-            String result = expected.getMessage();
+            String expResult = "Só o gestor pode alterar os materiais dos quartos. / false / 0";
+            String result = expected.getMessage() + " / " + toalha.isConsumivel() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(false, toalha.isConsumivel());
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
@@ -277,10 +274,9 @@ public class ConfiguracaoQuartoBLLTest {
             instance.alterarConsumivel(GESTOR, apagado, false);
             fail("Devia ter recusado");
         } catch (IllegalArgumentException expected) {
-            String expResult = "O material já não existe.";
-            String result = expected.getMessage();
+            String expResult = "O material já não existe. / true";
+            String result = expected.getMessage() + " / " + apagado.isConsumivel();
             assertEquals(expResult, result);
-            assertEquals(true, apagado.isConsumivel());
         }
     }
 
@@ -317,94 +313,87 @@ public class ConfiguracaoQuartoBLLTest {
             instance.guardar(RECECAO, TipoQuarto.DUPLO, champo, "2");
             fail("Devia ter recusado");
         } catch (IllegalStateException expected) {
-            String expResult = "Só o gestor pode alterar os materiais dos quartos.";
-            String result = expected.getMessage();
+            String expResult = "Só o gestor pode alterar os materiais dos quartos. / 0";
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
     @Test
     public void testGuardarSemTipo() {
         System.out.println("guardar (sem tipo de quarto)");
-        String expResult = "Escolha o tipo de quarto.";
+        String expResult = "Escolha o tipo de quarto. / 0";
         try {
             instance.guardar(GESTOR, null, champo, "2");
             fail("Devia ter recusado a configuração");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
     @Test
     public void testGuardarSemMaterial() {
         System.out.println("guardar (sem material)");
-        String expResult = "Escolha o material na tabela.";
+        String expResult = "Escolha o material na tabela. / 0";
         try {
             instance.guardar(GESTOR, TipoQuarto.DUPLO, null, "2");
             fail("Devia ter recusado a configuração");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
     @Test
     public void testGuardarSemQuantidade() {
         System.out.println("guardar (sem quantidade)");
-        String expResult = "Indique a quantidade.";
+        String expResult = "Indique a quantidade. / 0";
         try {
             instance.guardar(GESTOR, TipoQuarto.DUPLO, champo, "  ");
             fail("Devia ter recusado a configuração");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
     @Test
     public void testGuardarQuantidadeZero() {
         System.out.println("guardar (quantidade zero)");
-        String expResult = "A quantidade tem de ser um número inteiro de 1 a 99.";
+        String expResult = "A quantidade tem de ser um número inteiro de 1 a 99. / 0";
         try {
             instance.guardar(GESTOR, TipoQuarto.DUPLO, champo, "0");
             fail("Devia ter recusado a configuração");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
     @Test
     public void testGuardarQuantidadeAcimaDoMaximo() {
         System.out.println("guardar (quantidade acima de 99)");
-        String expResult = "A quantidade tem de ser um número inteiro de 1 a 99.";
+        String expResult = "A quantidade tem de ser um número inteiro de 1 a 99. / 0";
         try {
             instance.guardar(GESTOR, TipoQuarto.DUPLO, champo, "100");
             fail("Devia ter recusado a configuração");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
     @Test
     public void testGuardarQuantidadeComLetras() {
         System.out.println("guardar (quantidade com letras)");
-        String expResult = "A quantidade tem de ser um número inteiro de 1 a 99.";
+        String expResult = "A quantidade tem de ser um número inteiro de 1 a 99. / 0";
         try {
             instance.guardar(GESTOR, TipoQuarto.DUPLO, champo, "dois");
             fail("Devia ter recusado a configuração");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + configuracaoDAL.alteracoes;
             assertEquals(expResult, result);
-            assertEquals(0, configuracaoDAL.alteracoes);
         }
     }
 
@@ -415,10 +404,9 @@ public class ConfiguracaoQuartoBLLTest {
             instance.remover(RECECAO, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2));
             fail("Devia ter recusado");
         } catch (IllegalStateException expected) {
-            String expResult = "Só o gestor pode alterar os materiais dos quartos.";
-            String result = expected.getMessage();
+            String expResult = "Só o gestor pode alterar os materiais dos quartos. / 1";
+            String result = expected.getMessage() + " / " + configuracaoDAL.configuracao.size();
             assertEquals(expResult, result);
-            assertEquals(1, configuracaoDAL.configuracao.size());
         }
     }
 

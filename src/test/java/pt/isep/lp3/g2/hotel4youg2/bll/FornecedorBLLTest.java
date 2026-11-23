@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,22 +77,23 @@ class FornecedorBLLTest {
     @Test
     public void testCriar() {
         System.out.println("criar");
-        Fornecedor result = instance.criar(GESTOR, " F-1 ", "Fornecedor Um", "Forn#2026");
-        String expResult = "F-1";
-        assertEquals(expResult, result.getCodigo());
-        assertEquals("Fornecedor Um", result.getNome());
-        assertEquals(result, fornecedorDAL.fornecedores.get("F-1"));
+        Fornecedor obtido = instance.criar(GESTOR, " F-1 ", "Fornecedor Um", "Forn#2026");
+        List<Object> expResult = Arrays.asList("F-1", "Fornecedor Um", obtido);
+        List<Object> result = Arrays.asList(obtido.getCodigo(),
+                obtido.getNome(),
+                fornecedorDAL.fornecedores.get("F-1"));
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testCriarGuardaSoOHashDaPassword() {
         System.out.println("criar (a password não fica em claro)");
-        Fornecedor result = instance.criar(GESTOR, "F-1", "Fornecedor Um", "Forn#2026");
-        boolean expResult = true;
-        boolean resultado = passwordUtils.verificarPassword("Forn#2026", result.getPasswordSalt(),
-                result.getPasswordHash());
-        assertEquals(expResult, resultado);
-        assertEquals(false, result.getPasswordHash().contains("Forn#2026"));
+        Fornecedor obtido = instance.criar(GESTOR, "F-1", "Fornecedor Um", "Forn#2026");
+        String expResult = "true / false";
+        boolean resultado = passwordUtils.verificarPassword("Forn#2026", obtido.getPasswordSalt(),
+                obtido.getPasswordHash());
+        String result = resultado + " / " + obtido.getPasswordHash().contains("Forn#2026");
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -99,20 +101,24 @@ class FornecedorBLLTest {
         System.out.println("criar (fornecedor vindo de uma entrega, sem conta)");
         Fornecedor semConta = new Fornecedor(5, "F-2", "Fornecedor Dois", "Rua A", "", "Porto", "4000", "Portugal", "PT");
         fornecedorDAL.fornecedores.put("F-2", semConta);
-        Fornecedor result = instance.criar(GESTOR, "F-2", "Fornecedor Dois", "Forn#2026");
-        int expResult = 1;
-        assertEquals(expResult, fornecedorDAL.passwordsDefinidas);
-        assertEquals(true, result.getPasswordHash() != null);
-        assertEquals(1, fornecedorDAL.fornecedores.size());
+        Fornecedor obtido = instance.criar(GESTOR, "F-2", "Fornecedor Dois", "Forn#2026");
+        String expResult = "1 / true / 1";
+        String result = fornecedorDAL.passwordsDefinidas
+                + " / "
+                + (obtido.getPasswordHash() != null)
+                + " / "
+                + fornecedorDAL.fornecedores.size();
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testCriarSoOGestor() {
         System.out.println("criar (rececionista não pode)");
-        String expResult = "Só o gestor pode criar fornecedores.";
-        String result = mensagemDoErro(RECECAO, "F-1", "Fornecedor Um", "Forn#2026");
+        String expResult = "Só o gestor pode criar fornecedores. / 0";
+        String result = mensagemDoErro(RECECAO, "F-1", "Fornecedor Um", "Forn#2026")
+                + " / "
+                + fornecedorDAL.fornecedores.size();
         assertEquals(expResult, result);
-        assertEquals(0, fornecedorDAL.fornecedores.size());
     }
 
     @Test
@@ -127,10 +133,11 @@ class FornecedorBLLTest {
     public void testCriarComCodigoRepetido() {
         System.out.println("criar (código já tem conta)");
         instance.criar(GESTOR, "F-1", "Fornecedor Um", "Forn#2026");
-        String expResult = "Já existe um fornecedor com o código F-1.";
-        String result = mensagemDoErro(GESTOR, "F-1", "Outro nome", "Forn#2027");
+        String expResult = "Já existe um fornecedor com o código F-1. / 1";
+        String result = mensagemDoErro(GESTOR, "F-1", "Outro nome", "Forn#2027")
+                + " / "
+                + fornecedorDAL.fornecedores.size();
         assertEquals(expResult, result);
-        assertEquals(1, fornecedorDAL.fornecedores.size());
     }
 
     @Test
@@ -172,9 +179,10 @@ class FornecedorBLLTest {
     public void testCriarComCodigoDemasiadoLongo() {
         System.out.println("criar (código com mais de 30 caracteres)");
         String codigoLongo = "X".repeat(31);
-        String expResult = "O código pode ter no máximo 30 caracteres.";
-        String result = mensagemDoErro(GESTOR, codigoLongo, "Nome", "Forn#2026");
+        String expResult = "O código pode ter no máximo 30 caracteres. / 0";
+        String result = mensagemDoErro(GESTOR, codigoLongo, "Nome", "Forn#2026")
+                + " / "
+                + fornecedorDAL.fornecedores.size();
         assertEquals(expResult, result);
-        assertEquals(0, fornecedorDAL.fornecedores.size());
     }
 }

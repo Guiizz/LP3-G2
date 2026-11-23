@@ -15,6 +15,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -124,9 +125,9 @@ public class ServicoReservaDALTest {
         System.out.println("total dos serviços na consulta da reserva");
         instance.inserirSeAberta(novoServico(2));
         instance.inserirSeAberta(novoServico(1));
-        BigDecimal expResult = new BigDecimal("130.00");
-        BigDecimal result = reservaDAL.procurarPorId(reserva.getId()).getTotal();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("130.00").stripTrailingZeros();
+        BigDecimal result = reservaDAL.procurarPorId(reserva.getId()).getTotal().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     private Reserva novaReservaNoMesmoQuarto(LocalDate entrada) {
@@ -139,9 +140,9 @@ public class ServicoReservaDALTest {
         System.out.println("inserirComServicosSeLivre (a reserva e os serviços ficam gravados)");
         comServicos = novaReservaNoMesmoQuarto(reserva.getDataSaida().plusDays(5));
         reservaDAL.inserirComServicosSeLivre(comServicos, List.of(novoServico(2), novoServico(1)));
-        BigDecimal expResult = new BigDecimal("30.00");
-        BigDecimal result = reservaDAL.procurarPorId(comServicos.getId()).getTotalServicos();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("30.00").stripTrailingZeros();
+        BigDecimal result = reservaDAL.procurarPorId(comServicos.getId()).getTotalServicos().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -248,12 +249,11 @@ public class ServicoReservaDALTest {
         System.out.println("CRUD completo");
         ServicoReserva junto = novoServico(3);
 
-        boolean expResult = true;
-        boolean result = instance.inserirSeAberta(junto);
+        List<Object> expResult = Arrays.asList(true, List.of(junto), true, List.of());
+        List<Object> result = Arrays.asList(instance.inserirSeAberta(junto),
+                instance.listarPorReserva(reserva.getId()),
+                instance.apagarSeAberta(junto.getId(), reserva.getId()),
+                instance.listarPorReserva(reserva.getId()));
         assertEquals(expResult, result);
-        assertEquals(List.of(junto), instance.listarPorReserva(reserva.getId()));
-
-        assertEquals(true, instance.apagarSeAberta(junto.getId(), reserva.getId()));
-        assertEquals(List.of(), instance.listarPorReserva(reserva.getId()));
     }
 }

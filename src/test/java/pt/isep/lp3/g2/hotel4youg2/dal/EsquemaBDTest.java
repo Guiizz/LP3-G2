@@ -283,21 +283,23 @@ class EsquemaBDTest {
         quarto(9001);
         pessoa("999999993");
         exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999993'");
-        int expResult = RESTRICAO;
+        String expResult = RESTRICAO + " / " + RESTRICAO;
+        int saidaIgual = 0;
         try {
             exec(reserva("2026-11-05", "2026-11-05"));
             fail("A base de dados devia ter recusado a instrução.");
         } catch (SQLException expected) {
-            int result = expected.getErrorCode();
-            assertEquals(expResult, result);
+            saidaIgual = expected.getErrorCode();
         }
+        int saidaAnterior = 0;
         try {
             exec(reserva("2026-11-05", "2026-11-04"));
             fail("A base de dados devia ter recusado a instrução.");
         } catch (SQLException expected) {
-            int result = expected.getErrorCode();
-            assertEquals(expResult, result);
+            saidaAnterior = expected.getErrorCode();
         }
+        String result = saidaIgual + " / " + saidaAnterior;
+        assertEquals(expResult, result);
     }
 
     @Test

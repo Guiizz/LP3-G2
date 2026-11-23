@@ -16,6 +16,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Unidade;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -143,10 +144,11 @@ public class EntregaDALTest {
     public void testCarregar() {
         System.out.println("carregar");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
-        Entrega result = instance.procurarPorId(entregaPendente.getId()).orElseThrow();
-        Entrega expResult = entregaPendente;
+        Entrega obtido = instance.procurarPorId(entregaPendente.getId()).orElseThrow();
+        Entrega esperado = entregaPendente;
+        List<Object> expResult = Arrays.asList(esperado, EstadoEntrega.PENDENTE);
+        List<Object> result = Arrays.asList(obtido, obtido.getEstado());
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, result.getEstado());
     }
 
     @Test
@@ -189,19 +191,18 @@ public class EntregaDALTest {
     public void testListarResumosDoFornecedor() {
         System.out.println("listarResumosDoFornecedor");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
-        List<ResumoEntrega> result = instance.listarResumosDoFornecedor(codigoFornecedor);
-        int expResult = 2;
-        assertEquals(expResult, result.size());
-        ResumoEntrega maisRecente = result.get(0);
-        assertEquals("TESTE-PENDENTE", maisRecente.getNumeroEncomenda());
-        assertEquals(1, maisRecente.getTiposDeMaterial());
-        assertEquals(new BigDecimal("30.87"), maisRecente.getTotal());
-        assertEquals(EstadoEntrega.PENDENTE, maisRecente.getEstado());
-        ResumoEntrega maisAntiga = result.get(1);
-        assertEquals(entrega.getNumeroEncomenda(), maisAntiga.getNumeroEncomenda());
-        assertEquals(2, maisAntiga.getTiposDeMaterial());
-        assertEquals(new BigDecimal("1012.91"), maisAntiga.getTotal());
-        assertEquals(EstadoEntrega.ACEITE, maisAntiga.getEstado());
+        List<Object> expResult = Arrays.asList(2,
+                "TESTE-PENDENTE", 1, new BigDecimal("30.87"), EstadoEntrega.PENDENTE,
+                entrega.getNumeroEncomenda(), 2, new BigDecimal("1012.91"), EstadoEntrega.ACEITE);
+        List<ResumoEntrega> lista = instance.listarResumosDoFornecedor(codigoFornecedor);
+        ResumoEntrega maisRecente = lista.get(0);
+        ResumoEntrega maisAntiga = lista.get(1);
+        List<Object> result = Arrays.asList(lista.size(),
+                maisRecente.getNumeroEncomenda(), maisRecente.getTiposDeMaterial(), maisRecente.getTotal(),
+                maisRecente.getEstado(),
+                maisAntiga.getNumeroEncomenda(), maisAntiga.getTiposDeMaterial(), maisAntiga.getTotal(),
+                maisAntiga.getEstado());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -236,21 +237,22 @@ public class EntregaDALTest {
     @Test
     public void testRegistarSomaAoStock() {
         System.out.println("registar (soma ao stock)");
-        int expResult = 500;
-        int result = quantidadeEmStock("M-1");
+        String expResult = "500 / 200";
+        String result = quantidadeEmStock("M-1") + " / " + quantidadeEmStock("M-2");
         assertEquals(expResult, result);
-        assertEquals(200, quantidadeEmStock("M-2"));
     }
 
     @Test
     public void testAceitar() {
         System.out.println("aceitar");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
-        boolean expResult = true;
-        boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
+        String expResult = "true / " + EstadoEntrega.ACEITE + " / 600";
+        String result = instance.aceitar(entregaPendente.getId(), funcionarioId)
+                + " / "
+                + instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado()
+                + " / "
+                + quantidadeEmStock("M-1");
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.ACEITE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
-        assertEquals(600, quantidadeEmStock("M-1"));
     }
 
     @Test
@@ -258,10 +260,9 @@ public class EntregaDALTest {
         System.out.println("aceitar (a segunda vez falha e não soma outra vez)");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
         instance.aceitar(entregaPendente.getId(), funcionarioId);
-        boolean expResult = false;
-        boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
+        String expResult = "false / 600";
+        String result = instance.aceitar(entregaPendente.getId(), funcionarioId) + " / " + quantidadeEmStock("M-1");
         assertEquals(expResult, result);
-        assertEquals(600, quantidadeEmStock("M-1"));
     }
 
     @Test
@@ -269,23 +270,22 @@ public class EntregaDALTest {
         System.out.println("aceitar (entrega recusada)");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
         instance.recusar(entregaPendente.getId(), funcionarioId, null);
-        boolean expResult = false;
-        boolean result = instance.aceitar(entregaPendente.getId(), funcionarioId);
+        String expResult = "false / 500";
+        String result = instance.aceitar(entregaPendente.getId(), funcionarioId) + " / " + quantidadeEmStock("M-1");
         assertEquals(expResult, result);
-        assertEquals(500, quantidadeEmStock("M-1"));
     }
 
     @Test
     public void testRecusar() {
         System.out.println("recusar");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
-        boolean expResult = true;
-        boolean result = instance.recusar(entregaPendente.getId(), funcionarioId, "Faltam toalhas");
-        assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.RECUSADA, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
-        assertEquals(500, quantidadeEmStock("M-1"));
+        List<Object> expResult = Arrays.asList(true, EstadoEntrega.RECUSADA, 500, "Faltam toalhas");
+        boolean recusada = instance.recusar(entregaPendente.getId(), funcionarioId, "Faltam toalhas");
         ResumoEntrega maisRecente = instance.listarResumosDoFornecedor(codigoFornecedor).get(0);
-        assertEquals("Faltam toalhas", maisRecente.getMotivoRecusa());
+        List<Object> result = Arrays.asList(recusada,
+                instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado(),
+                quantidadeEmStock("M-1"), maisRecente.getMotivoRecusa());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -302,42 +302,45 @@ public class EntregaDALTest {
     @Test
     public void testRecusarEntregaJaAceite() {
         System.out.println("recusar (entrega aceite)");
-        boolean expResult = false;
-        boolean result = instance.recusar(entrega.getId(), funcionarioId, "Tarde de mais");
+        String expResult = "false / " + EstadoEntrega.ACEITE;
+        String result = instance.recusar(entrega.getId(), funcionarioId, "Tarde de mais")
+                + " / "
+                + instance.procurarPorId(entrega.getId()).orElseThrow().getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.ACEITE, instance.procurarPorId(entrega.getId()).orElseThrow().getEstado());
     }
 
     @Test
     public void testListarParaHotel() {
         System.out.println("listarParaHotel");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
+        List<Object> expResult = Arrays.asList(true,
+                EstadoEntrega.PENDENTE, null, "", 100,
+                EstadoEntrega.ACEITE, true, "Fornecedor de teste", 700);
         List<ResumoEntregaHotel> lista = instance.listarParaHotel();
         int posicaoPendente = posicao(lista, "TESTE-PENDENTE");
         int posicaoAceite = posicao(lista, entrega.getNumeroEncomenda());
-        boolean expResult = true;
-        boolean result = posicaoPendente >= 0 && posicaoAceite >= 0 && posicaoPendente < posicaoAceite;
-        assertEquals(expResult, result);
+        boolean pendenteAntes = posicaoPendente >= 0 && posicaoAceite >= 0 && posicaoPendente < posicaoAceite;
         ResumoEntregaHotel pendente = lista.get(posicaoPendente);
-        assertEquals(EstadoEntrega.PENDENTE, pendente.getEstado());
-        assertEquals(null, pendente.getDecididaPor());
-        assertEquals("", pendente.getDecididaEmTexto());
         ResumoEntregaHotel aceite = lista.get(posicaoAceite);
-        assertEquals(EstadoEntrega.ACEITE, aceite.getEstado());
-        assertEquals(true, aceite.getDecididaPor() != null);
-        assertEquals("Fornecedor de teste", aceite.getFornecedor());
-        assertEquals(100, pendente.getTotalUnidades());
-        assertEquals(700, aceite.getTotalUnidades());
+        List<Object> result = Arrays.asList(pendenteAntes,
+                pendente.getEstado(), pendente.getDecididaPor(), pendente.getDecididaEmTexto(),
+                pendente.getTotalUnidades(),
+                aceite.getEstado(), aceite.getDecididaPor() != null, aceite.getFornecedor(),
+                aceite.getTotalUnidades());
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testProcurarPorIdTrazMoedaETotal() {
         System.out.println("procurarPorId (moeda e total guardado, US54)");
-        Entrega result = instance.procurarPorId(entrega.getId()).orElseThrow();
-        String expResult = "EUR";
-        assertEquals(expResult, result.getMoeda());
-        assertEquals(0, new BigDecimal("1012.91").compareTo(result.getTotalRegistado()));
-        assertEquals(true, result.isTotalCerto());
+        Entrega obtido = instance.procurarPorId(entrega.getId()).orElseThrow();
+        String expResult = "EUR / 0 / true";
+        String result = obtido.getMoeda()
+                + " / "
+                + new BigDecimal("1012.91").compareTo(obtido.getTotalRegistado())
+                + " / "
+                + obtido.isTotalCerto();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -354,16 +357,21 @@ public class EntregaDALTest {
         entregaPendente = carregarPendente("TESTE-PENDENTE");
         ConexaoBD.executar("UPDATE LinhaEntrega SET unidades = NULL WHERE entregaId = ? AND numeroLinha = 1",
                 entregaPendente.getId());
-        String expResult = "A entrega tem linhas sem o total em unidades. Peça ao fornecedor para a voltar a enviar.";
-        String result = null;
+        String expResult = "A entrega tem linhas sem o total em unidades. Peça ao fornecedor para a voltar a enviar. / "
+                + EstadoEntrega.PENDENTE
+                + " / 500";
+        String obtido = null;
         try {
             instance.aceitar(entregaPendente.getId(), funcionarioId);
             fail("Devia ter recusado a entrega");
         } catch (IllegalStateException e) {
-            result = e.getMessage();
+            obtido = e.getMessage();
         }
+        String result = obtido
+                + " / "
+                + instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado()
+                + " / "
+                + quantidadeEmStock("M-1");
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
-        assertEquals(500, quantidadeEmStock("M-1"));
     }
 }

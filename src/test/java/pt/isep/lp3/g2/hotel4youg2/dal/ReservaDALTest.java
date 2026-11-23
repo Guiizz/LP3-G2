@@ -15,6 +15,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -334,11 +335,12 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
+        List<Object> expResult = Arrays.asList(true, true);
+        boolean checkin = instance.registarCheckin(reserva);
         reserva.setEstado(EstadoReserva.CONCLUIDA);
         reserva.setCheckoutEm(reserva.getDataSaida().atTime(11, 0));
-        boolean expResult = true;
-        boolean result = instance.registarCheckout(reserva);
+        boolean checkout = instance.registarCheckout(reserva);
+        List<Object> result = Arrays.asList(checkin, checkout);
         assertEquals(expResult, result);
     }
 
@@ -463,10 +465,10 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(LocalDateTime.now().withNano(0));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
-        Integer expResult = reserva.getId();
+        List<Object> expResult = Arrays.asList(true, reserva.getId());
+        boolean checkin = instance.registarCheckin(reserva);
         Reserva encontrada = instance.procurarEmCursoPorCartao(reserva.getCartao());
-        Integer result = encontrada == null ? null : encontrada.getId();
+        List<Object> result = Arrays.asList(checkin, encontrada == null ? null : encontrada.getId());
         assertEquals(expResult, result);
     }
 
@@ -485,13 +487,14 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(LocalDateTime.now().withNano(0));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
+        List<Object> expResult = Arrays.asList(true, true, false);
+        boolean checkin = instance.registarCheckin(reserva);
         reserva.setEstado(EstadoReserva.CONCLUIDA);
         reserva.setCheckoutEm(reserva.getCheckinEm().plusHours(1));
-        assertEquals(true, instance.registarCheckout(reserva), "O check-out de preparação devia ter sido registado");
-        boolean expResult = false;
+        boolean checkout = instance.registarCheckout(reserva);
         Reserva encontrada = instance.procurarEmCursoPorCartao(reserva.getCartao());
-        boolean result = encontrada != null && encontrada.getId() == reserva.getId();
+        boolean emCurso = encontrada != null && encontrada.getId() == reserva.getId();
+        List<Object> result = Arrays.asList(checkin, checkout, emCurso);
         assertEquals(expResult, result);
     }
 }

@@ -139,14 +139,15 @@ public class SugestaoQueixaDALTest {
     @Test
     public void testListarTrazONomeDoCliente() {
         System.out.println("listar (com o nome do cliente)");
-        String result = null;
+        String obtido = null;
         for (SugestaoQueixa s : instance.listar(null)) {
             if (s.getId() == sugestao.getId()) {
-                result = s.getNomeCliente();
+                obtido = s.getNomeCliente();
             }
         }
-        boolean expResult = true;
-        assertEquals(expResult, result != null && !result.isEmpty());
+        String expResult = "true";
+        String result = "" + (obtido != null && !obtido.isEmpty());
+        assertEquals(expResult, result);
     }
 
     @Test

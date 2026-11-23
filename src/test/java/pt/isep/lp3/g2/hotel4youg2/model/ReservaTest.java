@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,26 +23,32 @@ class ReservaTest {
     void construtorGuardaOsDados() {
         System.out.println("construtorGuardaOsDados");
         Reserva reserva = novaReserva();
-        int expResult = 1;
-        int result = reserva.getId();
+        List<Object> expResult = Arrays.asList(1,
+                7,
+                305,
+                LocalDate.of(2026, 11, 2),
+                LocalDate.of(2026, 11, 5),
+                2,
+                EstadoReserva.CONFIRMADA,
+                new BigDecimal("300.00"));
+        List<Object> result = Arrays.asList(reserva.getId(),
+                reserva.getClienteId(),
+                reserva.getQuartoNumero(),
+                reserva.getDataEntrada(),
+                reserva.getDataSaida(),
+                reserva.getNumHospedes(),
+                reserva.getEstado(),
+                reserva.getPrecoTotal());
         assertEquals(expResult, result);
-        assertEquals(7, reserva.getClienteId());
-        assertEquals(305, reserva.getQuartoNumero());
-        assertEquals(LocalDate.of(2026, 11, 2), reserva.getDataEntrada());
-        assertEquals(LocalDate.of(2026, 11, 5), reserva.getDataSaida());
-        assertEquals(2, reserva.getNumHospedes());
-        assertEquals(EstadoReserva.CONFIRMADA, reserva.getEstado());
-        assertEquals(new BigDecimal("300.00"), reserva.getPrecoTotal());
     }
 
     @Test
     void reservaNovaAindaNaoTemCheckinNemCheckout() {
         System.out.println("reservaNovaAindaNaoTemCheckinNemCheckout");
         Reserva reserva = novaReserva();
-        LocalDateTime expResult = null;
-        LocalDateTime result = reserva.getCheckinEm();
+        String expResult = "null / null";
+        String result = reserva.getCheckinEm() + " / " + reserva.getCheckoutEm();
         assertEquals(expResult, result);
-        assertEquals(null, reserva.getCheckoutEm());
     }
 
     @Test
@@ -50,10 +58,10 @@ class ReservaTest {
         LocalDateTime chegada = LocalDateTime.of(2026, 11, 2, 15, 30);
         reserva.setCheckinEm(chegada);
         reserva.setEstado(EstadoReserva.EM_CURSO);
-        LocalDateTime expResult = chegada;
-        LocalDateTime result = reserva.getCheckinEm();
+        LocalDateTime esperado = chegada;
+        String expResult = esperado + " / " + EstadoReserva.EM_CURSO;
+        String result = reserva.getCheckinEm() + " / " + reserva.getEstado();
         assertEquals(expResult, result);
-        assertEquals(EstadoReserva.EM_CURSO, reserva.getEstado());
     }
 
     @Test
@@ -92,11 +100,12 @@ class ReservaTest {
         System.out.println("alterarDatasMudaAsDatasERecalculaOPreco");
         Reserva reserva = novaReserva();
         reserva.alterarDatas(LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 15));
-        LocalDate expResult = LocalDate.of(2026, 11, 10);
-        LocalDate result = reserva.getDataEntrada();
+        LocalDate esperado = LocalDate.of(2026, 11, 10);
+        List<Object> expResult = Arrays.asList(esperado, LocalDate.of(2026, 11, 15), 0);
+        List<Object> result = Arrays.asList(reserva.getDataEntrada(),
+                reserva.getDataSaida(),
+                new BigDecimal("500.00").compareTo(reserva.getPrecoTotal()));
         assertEquals(expResult, result);
-        assertEquals(LocalDate.of(2026, 11, 15), reserva.getDataSaida());
-        assertEquals(0, new BigDecimal("500.00").compareTo(reserva.getPrecoTotal()));
     }
     @Test
     void reservaComCheckinNaoPodeSerAlterada() {

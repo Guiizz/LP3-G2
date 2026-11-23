@@ -222,10 +222,9 @@ public class ServicoReservaBLLTest {
         System.out.println("retirar");
         ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 2);
         instance.retirar(RECECAO, reserva, junto);
-        BigDecimal expResult = new BigDecimal("200.00");
-        BigDecimal result = reserva.getTotal();
+        String expResult = "200.00 / 0";
+        String result = reserva.getTotal() + " / " + servicoReservaDAL.tabela.size();
         assertEquals(expResult, result);
-        assertEquals(0, servicoReservaDAL.tabela.size());
     }
 
     @Test
@@ -263,10 +262,9 @@ public class ServicoReservaBLLTest {
             instance.adicionar(RECECAO, reserva, jantar, 1);
             fail("Devia ter lançado ValidacaoException, mas não lançou");
         } catch (ValidacaoException expected) {
-            String expResult = "A reserva 10 está cancelada: já não é possível juntar serviços";
-            String result = expected.getMessage();
+            String expResult = "A reserva 10 está cancelada: já não é possível juntar serviços / 0";
+            String result = expected.getMessage() + " / " + servicoReservaDAL.tabela.size();
             assertEquals(expResult, result);
-            assertEquals(0, servicoReservaDAL.tabela.size());
         }
     }
 
@@ -373,10 +371,9 @@ public class ServicoReservaBLLTest {
             instance.retirar(RECECAO, reserva, junto);
             fail("Devia ter lançado ValidacaoException, mas não lançou");
         } catch (ValidacaoException expected) {
-            String expResult = "A reserva 10 está cancelada: já não é possível retirar serviços";
-            String result = expected.getMessage();
+            String expResult = "A reserva 10 está cancelada: já não é possível retirar serviços / 1";
+            String result = expected.getMessage() + " / " + servicoReservaDAL.tabela.size();
             assertEquals(expResult, result);
-            assertEquals(1, servicoReservaDAL.tabela.size());
         }
     }
 

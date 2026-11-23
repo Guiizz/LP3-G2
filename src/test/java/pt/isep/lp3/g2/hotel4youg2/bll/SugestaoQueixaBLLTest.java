@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -100,11 +101,12 @@ public class SugestaoQueixaBLLTest {
     @Test
     public void testRegistar() {
         System.out.println("registar");
-        SugestaoQueixa expResult = new SugestaoQueixa(1, 15, TipoSugestao.QUEIXA, "O ar condicionado não funciona.", 7,
+        SugestaoQueixa esperado = new SugestaoQueixa(1, 15, TipoSugestao.QUEIXA, "O ar condicionado não funciona.", 7,
                 LocalDateTime.of(2026, 10, 29, 18, 30));
-        SugestaoQueixa result = instance.registar(RECECAO, CLIENTE, TipoSugestao.QUEIXA, "O ar condicionado não funciona.");
+        SugestaoQueixa obtido = instance.registar(RECECAO, CLIENTE, TipoSugestao.QUEIXA, "O ar condicionado não funciona.");
+        List<Object> expResult = Arrays.asList(esperado, 1);
+        List<Object> result = Arrays.asList(obtido, sugestaoDAL.registadas.size());
         assertEquals(expResult, result);
-        assertEquals(1, sugestaoDAL.registadas.size());
     }
 
     @Test
@@ -189,9 +191,11 @@ public class SugestaoQueixaBLLTest {
     @Test
     public void testRegistarPeloNifFicaGuardada() {
         System.out.println("registarPeloNif (fica guardada para o gestor)");
-        SugestaoQueixa expResult = instance.registarPeloNif("123456789", TipoSugestao.QUEIXA, "Ar condicionado avariado");
+        SugestaoQueixa registada = instance.registarPeloNif("123456789", TipoSugestao.QUEIXA,
+                "Ar condicionado avariado");
+        List<SugestaoQueixa> expResult = List.of(registada);
         List<SugestaoQueixa> result = instance.listar(GESTOR, TipoSugestao.QUEIXA);
-        assertEquals(List.of(expResult), result);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -384,10 +388,9 @@ public class SugestaoQueixaBLLTest {
             instance.registar(RECECAO, CLIENTE, TipoSugestao.SUGESTAO, "   ");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            String expResult = "A descrição é obrigatória.";
-            String result = expected.getMessage();
+            String expResult = "A descrição é obrigatória. / 0";
+            String result = expected.getMessage() + " / " + sugestaoDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(0, sugestaoDAL.registadas.size());
         }
     }
 
@@ -446,28 +449,26 @@ public class SugestaoQueixaBLLTest {
     @Test
     public void testRegistarPeloNifNaoRegistado() {
         System.out.println("registarPeloNif (NIF que não é de um cliente registado)");
-        String expResult = "O NIF 987654321 não é de um cliente registado no hotel.";
+        String expResult = "O NIF 987654321 não é de um cliente registado no hotel. / 0";
         try {
             instance.registarPeloNif("987654321", TipoSugestao.QUEIXA, "Barulho");
             fail("Devia ter recusado um NIF que não é de um cliente");
         } catch (IllegalArgumentException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + sugestaoDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(0, sugestaoDAL.registadas.size());
         }
     }
 
     @Test
     public void testRegistarPeloNifInvalido() {
         System.out.println("registarPeloNif (NIF com letras)");
-        String expResult = "O NIF tem de ter exatamente 9 dígitos";
+        String expResult = "O NIF tem de ter exatamente 9 dígitos / 0";
         try {
             instance.registarPeloNif("12345678A", TipoSugestao.QUEIXA, "Barulho");
             fail("Devia ter recusado um NIF com letras");
         } catch (ValidacaoException expected) {
-            String result = expected.getMessage();
+            String result = expected.getMessage() + " / " + sugestaoDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(0, sugestaoDAL.registadas.size());
         }
     }
 
@@ -491,10 +492,9 @@ public class SugestaoQueixaBLLTest {
             instance.registarPeloNif("123456789", null, "Barulho");
             fail("Devia ter recusado sem tipo");
         } catch (IllegalArgumentException expected) {
-            String expResult = "Escolha o tipo: sugestão ou queixa.";
-            String result = expected.getMessage();
+            String expResult = "Escolha o tipo: sugestão ou queixa. / 0";
+            String result = expected.getMessage() + " / " + sugestaoDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(0, sugestaoDAL.registadas.size());
         }
     }
 
@@ -505,10 +505,9 @@ public class SugestaoQueixaBLLTest {
             instance.registarPeloNif("123456789", TipoSugestao.SUGESTAO, "   ");
             fail("Devia ter recusado sem descrição");
         } catch (IllegalArgumentException expected) {
-            String expResult = "A descrição é obrigatória.";
-            String result = expected.getMessage();
+            String expResult = "A descrição é obrigatória. / 0";
+            String result = expected.getMessage() + " / " + sugestaoDAL.registadas.size();
             assertEquals(expResult, result);
-            assertEquals(0, sugestaoDAL.registadas.size());
         }
     }
 }

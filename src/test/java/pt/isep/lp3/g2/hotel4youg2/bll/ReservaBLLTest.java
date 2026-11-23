@@ -680,12 +680,14 @@ public class ReservaBLLTest {
     public void testCriarComEarlyELateSomaAsDuasTaxasAoTotal() {
         System.out.println("criar (taxas somadas ao total)");
         quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
-        Reserva result = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+        Reserva obtido = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
                 true, true);
-        BigDecimal expResult = result.getPrecoTotal()
+        BigDecimal esperado = obtido.getPrecoTotal()
                 .add(horarios.obter().getTaxaEarlyCheckin())
                 .add(horarios.obter().getTaxaLateCheckout());
-        assertEquals(expResult, result.getTotal());
+        String expResult = "" + esperado;
+        String result = "" + obtido.getTotal();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -1902,10 +1904,9 @@ public class ReservaBLLTest {
             instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
             fail("Devia ter recusado o check-in");
         } catch (IllegalStateException expected) {
-            String expResult = SEM_STOCK;
-            String result = expected.getMessage();
+            String expResult = SEM_STOCK + " / null";
+            String result = expected.getMessage() + " / " + repositorio.comCheckin;
             assertEquals(expResult, result);
-            assertEquals(null, repositorio.comCheckin);
         }
     }
 }
