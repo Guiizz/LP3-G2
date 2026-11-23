@@ -104,6 +104,45 @@ public class Quarto {
         return ativo ? "Ativo" : "Desativado";
     }
 
+    public String getDetalhes() {
+        String texto = "Quarto " + numero
+                + "\nPiso: " + piso
+                + "\nTipo: " + textoDoTipo()
+                + "\nVista: " + textoDaVista()
+                + "\nCapacidade: " + capacidade + (capacidade == 1 ? " pessoa" : " pessoas")
+                + "\nEstado: " + getEstado();
+        if (getValorNoite() != null) {
+            texto += "\nPreço por noite: " + getValorNoite() + " €";
+        }
+        return texto;
+    }
+
+    public String getResumo() {
+        return textoDoTipo() + " · " + textoDaVista();
+    }
+
+    private String textoDoTipo() {
+        switch (tipo) {
+            case INDIVIDUAL:
+                return "Individual";
+            case DUPLO:
+                return "Duplo";
+            default:
+                return "Família";
+        }
+    }
+
+    private String textoDaVista() {
+        switch (vista) {
+            case MAR:
+                return "Mar";
+            case MONTANHA:
+                return "Montanha";
+            default:
+                return "Sem vista";
+        }
+    }
+
     /**
      * Dois quartos são iguais se tiverem os mesmos dados (incluindo a tarifa e o estado).
      */

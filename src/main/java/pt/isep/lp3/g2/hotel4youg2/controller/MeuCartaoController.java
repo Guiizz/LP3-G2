@@ -5,7 +5,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
-import javafx.util.StringConverter;
 import pt.isep.lp3.g2.hotel4youg2.bll.AcessoCartaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
@@ -107,18 +106,6 @@ public class MeuCartaoController {
             tabela.getItems().setAll(acessoCartaoBLL.listarPicagensDoCliente(Sessao.getContaCliente()));
         } catch (DataAccessException | IllegalStateException e) {
             tabela.getItems().clear();
-        }
-    }
-
-    private static class CartaoDaReserva extends StringConverter<Reserva> {
-        @Override
-        public String toString(Reserva reserva) {
-            return reserva == null ? "" : reserva.getCartao() + " · Quarto " + reserva.getQuartoNumero();
-        }
-
-        @Override
-        public Reserva fromString(String texto) {
-            return null;
         }
     }
 }
