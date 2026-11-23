@@ -36,7 +36,7 @@
                 <Label fx:id="xsdLabel"/>
             </HBox>
             <HBox spacing="10.0" alignment="CENTER_LEFT">
-                <Button text="Escolher ficheiro XML…" onAction="#aoEscolherFicheiro"/>
+                <Button text="Escolher ficheiro XML ou JSON…" onAction="#aoEscolherFicheiro"/>
                 <Label fx:id="ficheiroLabel" text="Nenhum ficheiro escolhido"/>
             </HBox>
             <Label fx:id="resumoLabel" wrapText="true"/>

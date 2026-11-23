@@ -5,12 +5,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.AutenticacaoFornecedorBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.ContaClienteBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
@@ -24,13 +29,34 @@ public class LoginController {
 
     private final AutenticacaoBLL autenticacaoBLL = new AutenticacaoBLL();
     private final AutenticacaoFornecedorBLL autenticacaoFornecedorBLL = new AutenticacaoFornecedorBLL();
+    private final ContaClienteBLL contaClienteBLL = new ContaClienteBLL();
+    private final ReservaBLL reservaBLL = new ReservaBLL();
     private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
+    private ContaCliente contaPorAtivar;
+    private Utilizador utilizadorPorMudar;
+
+    private static final String TEXTO_PRIMEIRO_ACESSO =
+            "Primeiro acesso: escolha a sua palavra-passe, com pelo menos 6 caracteres.";
+    private static final String TEXTO_PASSWORD_REPOSTA =
+            "A sua palavra-passe foi reposta pelo gestor: escolha uma nova, com pelo menos 8 caracteres.";
 
     @FXML
     private TextField nomeUtilizadorField;
 
     @FXML
     private PasswordField passwordField;
+
+    @FXML
+    private VBox primeiroAcessoBox;
+
+    @FXML
+    private Label primeiroAcessoLabel;
+
+    @FXML
+    private PasswordField novaPasswordField;
+
+    @FXML
+    private PasswordField confirmarPasswordField;
 
     @FXML
     private Label erroLabel;
@@ -43,10 +69,18 @@ public class LoginController {
     @FXML
     private void aoEntrar() {
         erroLabel.setText("");
+        esconderPrimeiroAcesso();
         try {
             Utilizador utilizador = autenticacaoBLL.autenticar(nomeUtilizadorField.getText(), passwordField.getText());
-            Sessao.iniciar(utilizador);
-            abrirJanelaPrincipal(utilizador);
+            passwordField.clear();
+            if (utilizador.isMudarPassword()) {
+                utilizadorPorMudar = utilizador;
+                primeiroAcessoLabel.setText(TEXTO_PASSWORD_REPOSTA);
+                mostrarPrimeiroAcesso(true);
+                novaPasswordField.requestFocus();
+                return;
+            }
+            entrarComoFuncionario(utilizador);
         } catch (IllegalArgumentException e) {
             erroLabel.setText(e.getMessage());
             passwordField.clear();
@@ -57,19 +91,69 @@ public class LoginController {
         }
     }
 
+    @FXML
+    private void aoEntrarComoCliente() {
+        erroLabel.setText("");
+        esconderPrimeiroAcesso();
+        try {
+            ContaCliente conta = contaClienteBLL.autenticar(nomeUtilizadorField.getText(), passwordField.getText());
+            passwordField.clear();
+            if (conta.isPrimeiroAcesso()) {
+                contaPorAtivar = conta;
+                primeiroAcessoLabel.setText(TEXTO_PRIMEIRO_ACESSO);
+                mostrarPrimeiroAcesso(true);
+                novaPasswordField.requestFocus();
+                return;
+            }
+            entrarComoCliente(conta);
+        } catch (IllegalArgumentException e) {
+            erroLabel.setText(e.getMessage());
+            passwordField.clear();
+        } catch (DataAccessException e) {
+            erroLabel.setText(e.getMessage());
+        } catch (IOException e) {
+            erroLabel.setText("Não foi possível abrir a sua área.");
+        }
+    }
+
+    @FXML
+    private void aoGuardarPalavraPasse() {
+        erroLabel.setText("");
+        try {
+            if (utilizadorPorMudar != null) {
+                autenticacaoBLL.mudarPassword(utilizadorPorMudar, novaPasswordField.getText(),
+                        confirmarPasswordField.getText());
+                Utilizador utilizador = utilizadorPorMudar;
+                esconderPrimeiroAcesso();
+                entrarComoFuncionario(utilizador);
+                return;
+            }
+            contaClienteBLL.definirPalavraPasse(contaPorAtivar, novaPasswordField.getText(),
+                    confirmarPasswordField.getText());
+            ContaCliente conta = contaPorAtivar;
+            esconderPrimeiroAcesso();
+            entrarComoCliente(conta);
+        } catch (ValidacaoException | IllegalArgumentException | IllegalStateException e) {
+            erroLabel.setText(e.getMessage());
+            novaPasswordField.clear();
+            confirmarPasswordField.clear();
+        } catch (DataAccessException e) {
+            erroLabel.setText(e.getMessage());
+        } catch (IOException e) {
+            erroLabel.setText("Não foi possível abrir a sua área.");
+        }
+    }
+
     // o fornecedor escreve o código dele no campo do nome de utilizador
     @FXML
     private void aoEntrarComoFornecedor() {
         erroLabel.setText("");
+        esconderPrimeiroAcesso();
         try {
             Fornecedor fornecedor = autenticacaoFornecedorBLL.autenticar(nomeUtilizadorField.getText(),
                     passwordField.getText());
             Sessao.iniciarFornecedor(fornecedor);
-            Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
-            Scene cena = new Scene(Navegador.carregar("fornecedor-view.fxml").getRoot(), 1100, 700);
-            Navegador.aplicarEstilo(cena);
-            stage.setScene(cena);
-            stage.setTitle("Hotel4You · Fornecedor " + fornecedor.getNome());
+            abrirJanela("fornecedor-view.fxml", "Hotel4You · Fornecedor " + fornecedor.getNome());
         } catch (IllegalArgumentException e) {
             erroLabel.setText(e.getMessage());
             passwordField.clear();
@@ -80,12 +164,46 @@ public class LoginController {
         }
     }
 
-    private void abrirJanelaPrincipal(Utilizador utilizador) throws IOException {
+    private void entrarComoFuncionario(Utilizador utilizador) throws IOException {
+        Sessao.iniciar(utilizador);
+        cancelarReservasSemCheckin();
+        abrirJanela("inicial-view.fxml", "Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador()
+                + " (" + utilizador.getPerfil() + ")");
+    }
+
+    private void entrarComoCliente(ContaCliente conta) throws IOException {
+        Sessao.iniciarCliente(conta);
+        cancelarReservasSemCheckin();
+        abrirJanela("area-cliente-view.fxml", "Hotel4You · " + conta.getNome());
+    }
+
+    private void cancelarReservasSemCheckin() {
+        try {
+            reservaBLL.cancelarSemCheckin();
+        } catch (DataAccessException ignorada) {
+        }
+    }
+
+    private void abrirJanela(String ficheiro, String titulo) throws IOException {
         Stage stage = (Stage) nomeUtilizadorField.getScene().getWindow();
-        Scene cena = new Scene(Navegador.carregar("inicial-view.fxml").getRoot(), 1100, 700);
+        Scene cena = new Scene(Navegador.carregar(ficheiro).getRoot(), 1100, 700);
         Navegador.aplicarEstilo(cena);
         stage.setScene(cena);
-        stage.setTitle("Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
+        stage.setTitle(titulo);
+        stage.centerOnScreen();
+    }
+
+    private void esconderPrimeiroAcesso() {
+        contaPorAtivar = null;
+        utilizadorPorMudar = null;
+        mostrarPrimeiroAcesso(false);
+        novaPasswordField.clear();
+        confirmarPasswordField.clear();
+    }
+
+    private void mostrarPrimeiroAcesso(boolean visivel) {
+        primeiroAcessoBox.setVisible(visivel);
+        primeiroAcessoBox.setManaged(visivel);
     }
 
     @FXML

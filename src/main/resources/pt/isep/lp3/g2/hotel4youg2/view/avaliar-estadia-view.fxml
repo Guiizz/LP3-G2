@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.AvaliarEstadiaController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="← Voltar" onAction="#aoVoltar"/>
+        <Label text="Avaliar a estadia" styleClass="titulo"/>
+    </HBox>
+    <Label fx:id="reservaLabel" style="-fx-font-weight: bold;"/>
+
+    <VBox fx:id="formularioBox" spacing="8.0" styleClass="cartao" maxWidth="620.0">
+        <Label text="Quantas estrelas dá à sua estadia?" styleClass="passo"/>
+        <HBox fx:id="estrelasBox" spacing="2.0" alignment="CENTER_LEFT"/>
+        <Label fx:id="escolhaLabel" text="Clique numa estrela (1 = muito mau, 5 = excelente)."/>
+        <Label text="Comentário (opcional, até 500 caracteres)" styleClass="passo"/>
+        <TextArea fx:id="comentarioArea" prefRowCount="4" wrapText="true"
+                  promptText="O que correu bem? O que podemos melhorar?"/>
+        <Button text="Enviar avaliação" onAction="#aoEnviar" defaultButton="true"/>
+    </VBox>
+
+    <VBox fx:id="avaliadaBox" spacing="6.0" styleClass="cartao" maxWidth="620.0" visible="false" managed="false">
+        <Label fx:id="avaliadaEmLabel" styleClass="passo"/>
+        <Label fx:id="avaliadaEstrelasLabel" styleClass="estrelas-avaliacao"/>
+        <Label fx:id="avaliadaComentarioLabel" wrapText="true"/>
+    </VBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true"/>
+</VBox>

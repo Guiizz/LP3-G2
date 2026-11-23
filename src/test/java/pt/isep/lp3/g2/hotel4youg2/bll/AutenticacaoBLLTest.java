@@ -9,6 +9,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +41,18 @@ public class AutenticacaoBLLTest {
 
         @Override
         public boolean atualizarAtivo(int utilizadorId, boolean ativo) {
+            return false;
+        }
+
+        @Override
+        public boolean definirPassword(int utilizadorId, String passwordHash, String passwordSalt,
+                                       boolean mudarPassword) {
+            for (Utilizador conta : contas) {
+                if (conta.getId() == utilizadorId) {
+                    conta.definirPassword(passwordHash, passwordSalt, mudarPassword);
+                    return true;
+                }
+            }
             return false;
         }
     }
@@ -102,6 +115,43 @@ public class AutenticacaoBLLTest {
     }
 
     @Test
+    public void testAutenticarComPasswordReposta() {
+        System.out.println("autenticar (a conta com a palavra-passe reposta tem de a mudar)");
+        comPasswordReposta();
+        boolean expResult = true;
+        boolean result = instance.autenticar("rita", "Temporaria1").isMudarPassword();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPassword() {
+        System.out.println("mudarPassword (depois entra com a nova e já não tem de mudar)");
+        Utilizador conta = comPasswordReposta();
+        instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
+        Utilizador esperado = conta;
+        Utilizador obtido = instance.autenticar("rita", "NovaPassword9");
+        List<Object> expResult = Arrays.asList(esperado, false);
+        List<Object> result = Arrays.asList(obtido, obtido.isMudarPassword());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPasswordATemporariaDeixaDeEntrar() {
+        System.out.println("mudarPassword (a temporária deixa de funcionar)");
+        Utilizador conta = comPasswordReposta();
+        instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
+        String expResult = "A password está errada.";
+        String result;
+        try {
+            instance.autenticar("rita", "Temporaria1");
+            result = null;
+        } catch (IllegalArgumentException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testAutenticarNomeVazio() {
         System.out.println("autenticar (nome de utilizador vazio)");
         String expResult = "Escreva o nome de utilizador.";
@@ -141,6 +191,22 @@ public class AutenticacaoBLLTest {
         assertEquals(expResult, result);
     }
 
+    private Utilizador comPasswordReposta() {
+        Utilizador conta = criarConta(3, "rita", "Temporaria1", Perfil.RECECIONISTA, true);
+        conta.setMudarPassword(true);
+        dal.contas.add(conta);
+        return conta;
+    }
+
+    private String erroAoMudar(Utilizador conta, String nova, String confirmacao) {
+        try {
+            instance.mudarPassword(conta, nova, confirmacao);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
     @Test
     public void testAutenticarPasswordErrada() {
         System.out.println("autenticar (password errada)");
@@ -162,6 +228,49 @@ public class AutenticacaoBLLTest {
         System.out.println("autenticar (password errada numa conta desativada)");
         String expResult = "A password está errada.";
         String result = mensagemAoAutenticar("antigo", "errada");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPasswordCurta() {
+        System.out.println("mudarPassword (menos de 8 caracteres)");
+        Utilizador conta = comPasswordReposta();
+        String expResult = "A palavra-passe tem de ter pelo menos 8 caracteres. / true";
+        String result = erroAoMudar(conta, "curta", "curta") + " / " + conta.isMudarPassword();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPasswordDiferentes() {
+        System.out.println("mudarPassword (as duas não são iguais)");
+        Utilizador conta = comPasswordReposta();
+        String expResult = "As duas palavras-passe não são iguais.";
+        String result = erroAoMudar(conta, "NovaPassword9", "NovaPassword8");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPasswordIgualATemporaria() {
+        System.out.println("mudarPassword (igual à temporária)");
+        Utilizador conta = comPasswordReposta();
+        String expResult = "Escolha uma palavra-passe diferente da temporária.";
+        String result = erroAoMudar(conta, "Temporaria1", "Temporaria1");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPasswordSemReposicao() {
+        System.out.println("mudarPassword (a conta não teve a palavra-passe reposta)");
+        String expResult = "A palavra-passe desta conta não foi reposta.";
+        String result = erroAoMudar(gestor, "NovaPassword9", "NovaPassword9");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPasswordSemConta() {
+        System.out.println("mudarPassword (sem conta)");
+        String expResult = "Entre com a palavra-passe temporária.";
+        String result = erroAoMudar(null, "NovaPassword9", "NovaPassword9");
         assertEquals(expResult, result);
     }
 }

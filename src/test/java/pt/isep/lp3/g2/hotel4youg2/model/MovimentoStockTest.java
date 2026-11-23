@@ -6,18 +6,17 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoMovimento;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class MovimentoStockTest {
 
     private static final LocalDateTime QUANDO = LocalDateTime.of(2026, 11, 16, 9, 5);
 
-    private final MovimentoStock instance = new MovimentoStock(TipoMovimento.SAIDA, 4, 3, "Ana Silva", QUANDO);
+    private final MovimentoStock instance = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 3, "Ana Silva", QUANDO);
 
     @Test
     public void testGetTipo() {
         System.out.println("getTipo");
-        TipoMovimento expResult = TipoMovimento.SAIDA;
+        TipoMovimento expResult = TipoMovimento.SAIDA_DEFINITIVA;
         TipoMovimento result = instance.getTipo();
         assertEquals(expResult, result);
     }
@@ -67,7 +66,7 @@ public class MovimentoStockTest {
     @Test
     public void testTipoNoEcra() {
         System.out.println("TipoMovimento (texto no ecrã)");
-        String expResult = "Saída";
+        String expResult = "Saída definitiva";
         String result = instance.getTipo().toString();
         assertEquals(expResult, result);
     }
@@ -75,22 +74,52 @@ public class MovimentoStockTest {
     @Test
     public void testEquals() {
         System.out.println("equals (mesmos dados)");
-        MovimentoStock outro = new MovimentoStock(TipoMovimento.SAIDA, 4, 3, "Ana Silva", QUANDO);
-        assertEquals(outro, instance);
+        MovimentoStock outro = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 3, "Ana Silva", QUANDO);
+        MovimentoStock expResult = outro;
+        MovimentoStock result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsOutroTipo() {
         System.out.println("equals (tipo diferente)");
         MovimentoStock outro = new MovimentoStock(TipoMovimento.ENTRADA, 4, 3, "Ana Silva", QUANDO);
-        assertNotEquals(outro, instance);
+        boolean expResult = false;
+        boolean result = outro.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testToString() {
         System.out.println("toString");
-        String expResult = "Saída de 3 em 16/11/2026 09:05 (Ana Silva)";
+        String expResult = "Saída definitiva de 3 em 16/11/2026 09:05 (Ana Silva)";
         String result = instance.toString();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetMotivo() {
+        System.out.println("getMotivo (US77)");
+        MovimentoStock saida = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 3, "Ana Silva", QUANDO, "Estragado");
+        String expResult = "Estragado";
+        String result = saida.getMotivo();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetMotivoSemMotivo() {
+        System.out.println("getMotivo (entrada ou saída antiga mostra -)");
+        String expResult = "-";
+        String result = instance.getMotivo();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEqualsOutroMotivo() {
+        System.out.println("equals (motivo diferente)");
+        MovimentoStock comMotivo = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 3, "Ana Silva", QUANDO, "Roubado");
+        boolean expResult = false;
+        boolean result = instance.equals(comMotivo);
         assertEquals(expResult, result);
     }
 }

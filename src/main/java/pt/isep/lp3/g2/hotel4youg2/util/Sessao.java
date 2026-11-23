@@ -1,5 +1,6 @@
 package pt.isep.lp3.g2.hotel4youg2.util;
 
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 
@@ -11,6 +12,7 @@ public final class Sessao {
 
     private static Utilizador utilizador;
     private static Fornecedor fornecedor;
+    private static ContaCliente contaCliente;
 
     private Sessao() {
     }
@@ -52,10 +54,24 @@ public final class Sessao {
     }
 
     /**
+     * Guarda o cliente que entrou na aplicação.
+     *
+     * @param contaAutenticada a conta do cliente
+     */
+    public static void iniciarCliente(ContaCliente contaAutenticada) {
+        contaCliente = contaAutenticada;
+    }
+
+    public static ContaCliente getContaCliente() {
+        return contaCliente;
+    }
+
+    /**
      * Termina a sessão: deixa de haver um utilizador autenticado.
      */
     public static void terminar() {
         utilizador = null;
         fornecedor = null;
+        contaCliente = null;
     }
 }

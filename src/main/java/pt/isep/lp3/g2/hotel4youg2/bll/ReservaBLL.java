@@ -19,6 +19,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -74,6 +75,98 @@ public class ReservaBLL {
     public BigDecimal calcularTaxa(boolean earlyCheckin, boolean lateCheckout) {
         return horarioReservaDAL.obter().calcularTaxa(earlyCheckin, lateCheckout);
     }
+
+    /**
+     * Explica porque não há quartos e que alternativas existem.
+     *
+     * @param entrada  o dia de chegada
+     * @param saida    o dia de partida
+     * @param hospedes o número de hóspedes
+     * @param early    se o cliente quer early check-in
+     * @param late     se o cliente quer late check-out
+     * @return a mensagem para mostrar no ecrã
+     */
+    public String avisoSemQuartos(LocalDate entrada, LocalDate saida, int hospedes, boolean early, boolean late) {
+        if (!early && !late) {
+            return "Não há quartos livres para estas datas e hóspedes.";
+        }
+        StringBuilder aviso = new StringBuilder("Nenhum quarto permite ");
+        if (early && late) {
+            aviso.append("o early check-in e o late check-out juntos nestas datas.");
+            if (!opcoesDisponiveis(entrada, saida, hospedes, true, false).isEmpty()) {
+                aviso.append(" Há quartos só com o early check-in.");
+            }
+            if (!opcoesDisponiveis(entrada, saida, hospedes, false, true).isEmpty()) {
+                aviso.append(" Há quartos só com o late check-out.");
+            }
+        } else {
+            aviso.append(early ? "o early check-in" : "o late check-out").append(" nestas datas.");
+        }
+        if (!opcoesDisponiveis(entrada, saida, hospedes, false, false).isEmpty()) {
+            HorarioReserva horario = horarioReservaDAL.obter();
+            aviso.append(" Há quartos nas horas standard (check-in às ").append(horario.getHoraCheckin())
+                    .append(" e check-out às ").append(horario.getHoraCheckout()).append(").");
+        }
+        aviso.append(" Desmarque o que o cliente dispensar e pesquise outra vez.");
+        return aviso.toString();
+    }
+
+    /**
+     * Como {@link #resumoDoTotal(Quarto, LocalDate, LocalDate, boolean, boolean, List, HorarioReserva)},
+     * com as horas e taxas que estão na base de dados.
+     *
+     * @param quarto   o quarto escolhido
+     * @param entrada  o dia de chegada
+     * @param saida    o dia de partida
+     * @param early    se tem early check-in
+     * @param late     se tem late check-out
+     * @param servicos os serviços extra escolhidos
+     * @return o resumo, uma parcela por linha, com o total na última
+     */
+    public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
+                                List<ServicoReserva> servicos) {
+        return resumoDoTotal(quarto, entrada, saida, early, late, servicos, horarioReservaDAL.obter());
+    }
+
+    /**
+     * Monta o resumo do total da reserva: o alojamento, o early check-in, o late check-out, os serviços
+     * e o total.
+     *
+     * @param quarto   o quarto escolhido
+     * @param entrada  o dia de chegada
+     * @param saida    o dia de partida
+     * @param early    se tem early check-in
+     * @param late     se tem late check-out
+     * @param servicos os serviços extra escolhidos
+     * @param horario  as horas e taxas do hotel
+     * @return o resumo, uma parcela por linha, com o total na última
+     */
+    public String resumoDoTotal(Quarto quarto, LocalDate entrada, LocalDate saida, boolean early, boolean late,
+                                List<ServicoReserva> servicos, HorarioReserva horario) {
+        BigDecimal alojamento = calcularPreco(quarto, entrada, saida);
+        long noites = ChronoUnit.DAYS.between(entrada, saida);
+        BigDecimal taxaEarly = early ? horario.getTaxaEarlyCheckin() : BigDecimal.ZERO;
+        BigDecimal taxaLate = late ? horario.getTaxaLateCheckout() : BigDecimal.ZERO;
+        BigDecimal extras = ServicoReservaBLL.somar(servicos);
+        StringBuilder texto = new StringBuilder();
+        texto.append("Quarto ").append(quarto.getTipo()).append(", vista ").append(quarto.getVista()).append(": ")
+                .append(noites).append(noites == 1 ? " noite × " : " noites × ").append(euros(quarto.getValorNoite()))
+                .append(" = ").append(euros(alojamento));
+        if (early) {
+            texto.append("\nEarly check-in: ").append(euros(taxaEarly));
+        }
+        if (late) {
+            texto.append("\nLate check-out: ").append(euros(taxaLate));
+        }
+        texto.append("\nServiços extra: ").append(euros(extras));
+        texto.append("\nTotal: ").append(euros(alojamento.add(taxaEarly).add(taxaLate).add(extras)));
+        return texto.toString();
+    }
+
+    private static String euros(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP) + " €";
+    }
+
 
     /**
      * Devolve as opções de quarto disponíveis para o pedido do cliente: um quarto de cada
@@ -251,6 +344,25 @@ public class ReservaBLL {
     }
 
     /**
+     * Cancela as reservas confirmadas que não tiveram check-in e cuja data de entrada já passou.
+     *
+     * @return quantas reservas foram canceladas
+     */
+    public int cancelarSemCheckin() {
+        return cancelarSemCheckin(LocalDate.now());
+    }
+
+    /**
+     * Como {@link #cancelarSemCheckin()}, com outro dia de hoje (usado nos testes).
+     *
+     * @param hoje o dia de hoje
+     * @return quantas reservas foram canceladas
+     */
+    public int cancelarSemCheckin(LocalDate hoje) {
+        return reservaDAL.cancelarSemCheckin(hoje);
+    }
+
+    /**
      * Escolhe as reservas de um separador do ecrã "Gerir reservas" e aplica a pesquisa (US55). Trabalha em memória,
      * sobre as reservas já lidas, para escrever na pesquisa não fazer consultas novas.
      * No separador "Por fazer" ficam da entrada mais próxima para a mais distante.
@@ -352,14 +464,15 @@ public class ReservaBLL {
     }
 
     /**
-     * Apaga uma reserva sem check-in, confirmada ou cancelada (US57). Os serviços da reserva também deixam
-     * de existir e o quarto fica livre nessas datas. Só o gestor pode apagar.
+     * Apaga uma reserva por fazer: confirmada e sem check-in (US57 e US79). Os serviços da reserva também
+     * deixam de existir e o quarto fica livre nessas datas. As reservas do histórico e as em curso nunca
+     * se apagam. Só o gestor pode apagar.
      *
      * @param quemAge o utilizador com a sessão iniciada
      * @param reserva a reserva a apagar
-     * @throws IllegalStateException se quem age não for o gestor, ou se a reserva já teve check-in
-     * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se entretanto deixou de existir
-     *                               ou teve check-in noutro computador
+     * @throws IllegalStateException se quem age não for o gestor, ou se a reserva já não estiver por fazer
+     * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se entretanto deixou de existir,
+     *                               foi cancelada ou teve check-in noutro computador
      */
     public void apagar(Utilizador quemAge, Reserva reserva) {
         if (!Permissoes.eGestor(quemAge)) {
@@ -369,12 +482,12 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         if (!reserva.podeSerApagada()) {
-            throw new IllegalStateException("A reserva " + reserva.getId() + " não pode ser apagada: já teve check-in ("
-                    + reserva.getEstadoTexto().toLowerCase() + ")");
+            throw new IllegalStateException("A reserva " + reserva.getId() + " não pode ser apagada: "
+                    + "só se apagam as reservas por fazer, e esta está " + reserva.getEstadoTexto().toLowerCase());
         }
         if (!reservaDAL.apagarSemCheckin(reserva.getId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
-                    + " já não pode ser apagada: não existe ou entretanto teve check-in");
+                    + " já não pode ser apagada: não existe ou já não está por fazer");
         }
     }
 
@@ -490,14 +603,16 @@ public class ReservaBLL {
     /**
      * Faz o check-in de uma reserva confirmada (US35): passa a em curso e o cliente recebe o cartão
      * do quarto. Só no dia de entrada e a partir da hora de check-in (ou da de early check-in,
-     * se a reserva o tiver).
+     * se a reserva o tiver). Na mesma transação, os materiais da reserva saem do stock (US76): os consumíveis
+     * de vez e os não consumíveis temporariamente; se faltar stock, nada é feito.
      *
      * @param quemAge o utilizador com a sessão iniciada (rececionista ou gestor)
      * @param reserva a reserva
      * @param agora   a data e hora do check-in (nos testes, uma hora fixa)
      * @return o número do cartão a entregar ao cliente
      * @throws IllegalStateException se quem age não for rececionista nem gestor, ou se a reserva
-     *                               não puder fazer check-in agora (cancelada, repetido, outro dia ou cedo demais)
+     *                               não puder fazer check-in agora (cancelada, repetido, outro dia ou cedo demais),
+     *                               ou se não houver stock suficiente dos materiais da reserva (US76)
      * @throws ValidacaoException    se não for escolhida nenhuma reserva, ou se outro funcionário
      *                               a cancelou ou fez o check-in entretanto
      */
@@ -509,7 +624,7 @@ public class ReservaBLL {
             throw new ValidacaoException("Escolha uma reserva");
         }
         reserva.fazerCheckin(agora, horarioReservaDAL.obter().horaMinimaCheckin(reserva.isEarlyCheckin()));
-        if (!reservaDAL.registarCheckin(reserva)) {
+        if (!reservaDAL.registarCheckin(reserva, quemAge.getFuncionarioId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-in: foi cancelada ou já tem o check-in feito");
         }
@@ -551,6 +666,7 @@ public class ReservaBLL {
 
     /**
      * Faz o check-out de uma reserva em curso (US36): passa a concluída e o cartão deixa de dar acesso.
+     * Na mesma transação, as saídas temporárias da reserva voltam ao stock (US76).
      *
      * @param quemAge o utilizador com a sessão iniciada (rececionista ou gestor)
      * @param reserva a reserva em curso
@@ -564,7 +680,7 @@ public class ReservaBLL {
     public BigDecimal fazerCheckout(Utilizador quemAge, Reserva reserva, LocalDateTime agora) {
         BigDecimal total = totalAPagar(quemAge, reserva);
         reserva.fazerCheckout(agora);
-        if (!reservaDAL.registarCheckout(reserva)) {
+        if (!reservaDAL.registarCheckout(reserva, quemAge.getFuncionarioId())) {
             throw new ValidacaoException("A reserva " + reserva.getId()
                     + " já não pode fazer check-out: já não está em curso");
         }

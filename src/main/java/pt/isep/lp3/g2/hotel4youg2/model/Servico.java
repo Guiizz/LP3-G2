@@ -73,14 +73,23 @@ public class Servico {
         this.ativo = ativo;
     }
 
+    /**
+     * @return o nome da categoria do serviço
+     */
     public String getNomeCategoria() {
         return categoria.getNome();
     }
 
+    /**
+     * @return o preço em euros (ex.: 22,00 €)
+     */
     public String getPrecoTexto() {
         return preco.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " €";
     }
 
+    /**
+     * @return {@code "Ativo"} ou {@code "Desativado"}
+     */
     public String getEstadoTexto() {
         return ativo ? "Ativo" : "Desativado";
     }

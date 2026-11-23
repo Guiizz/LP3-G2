@@ -79,18 +79,30 @@ public class ServicoReserva {
         return precoUnitario.multiply(BigDecimal.valueOf(quantidade));
     }
 
+    /**
+     * @return o nome do serviço
+     */
     public String getNomeServico() {
         return servico.getDesignacao();
     }
 
+    /**
+     * @return o preço unitário em euros
+     */
     public String getPrecoTexto() {
         return euros(precoUnitario);
     }
 
+    /**
+     * @return o total da linha em euros
+     */
     public String getTotalTexto() {
         return euros(getTotal());
     }
 
+    /**
+     * @return quando o serviço foi juntado à reserva (ex.: 17/11/2026 09:05)
+     */
     public String getAdicionadoEmTexto() {
         return adicionadoEm == null ? "" : adicionadoEm.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
     }

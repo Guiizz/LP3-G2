@@ -142,6 +142,17 @@ public class FuncionarioDALTest {
     }
 
     @Test
+    public void testProcurarPorIdTemOPerfilDaConta() {
+        System.out.println("procurarPorId (vem com o perfil da conta)");
+        Funcionario funcionario = instance.procurarPorId(pessoaId);
+        Assumptions.assumeTrue(funcionario.getPerfil() != null, "O funcionário não tem conta");
+        int expResult = 1;
+        int result = ConexaoBD.select("SELECT COUNT(*) FROM Utilizador WHERE funcionarioId = ? AND perfil = ?",
+                new InteiroMapper(), pessoaId, funcionario.getPerfil().name()).get(0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testProcurarPorIdEPorNumero() {
         System.out.println("procurarPorId e procurarPorNumero (dão o mesmo funcionário)");
         Funcionario expResult = instance.procurarPorId(pessoaId);

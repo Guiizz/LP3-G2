@@ -1,0 +1,155 @@
+package pt.isep.lp3.g2.hotel4youg2.controller;
+
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
+import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
+import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
+import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.SeparadorReserva;
+import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * Controlador do ecrã "As minhas reservas" do cliente: por fazer, em curso e histórico.
+ */
+public class MinhasReservasController {
+
+    private final ReservaBLL reservaBLL = new ReservaBLL();
+
+    @FXML
+    private VBox ecra;
+    @FXML
+    private TabPane separadores;
+    @FXML
+    private TableView<Reserva> tabelaPorFazer;
+    @FXML
+    private TableView<Reserva> tabelaEmCurso;
+    @FXML
+    private TableView<Reserva> tabelaHistorico;
+    @FXML
+    private Button avaliarButton;
+    @FXML
+    private Label mensagemLabel;
+
+    @FXML
+    private void initialize() {
+        AoClicarDuasVezes duploClique = new AoClicarDuasVezes();
+        tabelaPorFazer.setOnMouseClicked(duploClique);
+        tabelaEmCurso.setOnMouseClicked(duploClique);
+        tabelaHistorico.setOnMouseClicked(duploClique);
+        separadores.getSelectionModel().selectedIndexProperty().addListener(new AoMudarDeSeparador());
+        mostrarAvaliar();
+        carregar();
+    }
+
+    private void mostrarAvaliar() {
+        boolean noHistorico = separadores.getSelectionModel().getSelectedIndex() == 2;
+        avaliarButton.setVisible(noHistorico);
+        avaliarButton.setManaged(noHistorico);
+    }
+
+    private void carregar() {
+        ContaCliente conta = Sessao.getContaCliente();
+        if (conta == null) {
+            Mensagens.erro(mensagemLabel, "Entre na sua conta para ver as suas reservas.");
+            return;
+        }
+        try {
+            Cliente cliente = new Cliente(conta.getClienteId(), conta.getNome(), null, conta.getNif(), null, null,
+                    null, null);
+            List<Reserva> reservas = reservaBLL.consultarDoCliente(cliente);
+            for (Reserva reserva : reservas) {
+                reserva.setNomeCliente(conta.getNome());
+                reserva.setNifCliente(conta.getNif());
+            }
+            tabelaPorFazer.getItems().setAll(ReservaBLL.filtrar(reservas, SeparadorReserva.POR_FAZER, ""));
+            tabelaEmCurso.getItems().setAll(ReservaBLL.filtrar(reservas, SeparadorReserva.EM_CURSO, ""));
+            tabelaHistorico.getItems().setAll(ReservaBLL.filtrar(reservas, SeparadorReserva.HISTORICO, ""));
+            if (!tabelaEmCurso.getItems().isEmpty()) {
+                separadores.getSelectionModel().select(1);
+            }
+        } catch (DataAccessException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível carregar as suas reservas. Tente novamente.");
+        }
+    }
+
+    @FXML
+    private void aoVerDetalhes() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null) {
+            Mensagens.erro(mensagemLabel, "Escolha uma reserva na tabela.");
+            return;
+        }
+        try {
+            mensagemLabel.setText("");
+            DetalhesReservaController.abrirSoParaVer(escolhida, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir os detalhes da reserva.");
+        }
+    }
+
+    @FXML
+    private void aoPedirExtra() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null || escolhida.getEstado() != EstadoReserva.EM_CURSO) {
+            Mensagens.erro(mensagemLabel, "Escolha uma reserva no separador Em curso para pedir um extra.");
+            return;
+        }
+        try {
+            mensagemLabel.setText("");
+            PedirExtraController.abrir(escolhida, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir o pedido de extras.");
+        }
+    }
+
+    @FXML
+    private void aoAvaliar() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null || escolhida.getEstado() != EstadoReserva.CONCLUIDA) {
+            Mensagens.erro(mensagemLabel, "Escolha uma estadia concluída no separador Histórico para a avaliar.");
+            return;
+        }
+        try {
+            mensagemLabel.setText("");
+            AvaliarEstadiaController.abrir(escolhida, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir a avaliação da estadia.");
+        }
+    }
+
+    private Reserva escolhida() {
+        int separador = separadores.getSelectionModel().getSelectedIndex();
+        TableView<Reserva> tabela = separador == 0 ? tabelaPorFazer : separador == 1 ? tabelaEmCurso : tabelaHistorico;
+        return tabela.getSelectionModel().getSelectedItem();
+    }
+
+    private class AoMudarDeSeparador implements ChangeListener<Number> {
+        @Override
+        public void changed(ObservableValue<? extends Number> valor, Number antes, Number agora) {
+            mostrarAvaliar();
+        }
+    }
+
+    private class AoClicarDuasVezes implements EventHandler<MouseEvent> {
+        @Override
+        public void handle(MouseEvent evento) {
+            if (evento.getClickCount() == 2 && escolhida() != null) {
+                aoVerDetalhes();
+            }
+        }
+    }
+}

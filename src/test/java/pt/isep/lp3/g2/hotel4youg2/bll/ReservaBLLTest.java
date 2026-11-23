@@ -39,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class ReservaBLLTest {
 
     /** Repositório de teste: guarda a reserva em memória em vez de ir à base de dados. */
+    private static final String SEM_STOCK = "Não há stock suficiente para o check-in: Toalha (precisa de 2, há 1).";
+
     private static class ReservaDALFalsa implements IReservaDAL {
         private boolean quartoLivre = true;
         private Reserva gravada;
@@ -60,6 +62,7 @@ public class ReservaBLLTest {
         private boolean podeFazerCheckoutNaBD = true;
         private Reserva comCheckout;
         private List<Reserva> todas = new ArrayList<>();
+        private LocalDate canceladasAte;
 
         @Override
         public boolean apagarSemCheckin(int id) {
@@ -77,6 +80,20 @@ public class ReservaBLLTest {
             }
             canceladaId = id;
             return true;
+        }
+
+        @Override
+        public int cancelarSemCheckin(LocalDate hoje) {
+            canceladasAte = hoje;
+            int canceladas = 0;
+            for (Reserva reserva : todas) {
+                if (reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getCheckinEm() == null
+                        && reserva.getDataEntrada().isBefore(hoje)) {
+                    reserva.setEstado(EstadoReserva.CANCELADA);
+                    canceladas++;
+                }
+            }
+            return canceladas;
         }
 
         @Override
@@ -170,6 +187,25 @@ public class ReservaBLLTest {
             comCheckout = reserva;
             return true;
         }
+
+        private boolean semStock;
+        private int funcionarioDoCheckin;
+        private int funcionarioDoCheckout;
+
+        @Override
+        public boolean registarCheckin(Reserva reserva, int funcionarioId) {
+            if (semStock) {
+                throw new IllegalStateException(SEM_STOCK);
+            }
+            funcionarioDoCheckin = funcionarioId;
+            return registarCheckin(reserva);
+        }
+
+        @Override
+        public boolean registarCheckout(Reserva reserva, int funcionarioId) {
+            funcionarioDoCheckout = funcionarioId;
+            return registarCheckout(reserva);
+        }
     }
 
     private ReservaDALFalsa repositorio;
@@ -190,6 +226,9 @@ public class ReservaBLLTest {
         private List<Quarto> livres = new ArrayList<>();
         private Boolean earlyPedido;
         private Boolean latePedido;
+        private boolean aceitaEarly = true;
+        private boolean aceitaLate = true;
+        private boolean aceitaOsDoisJuntos = true;
 
         @Override
         public List<Quarto> listarComTarifa() {
@@ -206,6 +245,10 @@ public class ReservaBLLTest {
                                               boolean lateCheckout) {
             earlyPedido = earlyCheckin;
             latePedido = lateCheckout;
+            if ((earlyCheckin && !aceitaEarly) || (lateCheckout && !aceitaLate)
+                    || (earlyCheckin && lateCheckout && !aceitaOsDoisJuntos)) {
+                return new ArrayList<>();
+            }
             return new ArrayList<>(livres);
         }
 
@@ -222,6 +265,21 @@ public class ReservaBLLTest {
         @Override
         public boolean atualizarAtivo(int numero, boolean ativo) {
             return true;
+        }
+
+        @Override
+        public boolean inserir(Quarto quarto) {
+            return false;
+        }
+
+        @Override
+        public boolean foiUsado(int numero) {
+            return false;
+        }
+
+        @Override
+        public boolean apagarSeNuncaUsado(int numero) {
+            return false;
         }
     }
 
@@ -319,97 +377,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testCriarSemCliente() {
-        System.out.println("criar (sem cliente)");
-        try {
-            instance.criar(null, quarto, entrada, entrada.plusDays(1), 1);
-            fail("Devia ter recusado uma reserva sem cliente");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarSemQuarto() {
-        System.out.println("criar (sem quarto)");
-        try {
-            instance.criar(cliente, null, entrada, entrada.plusDays(1), 1);
-            fail("Devia ter recusado uma reserva sem quarto");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarComEntradaNoPassado() {
-        System.out.println("criar (entrada no passado)");
-        try {
-            instance.criar(cliente, quarto, LocalDate.now().minusDays(1), entrada, 1);
-            fail("Devia ter recusado uma entrada no passado");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarComSaidaIgualAEntrada() {
-        System.out.println("criar (saída igual à entrada)");
-        try {
-            instance.criar(cliente, quarto, entrada, entrada, 1);
-            fail("Devia ter recusado zero noites");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarComSaidaAntesDaEntrada() {
-        System.out.println("criar (saída antes da entrada)");
-        try {
-            instance.criar(cliente, quarto, entrada.plusDays(2), entrada, 1);
-            fail("Devia ter recusado a saída antes da entrada");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarSemHospedes() {
-        System.out.println("criar (0 hóspedes)");
-        try {
-            instance.criar(cliente, quarto, entrada, entrada.plusDays(1), 0);
-            fail("Devia ter recusado 0 hóspedes");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarComMaisHospedesQueACapacidade() {
-        System.out.println("criar (mais hóspedes que a capacidade)");
-        try {
-            instance.criar(cliente, quarto, entrada, entrada.plusDays(1), 3);
-            fail("Devia ter recusado 3 hóspedes num quarto duplo");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
-    public void testCriarComQuartoJaReservado() {
-        System.out.println("criar (quarto já reservado nessas datas)");
-        repositorio.quartoLivre = false;
-        String expResult = "O quarto 201 já está reservado nessas datas. Pesquise outra vez os quartos disponíveis.";
-        try {
-            instance.criar(cliente, quarto, entrada, entrada.plusDays(2), 2);
-            fail("Devia ter recusado um quarto já reservado");
-        } catch (ValidacaoException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
     public void testCancelar() {
         System.out.println("cancelar");
         Reserva reserva = reservaConfirmada();
@@ -417,67 +384,6 @@ public class ReservaBLLTest {
         Integer expResult = 5;
         Integer result = repositorio.canceladaId;
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testCancelarRececionista() {
-        System.out.println("cancelar (rececionista)");
-        try {
-            instance.cancelar(RECECAO, reservaConfirmada());
-            fail("Devia ter recusado o rececionista");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.canceladaId);
-        }
-    }
-
-    @Test
-    public void testCancelarSemReserva() {
-        System.out.println("cancelar (sem reserva)");
-        try {
-            instance.cancelar(GESTOR, null);
-            fail("Devia ter recusado sem reserva");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.canceladaId);
-        }
-    }
-
-    @Test
-    public void testCancelarJaCancelada() {
-        System.out.println("cancelar (já cancelada)");
-        Reserva reserva = reservaConfirmada();
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        try {
-            instance.cancelar(GESTOR, reserva);
-            fail("Devia ter recusado uma reserva já cancelada");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.canceladaId);
-        }
-    }
-
-    @Test
-    public void testCancelarComCheckin() {
-        System.out.println("cancelar (com check-in)");
-        Reserva reserva = reservaConfirmada();
-        reserva.setEstado(EstadoReserva.EM_CURSO);
-        reserva.setCheckinEm(LocalDateTime.now());
-        try {
-            instance.cancelar(GESTOR, reserva);
-            fail("Devia ter recusado uma reserva com check-in");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.canceladaId);
-        }
-    }
-
-    @Test
-    public void testCancelarQueJaNaoEstaConfirmadaNaBD() {
-        System.out.println("cancelar (não existe ou check-in entretanto)");
-        repositorio.podeCancelarNaBD = false;
-        try {
-            instance.cancelar(GESTOR, reservaConfirmada());
-            fail("Devia ter recusado");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.canceladaId);
-        }
     }
 
     @Test
@@ -489,105 +395,6 @@ public class ReservaBLLTest {
                 EstadoReserva.CONFIRMADA, new BigDecimal("300.00"), null, null);
         Reserva result = repositorio.alterada;
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testAlterarDatasSemReserva() {
-        System.out.println("alterarDatas (sem reserva)");
-        try {
-            instance.alterarDatas(RECECAO, null, entrada, entrada.plusDays(2));
-            fail("Devia ter recusado sem reserva");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.alterada);
-        }
-    }
-
-    @Test
-    public void testAlterarDatasEntradaNoPassado() {
-        System.out.println("alterarDatas (entrada no passado)");
-        try {
-            instance.alterarDatas(RECECAO, reservaConfirmada(), LocalDate.now().minusDays(1), entrada.plusDays(2));
-            fail("Devia ter recusado a entrada no passado");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.alterada);
-        }
-    }
-
-    @Test
-    public void testAlterarDatasSaidaAntesDaEntrada() {
-        System.out.println("alterarDatas (saída antes da entrada)");
-        try {
-            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(3));
-            fail("Devia ter recusado a saída antes da entrada");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.alterada);
-        }
-    }
-
-    @Test
-    public void testAlterarDatasReservaCancelada() {
-        System.out.println("alterarDatas (reserva cancelada)");
-        Reserva reserva = reservaConfirmada();
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        try {
-            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(8));
-            fail("Devia ter recusado uma reserva cancelada");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.alterada);
-        }
-    }
-
-    @Test
-    public void testAlterarDatasQuartoOcupado() {
-        System.out.println("alterarDatas (quarto ocupado)");
-        repositorio.quartoLivreNasNovasDatas = false;
-        try {
-            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(8));
-            fail("Devia ter recusado o quarto ocupado");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.alterada);
-        }
-    }
-
-    @Test
-    public void testAlterarDatasQuartoOcupadoFicaComoEstava() {
-        System.out.println("alterarDatas (quarto ocupado, a reserva fica com as datas e o preço de antes)");
-        repositorio.quartoLivreNasNovasDatas = false;
-        Reserva reserva = reservaConfirmada();
-        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
-        try {
-            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
-            fail("Devia ter recusado o quarto ocupado");
-        } catch (ValidacaoException expected) {
-            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
-    public void testAlterarDatasFalhaNaBDFicaComoEstava() {
-        System.out.println("alterarDatas (a BD falha, a reserva fica com as datas e o preço de antes)");
-        repositorio.bdFalhaAoAlterarDatas = true;
-        Reserva reserva = reservaConfirmada();
-        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
-        try {
-            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
-            fail("Devia ter passado o erro da base de dados");
-        } catch (DataAccessException expected) {
-            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
-            assertEquals(expResult, result);
-        }
-    }
-
-    private Reserva reservaComHorario(EstadoReserva estado, boolean earlyCheckin, boolean lateCheckout, String taxa) {
-        LocalDateTime checkin = estado == EstadoReserva.CONFIRMADA ? null : entrada.atTime(15, 0);
-        LocalDateTime checkout = estado == EstadoReserva.CONCLUIDA ? entrada.plusDays(2).atTime(11, 0) : null;
-        Reserva reserva = new Reserva(5, 7, 201, entrada, entrada.plusDays(2), 1, estado,
-                new BigDecimal("200.00"), checkin, checkout);
-        reserva.setEarlyCheckin(earlyCheckin);
-        reserva.setLateCheckout(lateCheckout);
-        reserva.setTaxaHorario(new BigDecimal(taxa));
-        return reserva;
     }
 
     @Test
@@ -631,75 +438,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testAlterarHorarioEarlyDepoisDoCheckin() {
-        System.out.println("alterarHorario (early check-in depois do check-in)");
-        Reserva reserva = reservaComHorario(EstadoReserva.EM_CURSO, true, false, "20.00");
-        String expResult = "A reserva 5 já tem o check-in feito: o early check-in já não se pode mudar";
-        try {
-            instance.alterarHorario(RECECAO, reserva, false, false);
-            fail("Devia ter recusado mudar o early check-in depois do check-in");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
-    public void testAlterarHorarioLateDepoisDoCheckout() {
-        System.out.println("alterarHorario (late check-out depois do check-out)");
-        Reserva reserva = reservaComHorario(EstadoReserva.CONCLUIDA, false, true, "25.00");
-        String expResult = "A reserva 5 já não está confirmada nem em curso: o late check-out já não se pode mudar";
-        try {
-            instance.alterarHorario(RECECAO, reserva, false, false);
-            fail("Devia ter recusado mudar o late check-out depois do check-out");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
-    public void testAlterarHorarioQuartoNaoPermite() {
-        System.out.println("alterarHorario (o quarto não permite o late check-out, aparece o motivo)");
-        repositorio.quartoPermiteHorario = false;
-        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, false, false, "0");
-        String expResult = "O quarto 201 não permite o early check-in ou o late check-out nestas datas: "
-                + "há outra reserva a sair no dia de entrada ou a entrar no dia de saída";
-        try {
-            instance.alterarHorario(RECECAO, reserva, false, true);
-            fail("Devia ter recusado o late check-out");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
-    public void testAlterarHorarioQuartoNaoPermiteFicaComoEstava() {
-        System.out.println("alterarHorario (o quarto não permite, a reserva fica como estava)");
-        repositorio.quartoPermiteHorario = false;
-        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
-        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
-        try {
-            instance.alterarHorario(RECECAO, reserva, true, true);
-            fail("Devia ter recusado o late check-out");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, reserva);
-        }
-    }
-
-    @Test
-    public void testAlterarHorarioFalhaNaBDFicaComoEstava() {
-        System.out.println("alterarHorario (a BD falha, a reserva fica como estava)");
-        repositorio.bdFalhaAoAlterarHorario = true;
-        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
-        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
-        try {
-            instance.alterarHorario(RECECAO, reserva, false, false);
-            fail("Devia ter passado o erro da base de dados");
-        } catch (DataAccessException e) {
-            assertEquals(expResult, reserva);
-        }
-    }
-
-    @Test
     public void testAlterarHorarioSemMudancas() {
         System.out.println("alterarHorario (sem mudanças, não grava nada)");
         Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
@@ -710,30 +448,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testAlterarHorarioSemSessao() {
-        System.out.println("alterarHorario (sem sessão iniciada)");
-        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
-        try {
-            instance.alterarHorario(null, reserva, false, false);
-            fail("Devia ter recusado sem sessão iniciada");
-        } catch (IllegalStateException e) {
-            assertEquals(null, repositorio.comHorarioAlterado);
-        }
-    }
-
-    @Test
-    public void testAlterarHorarioSemReserva() {
-        System.out.println("alterarHorario (sem reserva)");
-        String expResult = "Escolha uma reserva";
-        try {
-            instance.alterarHorario(RECECAO, null, false, false);
-            fail("Devia ter recusado sem reserva");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
     public void testTotalAPagarDepoisDeRetirarLate() {
         System.out.println("totalAPagar (depois de retirar o late check-out, a taxa já não conta)");
         Reserva reserva = reservaComHorario(EstadoReserva.EM_CURSO, false, true, "25.00");
@@ -741,11 +455,6 @@ public class ReservaBLLTest {
         BigDecimal expResult = new BigDecimal("200.00");
         BigDecimal result = instance.totalAPagar(RECECAO, reserva);
         assertEquals(expResult, result);
-    }
-
-    private Reserva reservaDaAna(int id, LocalDate entradaReserva, EstadoReserva estado) {
-        return new Reserva(id, 7, 201, entradaReserva, entradaReserva.plusDays(2), 1,
-                estado, new BigDecimal("200.00"), null, null);
     }
 
     @Test
@@ -800,17 +509,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testConsultarSemCliente() {
-        System.out.println("consultarDoCliente (sem cliente)");
-        try {
-            instance.consultarDoCliente(null);
-            fail("Devia ter recusado sem cliente");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.clientePedido);
-        }
-    }
-
-    @Test
     public void testFazerCheckin() {
         System.out.println("fazerCheckin");
         Reserva reserva = reservaConfirmada();
@@ -845,105 +543,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testFazerCheckinAntesDas15h() {
-        System.out.println("fazerCheckin (antes das 15h)");
-        Reserva reserva = reservaConfirmada();
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(14, 59));
-            fail("Devia ter recusado o check-in antes das 15h");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinForaDoDiaDeEntrada() {
-        System.out.println("fazerCheckin (fora do dia de entrada)");
-        Reserva reserva = reservaConfirmada();
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().minusDays(1).atTime(16, 0));
-            fail("Devia ter recusado o check-in fora do dia de entrada");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinReservaCancelada() {
-        System.out.println("fazerCheckin (reserva cancelada)");
-        Reserva reserva = reservaConfirmada();
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        String expResult = "A reserva " + reserva.getId() + " foi cancelada e não pode fazer check-in";
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
-            fail("Devia ter recusado uma reserva cancelada");
-        } catch (IllegalStateException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinJaFeito() {
-        System.out.println("fazerCheckin (check-in já feito)");
-        Reserva reserva = reservaConfirmada();
-        reserva.setEstado(EstadoReserva.EM_CURSO);
-        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 10));
-        String expResult = "A reserva " + reserva.getId() + " já tem o check-in feito";
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
-            fail("Devia ter recusado um segundo check-in");
-        } catch (IllegalStateException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinSemReserva() {
-        System.out.println("fazerCheckin (sem reserva)");
-        try {
-            instance.fazerCheckin(RECECAO, null, LocalDateTime.now());
-            fail("Devia ter recusado sem reserva");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinSemSessao() {
-        System.out.println("fazerCheckin (sem sessão)");
-        Reserva reserva = reservaConfirmada();
-        try {
-            instance.fazerCheckin(null, reserva, reserva.getDataEntrada().atTime(16, 0));
-            fail("Devia ter recusado sem sessão iniciada");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinJaNaoPodeNaBD() {
-        System.out.println("fazerCheckin (já não está confirmada na BD)");
-        repositorio.podeFazerCheckinNaBD = false;
-        Reserva reserva = reservaConfirmada();
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
-            fail("Devia ter recusado");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
-    }
-
-    private Reserva reservaEmCurso() {
-        Reserva reserva = reservaConfirmada();
-        reserva.setEstado(EstadoReserva.EM_CURSO);
-        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
-        reserva.setCartao("C" + reserva.getQuartoNumero());
-        return reserva;
-    }
-
-    @Test
     public void testTotalAPagar() {
         System.out.println("totalAPagar");
         Reserva reserva = reservaEmCurso();
@@ -960,34 +559,6 @@ public class ReservaBLLTest {
         BigDecimal expResult = reserva.getPrecoTotal().add(new BigDecimal("35.50"));
         BigDecimal result = instance.totalAPagar(RECECAO, reserva);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testTotalAPagarReservaSemCheckin() {
-        System.out.println("totalAPagar (reserva sem check-in)");
-        Reserva reserva = reservaConfirmada();
-        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
-                + reserva.getId() + " está CONFIRMADA)";
-        try {
-            instance.totalAPagar(RECECAO, reserva);
-            fail("Devia ter recusado uma reserva que não está em curso");
-        } catch (IllegalStateException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
-    public void testTotalAPagarSemSessao() {
-        System.out.println("totalAPagar (sem sessão)");
-        String expResult = "Entre na aplicação como rececionista ou gestor para fazer check-out";
-        try {
-            instance.totalAPagar(null, reservaEmCurso());
-            fail("Devia ter recusado sem sessão iniciada");
-        } catch (IllegalStateException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
     }
 
     @Test
@@ -1025,78 +596,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testFazerCheckoutSemCheckin() {
-        System.out.println("fazerCheckout (reserva sem check-in)");
-        Reserva reserva = reservaConfirmada();
-        try {
-            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
-            fail("Devia ter recusado uma reserva sem check-in");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckout);
-        }
-    }
-
-    @Test
-    public void testFazerCheckoutJaConcluida() {
-        System.out.println("fazerCheckout (reserva já concluída)");
-        Reserva reserva = reservaEmCurso();
-        reserva.setEstado(EstadoReserva.CONCLUIDA);
-        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
-                + reserva.getId() + " está CONCLUIDA)";
-        try {
-            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
-            fail("Devia ter recusado uma reserva já concluída");
-        } catch (IllegalStateException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
-    public void testFazerCheckoutSemReserva() {
-        System.out.println("fazerCheckout (sem reserva)");
-        try {
-            instance.fazerCheckout(RECECAO, null, LocalDateTime.now());
-            fail("Devia ter recusado sem reserva");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.comCheckout);
-        }
-    }
-
-    @Test
-    public void testFazerCheckoutSemSessao() {
-        System.out.println("fazerCheckout (sem sessão)");
-        Reserva reserva = reservaEmCurso();
-        try {
-            instance.fazerCheckout(null, reserva, reserva.getDataSaida().atTime(11, 0));
-            fail("Devia ter recusado sem sessão iniciada");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckout);
-        }
-    }
-
-    @Test
-    public void testFazerCheckoutJaNaoPodeNaBD() {
-        System.out.println("fazerCheckout (já não está em curso na BD)");
-        repositorio.podeFazerCheckoutNaBD = false;
-        Reserva reserva = reservaEmCurso();
-        try {
-            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
-            fail("Devia ter recusado");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.comCheckout);
-        }
-    }
-
-    private List<Integer> numeros(List<Quarto> lista) {
-        List<Integer> numeros = new ArrayList<>();
-        for (Quarto q : lista) {
-            numeros.add(q.getNumero());
-        }
-        return numeros;
-    }
-
-    @Test
     public void testCalcularTaxa() {
         System.out.println("calcularTaxa (early e late)");
         BigDecimal expResult = horarios.obter().getTaxaEarlyCheckin().add(horarios.obter().getTaxaLateCheckout());
@@ -1110,6 +609,17 @@ public class ReservaBLLTest {
         BigDecimal expResult = BigDecimal.ZERO;
         BigDecimal result = instance.calcularTaxa(false, false);
         assertEquals(expResult, result);
+    }
+
+    private Reserva reservaComHorario(EstadoReserva estado, boolean earlyCheckin, boolean lateCheckout, String taxa) {
+        LocalDateTime checkin = estado == EstadoReserva.CONFIRMADA ? null : entrada.atTime(15, 0);
+        LocalDateTime checkout = estado == EstadoReserva.CONCLUIDA ? entrada.plusDays(2).atTime(11, 0) : null;
+        Reserva reserva = new Reserva(5, 7, 201, entrada, entrada.plusDays(2), 1, estado,
+                new BigDecimal("200.00"), checkin, checkout);
+        reserva.setEarlyCheckin(earlyCheckin);
+        reserva.setLateCheckout(lateCheckout);
+        reserva.setTaxaHorario(new BigDecimal(taxa));
+        return reserva;
     }
 
     @Test
@@ -1170,12 +680,14 @@ public class ReservaBLLTest {
     public void testCriarComEarlyELateSomaAsDuasTaxasAoTotal() {
         System.out.println("criar (taxas somadas ao total)");
         quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
-        Reserva result = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+        Reserva obtido = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
                 true, true);
-        BigDecimal expResult = result.getPrecoTotal()
+        BigDecimal esperado = obtido.getPrecoTotal()
                 .add(horarios.obter().getTaxaEarlyCheckin())
                 .add(horarios.obter().getTaxaLateCheckout());
-        assertEquals(expResult, result.getTotal());
+        String expResult = "" + esperado;
+        String result = "" + obtido.getTotal();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -1193,31 +705,6 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testCriarSemQuartoQuePermitaOPedido() {
-        System.out.println("criar (nenhum quarto permite o pedido)");
-        String expResult = "Nenhum quarto DUPLO com vista MAR permite o early check-in ou o late check-out "
-                + "nestas datas. Pode fazer a reserva nas horas standard.";
-        try {
-            instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, true);
-            fail("Devia ter recusado sem quarto que permita o late check-out");
-        } catch (ValidacaoException expected) {
-            String result = expected.getMessage();
-            assertEquals(expResult, result);
-        }
-    }
-
-    @Test
-    public void testCriarSemTipoDeQuarto() {
-        System.out.println("criar (sem tipo de quarto)");
-        try {
-            instance.criar(cliente, null, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false);
-            fail("Devia ter recusado sem tipo de quarto");
-        } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.gravada);
-        }
-    }
-
-    @Test
     public void testFazerCheckinComEarlyCheckin() {
         System.out.println("fazerCheckin (early check-in às 13h30)");
         Reserva reserva = reservaConfirmada();
@@ -1225,31 +712,6 @@ public class ReservaBLLTest {
         String expResult = "C" + reserva.getQuartoNumero();
         String result = instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(13, 30));
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testFazerCheckinComEarlyCheckinAntesDaHora() {
-        System.out.println("fazerCheckin (early check-in antes das 13h)");
-        Reserva reserva = reservaConfirmada();
-        reserva.setEarlyCheckin(true);
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(12, 59));
-            fail("Devia ter recusado antes da hora do early check-in");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
-    }
-
-    @Test
-    public void testFazerCheckinSemEarlyAs13h30() {
-        System.out.println("fazerCheckin (sem early check-in às 13h30)");
-        Reserva reserva = reservaConfirmada();
-        try {
-            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(13, 30));
-            fail("Devia ter recusado: sem early check-in só a partir das 15h");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.comCheckin);
-        }
     }
 
     @Test
@@ -1261,22 +723,6 @@ public class ReservaBLLTest {
         BigDecimal expResult = reserva.getPrecoTotal().add(horarios.obter().getTaxaLateCheckout());
         BigDecimal result = instance.totalAPagar(RECECAO, reserva);
         assertEquals(expResult, result);
-    }
-
-    private Reserva reservaDe(int id, EstadoReserva estado, LocalDate dia, int quartoNumero, String nome, String nif) {
-        Reserva reserva = new Reserva(id, id, quartoNumero, dia, dia.plusDays(1), 1, estado,
-                new BigDecimal("100.00"), null, null);
-        reserva.setNomeCliente(nome);
-        reserva.setNifCliente(nif);
-        return reserva;
-    }
-
-    private void juntarReservasDosSeparadores() {
-        repositorio.todas.add(reservaDe(1, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 20), 201, "Ana Silva", "234567891"));
-        repositorio.todas.add(reservaDe(2, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 5), 305, "Rui Costa", "245678912"));
-        repositorio.todas.add(reservaDe(3, EstadoReserva.EM_CURSO, LocalDate.of(2026, 11, 10), 204, "João Reis", "267891234"));
-        repositorio.todas.add(reservaDe(4, EstadoReserva.CONCLUIDA, LocalDate.of(2026, 11, 2), 202, "Pedro Alves", "289123456"));
-        repositorio.todas.add(reservaDe(5, EstadoReserva.CANCELADA, LocalDate.of(2026, 11, 6), 103, "Inês Faria", "291234567"));
     }
 
     @Test
@@ -1331,6 +777,11 @@ public class ReservaBLLTest {
         assertEquals(expResult, result);
     }
 
+    private Reserva reservaDaAna(int id, LocalDate entradaReserva, EstadoReserva estado) {
+        return new Reserva(id, 7, 201, entradaReserva, entradaReserva.plusDays(2), 1,
+                estado, new BigDecimal("200.00"), null, null);
+    }
+
     @Test
     public void testListarPesquisaPorQuarto() {
         System.out.println("listar (pesquisa pelo número do quarto)");
@@ -1372,7 +823,7 @@ public class ReservaBLLTest {
     @Test
     public void testListarClienteSemNome() {
         System.out.println("listar (reserva sem nome nem NIF do cliente)");
-        repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.of(2026, 12, 1), 101, null, null));
+        repositorio.todas.add(reservaDe(6, EstadoReserva.CONFIRMADA, LocalDate.now().plusDays(14), 101, null, null));
         List<Reserva> expResult = new ArrayList<>();
         expResult.add(repositorio.todas.get(0));
         List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.POR_FAZER, "101");
@@ -1380,32 +831,9 @@ public class ReservaBLLTest {
     }
 
     @Test
-    public void testListarSemSeparador() {
-        System.out.println("listar (sem separador)");
-        String expResult = "Escolha o separador das reservas";
-        try {
-            ReservaBLL.filtrar(instance.listar(), null, "");
-            fail("Devia ter recusado sem separador");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
     public void testApagar() {
         System.out.println("apagar (confirmada, sem check-in)");
         instance.apagar(GESTOR, reservaConfirmada());
-        Integer expResult = 5;
-        Integer result = repositorio.apagadaId;
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testApagarCancelada() {
-        System.out.println("apagar (cancelada)");
-        Reserva reserva = reservaConfirmada();
-        reserva.cancelar();
-        instance.apagar(GESTOR, reserva);
         Integer expResult = 5;
         Integer result = repositorio.apagadaId;
         assertEquals(expResult, result);
@@ -1420,76 +848,6 @@ public class ReservaBLLTest {
         Integer expResult = 5;
         Integer result = repositorio.apagadaId;
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testApagarRececionista() {
-        System.out.println("apagar (rececionista não pode)");
-        try {
-            instance.apagar(RECECAO, reservaConfirmada());
-            fail("Devia ter recusado o rececionista");
-        } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.apagadaId);
-        }
-    }
-
-    @Test
-    public void testApagarSemReserva() {
-        System.out.println("apagar (sem reserva)");
-        String expResult = "Escolha uma reserva";
-        try {
-            instance.apagar(GESTOR, null);
-            fail("Devia ter pedido uma reserva");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
-    public void testApagarEmCurso() {
-        System.out.println("apagar (em curso, aparece o motivo)");
-        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (em curso)";
-        try {
-            instance.apagar(GESTOR, reservaEmCurso());
-            fail("Devia ter recusado uma reserva com check-in");
-        } catch (IllegalStateException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
-    public void testApagarConcluida() {
-        System.out.println("apagar (concluída, aparece o motivo)");
-        Reserva reserva = reservaEmCurso();
-        reserva.setEstado(EstadoReserva.CONCLUIDA);
-        String expResult = "A reserva 5 não pode ser apagada: já teve check-in (concluída)";
-        try {
-            instance.apagar(GESTOR, reserva);
-            fail("Devia ter recusado uma reserva concluída");
-        } catch (IllegalStateException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    @Test
-    public void testApagarCheckinNoutroComputador() {
-        System.out.println("apagar (check-in feito entretanto noutro computador)");
-        repositorio.podeApagarNaBD = false;
-        String expResult = "A reserva 5 já não pode ser apagada: não existe ou entretanto teve check-in";
-        try {
-            instance.apagar(GESTOR, reservaConfirmada());
-            fail("Devia ter recusado o que a BD recusou");
-        } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
-        }
-    }
-
-    private List<ServicoReserva> servicosEscolhidos() {
-        Categoria refeicao = new Categoria(1, "Refeição");
-        List<ServicoReserva> servicos = new ArrayList<>();
-        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(1, "Pequeno-almoço", new BigDecimal("12.00"), refeicao, true), 2));
-        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(2, "Jantar", new BigDecimal("22.00"), refeicao, true), 1));
-        return servicos;
     }
 
     @Test
@@ -1524,6 +882,991 @@ public class ReservaBLLTest {
     }
 
     @Test
+    public void testCancelarSemCheckin() {
+        System.out.println("cancelarSemCheckin (a entrada foi ontem e não houve check-in: passa a cancelada)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        instance.cancelarSemCheckin();
+        EstadoReserva expResult = EstadoReserva.CANCELADA;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinVaiParaOHistorico() {
+        System.out.println("cancelarSemCheckin (a reserva cancelada sozinha aparece no histórico)");
+        Reserva semCheckin = reservaDaAna(1, LocalDate.now().minusDays(3), EstadoReserva.CONFIRMADA);
+        repositorio.todas.add(semCheckin);
+        instance.cancelarSemCheckin();
+        List<Reserva> expResult = List.of(semCheckin);
+        List<Reserva> result = ReservaBLL.filtrar(instance.listar(), SeparadorReserva.HISTORICO, "");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinNoDiaDeEntrada() {
+        System.out.println("cancelarSemCheckin (no próprio dia de entrada a reserva continua confirmada)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now(), EstadoReserva.CONFIRMADA));
+        instance.cancelarSemCheckin();
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinNaoMexeNasReservasEmCurso() {
+        System.out.println("cancelarSemCheckin (as reservas em curso sem check-out não mudam)");
+        Reserva emCurso = reservaDaAna(1, LocalDate.now().minusDays(5), EstadoReserva.EM_CURSO);
+        emCurso.setCheckinEm(LocalDate.now().minusDays(5).atTime(15, 0));
+        repositorio.todas.add(emCurso);
+        instance.cancelarSemCheckin();
+        EstadoReserva expResult = EstadoReserva.EM_CURSO;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinComODiaDeHoje() {
+        System.out.println("cancelarSemCheckin (usa o dia de hoje)");
+        LocalDate expResult = LocalDate.now();
+        instance.cancelarSemCheckin();
+        LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
+    }
+
+    private Reserva reservaEmCurso() {
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
+        reserva.setCartao("C" + reserva.getQuartoNumero());
+        return reserva;
+    }
+
+    @Test
+    public void testCancelarSemCheckinDevolveQuantasCancelou() {
+        System.out.println("cancelarSemCheckin (devolve quantas reservas cancelou)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(2), EstadoReserva.CONFIRMADA));
+        repositorio.todas.add(reservaDaAna(2, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        repositorio.todas.add(reservaDaAna(3, LocalDate.now().plusDays(1), EstadoReserva.CONFIRMADA));
+        int expResult = 2;
+        int result = instance.cancelarSemCheckin();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarNaoCancela() {
+        System.out.println("listar (só lê: não cancela as reservas sem check-in)");
+        repositorio.todas.add(reservaDaAna(1, LocalDate.now().minusDays(1), EstadoReserva.CONFIRMADA));
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.listar().get(0).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testConsultarDoClienteNaoCancela() {
+        System.out.println("consultarDoCliente (só lê: não cancela as reservas sem check-in)");
+        LocalDate expResult = null;
+        instance.consultarDoCliente(cliente);
+        LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testOpcoesDisponiveisNaoCancela() {
+        System.out.println("opcoesDisponiveis (só lê: não cancela as reservas sem check-in)");
+        LocalDate expResult = null;
+        instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 1, false, false);
+        LocalDate result = repositorio.canceladasAte;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotal() {
+        System.out.println("resumoDoTotal (noites, vista, early, late, serviços e total)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        String expResult = "Quarto DUPLO, vista MAR: 2 noites × 100.00 € = 200.00 €\n"
+                + "Early check-in: 20.00 €\n"
+                + "Late check-out: 25.00 €\n"
+                + "Serviços extra: 46.00 €\n"
+                + "Total: 291.00 €";
+        String result = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, true, servicosEscolhidos());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotalIgualAoDaReservaCriada() {
+        System.out.println("resumoDoTotal (é o total que fica na reserva ao confirmar)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        quartos.livres.add(duplo);
+        Reserva reserva = instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2,
+                true, true, servicosEscolhidos());
+        String expResult = "Total: " + reserva.getTotal().setScale(2) + " €";
+        String resumo = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, true, servicosEscolhidos());
+        String result = resumo.substring(resumo.lastIndexOf('\n') + 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotalSemEarlyNemLate() {
+        System.out.println("resumoDoTotal (sem early nem late, essas linhas não aparecem)");
+        Quarto individual = quartoLivre(101, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1, "50.00");
+        String expResult = "Quarto INDIVIDUAL, vista NENHUMA: 1 noite × 50.00 € = 50.00 €\n"
+                + "Serviços extra: 0.00 €\n"
+                + "Total: 50.00 €";
+        String result = instance.resumoDoTotal(individual, entrada, entrada.plusDays(1), false, false, new ArrayList<>());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testOpcoesDisponiveisEarlyELateJuntos() {
+        System.out.println("opcoesDisponiveis (early check-in e late check-out escolhidos juntos)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        quartos.livres.add(duplo);
+        List<Quarto> expResult = List.of(duplo);
+        List<Quarto> result = instance.opcoesDisponiveis(entrada, entrada.plusDays(2), 2, true, true);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAvisoSemQuartosEarlyELateJuntos() {
+        System.out.println("avisoSemQuartos (os dois juntos não dá, mostra as alternativas)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        quartos.aceitaOsDoisJuntos = false;
+        quartos.aceitaLate = false;
+        String expResult = "Nenhum quarto permite o early check-in e o late check-out juntos nestas datas."
+                + " Há quartos só com o early check-in."
+                + " Há quartos nas horas standard (check-in às 15:00 e check-out às 12:00)."
+                + " Desmarque o que o cliente dispensar e pesquise outra vez.";
+        String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, true, true);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAvisoSemQuartosSoEarly() {
+        System.out.println("avisoSemQuartos (só o early check-in não dá)");
+        quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
+        quartos.aceitaEarly = false;
+        String expResult = "Nenhum quarto permite o early check-in nestas datas."
+                + " Há quartos nas horas standard (check-in às 15:00 e check-out às 12:00)."
+                + " Desmarque o que o cliente dispensar e pesquise outra vez.";
+        String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, true, false);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAvisoSemQuartosNenhumLivre() {
+        System.out.println("avisoSemQuartos (sem early nem late e nenhum quarto livre)");
+        String expResult = "Não há quartos livres para estas datas e hóspedes.";
+        String result = instance.avisoSemQuartos(entrada, entrada.plusDays(2), 2, false, false);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testResumoDoTotalComOHorarioJaLido() {
+        System.out.println("resumoDoTotal (com o horário já lido, usa essas taxas e não volta à BD)");
+        Quarto duplo = quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00");
+        HorarioReserva lido = new HorarioReserva(LocalTime.of(15, 0), LocalTime.of(12, 0),
+                LocalTime.of(13, 0), LocalTime.of(14, 0), new BigDecimal("30.00"), new BigDecimal("35.00"));
+        String expResult = "Quarto DUPLO, vista MAR: 2 noites × 100.00 € = 200.00 €\n"
+                + "Early check-in: 30.00 €\n"
+                + "Serviços extra: 0.00 €\n"
+                + "Total: 230.00 €";
+        String result = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, false, new ArrayList<>(), lido);
+        assertEquals(expResult, result);
+    }
+
+    private List<Integer> numeros(List<Quarto> lista) {
+        List<Integer> numeros = new ArrayList<>();
+        for (Quarto q : lista) {
+            numeros.add(q.getNumero());
+        }
+        return numeros;
+    }
+
+    @Test
+    public void testFazerCheckinGuardaQuemFez() {
+        System.out.println("fazerCheckin (a baixa de stock fica com o funcionário que fez o check-in, US76)");
+        Reserva reserva = reservaConfirmada();
+        instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+        int expResult = RECECAO.getFuncionarioId();
+        int result = repositorio.funcionarioDoCheckin;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutGuardaQuemFez() {
+        System.out.println("fazerCheckout (a devolução ao stock fica com o funcionário que fez o check-out, US76)");
+        Reserva reserva = reservaEmCurso();
+        instance.fazerCheckout(GESTOR, reserva, reserva.getDataSaida().atTime(11, 0));
+        int expResult = GESTOR.getFuncionarioId();
+        int result = repositorio.funcionarioDoCheckout;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarSemCliente() {
+        System.out.println("criar (sem cliente)");
+        try {
+            instance.criar(null, quarto, entrada, entrada.plusDays(1), 1);
+            fail("Devia ter recusado uma reserva sem cliente");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarSemQuarto() {
+        System.out.println("criar (sem quarto)");
+        try {
+            instance.criar(cliente, null, entrada, entrada.plusDays(1), 1);
+            fail("Devia ter recusado uma reserva sem quarto");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarComEntradaNoPassado() {
+        System.out.println("criar (entrada no passado)");
+        try {
+            instance.criar(cliente, quarto, LocalDate.now().minusDays(1), entrada, 1);
+            fail("Devia ter recusado uma entrada no passado");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarComSaidaIgualAEntrada() {
+        System.out.println("criar (saída igual à entrada)");
+        try {
+            instance.criar(cliente, quarto, entrada, entrada, 1);
+            fail("Devia ter recusado zero noites");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarComSaidaAntesDaEntrada() {
+        System.out.println("criar (saída antes da entrada)");
+        try {
+            instance.criar(cliente, quarto, entrada.plusDays(2), entrada, 1);
+            fail("Devia ter recusado a saída antes da entrada");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarSemHospedes() {
+        System.out.println("criar (0 hóspedes)");
+        try {
+            instance.criar(cliente, quarto, entrada, entrada.plusDays(1), 0);
+            fail("Devia ter recusado 0 hóspedes");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarComMaisHospedesQueACapacidade() {
+        System.out.println("criar (mais hóspedes que a capacidade)");
+        try {
+            instance.criar(cliente, quarto, entrada, entrada.plusDays(1), 3);
+            fail("Devia ter recusado 3 hóspedes num quarto duplo");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarComQuartoJaReservado() {
+        System.out.println("criar (quarto já reservado nessas datas)");
+        repositorio.quartoLivre = false;
+        String expResult = "O quarto 201 já está reservado nessas datas. Pesquise outra vez os quartos disponíveis.";
+        try {
+            instance.criar(cliente, quarto, entrada, entrada.plusDays(2), 2);
+            fail("Devia ter recusado um quarto já reservado");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCancelarRececionista() {
+        System.out.println("cancelar (rececionista)");
+        try {
+            instance.cancelar(RECECAO, reservaConfirmada());
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.canceladaId;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCancelarSemReserva() {
+        System.out.println("cancelar (sem reserva)");
+        try {
+            instance.cancelar(GESTOR, null);
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.canceladaId;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCancelarJaCancelada() {
+        System.out.println("cancelar (já cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.cancelar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva já cancelada");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.canceladaId;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCancelarComCheckin() {
+        System.out.println("cancelar (com check-in)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(LocalDateTime.now());
+        try {
+            instance.cancelar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva com check-in");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.canceladaId;
+            assertEquals(expResult, result);
+        }
+    }
+
+    private Reserva reservaDe(int id, EstadoReserva estado, LocalDate dia, int quartoNumero, String nome, String nif) {
+        Reserva reserva = new Reserva(id, id, quartoNumero, dia, dia.plusDays(1), 1, estado,
+                new BigDecimal("100.00"), null, null);
+        reserva.setNomeCliente(nome);
+        reserva.setNifCliente(nif);
+        return reserva;
+    }
+
+    private void juntarReservasDosSeparadores() {
+        repositorio.todas.add(reservaDe(1, EstadoReserva.CONFIRMADA, LocalDate.now().plusDays(33), 201, "Ana Silva", "234567891"));
+        repositorio.todas.add(reservaDe(2, EstadoReserva.CONFIRMADA, LocalDate.now().plusDays(18), 305, "Rui Costa", "245678912"));
+        repositorio.todas.add(reservaDe(3, EstadoReserva.EM_CURSO, LocalDate.of(2026, 11, 10), 204, "João Reis", "267891234"));
+        repositorio.todas.add(reservaDe(4, EstadoReserva.CONCLUIDA, LocalDate.of(2026, 11, 2), 202, "Pedro Alves", "289123456"));
+        repositorio.todas.add(reservaDe(5, EstadoReserva.CANCELADA, LocalDate.of(2026, 11, 6), 103, "Inês Faria", "291234567"));
+    }
+
+    @Test
+    public void testCancelarQueJaNaoEstaConfirmadaNaBD() {
+        System.out.println("cancelar (não existe ou check-in entretanto)");
+        repositorio.podeCancelarNaBD = false;
+        try {
+            instance.cancelar(GESTOR, reservaConfirmada());
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.canceladaId;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasSemReserva() {
+        System.out.println("alterarDatas (sem reserva)");
+        try {
+            instance.alterarDatas(RECECAO, null, entrada, entrada.plusDays(2));
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.alterada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasEntradaNoPassado() {
+        System.out.println("alterarDatas (entrada no passado)");
+        try {
+            instance.alterarDatas(RECECAO, reservaConfirmada(), LocalDate.now().minusDays(1), entrada.plusDays(2));
+            fail("Devia ter recusado a entrada no passado");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.alterada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasSaidaAntesDaEntrada() {
+        System.out.println("alterarDatas (saída antes da entrada)");
+        try {
+            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(3));
+            fail("Devia ter recusado a saída antes da entrada");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.alterada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasReservaCancelada() {
+        System.out.println("alterarDatas (reserva cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(8));
+            fail("Devia ter recusado uma reserva cancelada");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.alterada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasQuartoOcupado() {
+        System.out.println("alterarDatas (quarto ocupado)");
+        repositorio.quartoLivreNasNovasDatas = false;
+        try {
+            instance.alterarDatas(RECECAO, reservaConfirmada(), entrada.plusDays(5), entrada.plusDays(8));
+            fail("Devia ter recusado o quarto ocupado");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.alterada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasQuartoOcupadoFicaComoEstava() {
+        System.out.println("alterarDatas (quarto ocupado, a reserva fica com as datas e o preço de antes)");
+        repositorio.quartoLivreNasNovasDatas = false;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter recusado o quarto ocupado");
+        } catch (ValidacaoException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarDatasFalhaNaBDFicaComoEstava() {
+        System.out.println("alterarDatas (a BD falha, a reserva fica com as datas e o preço de antes)");
+        repositorio.bdFalhaAoAlterarDatas = true;
+        Reserva reserva = reservaConfirmada();
+        String expResult = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+        try {
+            instance.alterarDatas(RECECAO, reserva, entrada.plusDays(5), entrada.plusDays(9));
+            fail("Devia ter passado o erro da base de dados");
+        } catch (DataAccessException expected) {
+            String result = reserva.getDataEntrada() + " / " + reserva.getDataSaida() + " / " + reserva.getPrecoTotal();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioEarlyDepoisDoCheckin() {
+        System.out.println("alterarHorario (early check-in depois do check-in)");
+        Reserva reserva = reservaComHorario(EstadoReserva.EM_CURSO, true, false, "20.00");
+        String expResult = "A reserva 5 já tem o check-in feito: o early check-in já não se pode mudar";
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, false);
+            fail("Devia ter recusado mudar o early check-in depois do check-in");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioLateDepoisDoCheckout() {
+        System.out.println("alterarHorario (late check-out depois do check-out)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONCLUIDA, false, true, "25.00");
+        String expResult = "A reserva 5 já não está confirmada nem em curso: o late check-out já não se pode mudar";
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, false);
+            fail("Devia ter recusado mudar o late check-out depois do check-out");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioQuartoNaoPermite() {
+        System.out.println("alterarHorario (o quarto não permite o late check-out, aparece o motivo)");
+        repositorio.quartoPermiteHorario = false;
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, false, false, "0");
+        String expResult = "O quarto 201 não permite o early check-in ou o late check-out nestas datas: "
+                + "há outra reserva a sair no dia de entrada ou a entrar no dia de saída";
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, true);
+            fail("Devia ter recusado o late check-out");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioQuartoNaoPermiteFicaComoEstava() {
+        System.out.println("alterarHorario (o quarto não permite, a reserva fica como estava)");
+        repositorio.quartoPermiteHorario = false;
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        try {
+            instance.alterarHorario(RECECAO, reserva, true, true);
+            fail("Devia ter recusado o late check-out");
+        } catch (ValidacaoException e) {
+            Reserva result = reserva;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioFalhaNaBDFicaComoEstava() {
+        System.out.println("alterarHorario (a BD falha, a reserva fica como estava)");
+        repositorio.bdFalhaAoAlterarHorario = true;
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        Reserva expResult = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        try {
+            instance.alterarHorario(RECECAO, reserva, false, false);
+            fail("Devia ter passado o erro da base de dados");
+        } catch (DataAccessException e) {
+            Reserva result = reserva;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioSemSessao() {
+        System.out.println("alterarHorario (sem sessão iniciada)");
+        Reserva reserva = reservaComHorario(EstadoReserva.CONFIRMADA, true, false, "20.00");
+        try {
+            instance.alterarHorario(null, reserva, false, false);
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException e) {
+            Object expResult = null;
+            Object result = repositorio.comHorarioAlterado;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAlterarHorarioSemReserva() {
+        System.out.println("alterarHorario (sem reserva)");
+        String expResult = "Escolha uma reserva";
+        try {
+            instance.alterarHorario(RECECAO, null, false, false);
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testConsultarSemCliente() {
+        System.out.println("consultarDoCliente (sem cliente)");
+        try {
+            instance.consultarDoCliente(null);
+            fail("Devia ter recusado sem cliente");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.clientePedido;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinAntesDas15h() {
+        System.out.println("fazerCheckin (antes das 15h)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(14, 59));
+            fail("Devia ter recusado o check-in antes das 15h");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinForaDoDiaDeEntrada() {
+        System.out.println("fazerCheckin (fora do dia de entrada)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().minusDays(1).atTime(16, 0));
+            fail("Devia ter recusado o check-in fora do dia de entrada");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinReservaCancelada() {
+        System.out.println("fazerCheckin (reserva cancelada)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        String expResult = "A reserva " + reserva.getId() + " foi cancelada e não pode fazer check-in";
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado uma reserva cancelada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    private List<ServicoReserva> servicosEscolhidos() {
+        Categoria refeicao = new Categoria(1, "Refeição");
+        List<ServicoReserva> servicos = new ArrayList<>();
+        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(1, "Pequeno-almoço", new BigDecimal("12.00"), refeicao, true), 2));
+        servicos.add(ServicoReservaBLL.novoServico(0, new Servico(2, "Jantar", new BigDecimal("22.00"), refeicao, true), 1));
+        return servicos;
+    }
+
+    @Test
+    public void testFazerCheckinJaFeito() {
+        System.out.println("fazerCheckin (check-in já feito)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEstado(EstadoReserva.EM_CURSO);
+        reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 10));
+        String expResult = "A reserva " + reserva.getId() + " já tem o check-in feito";
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado um segundo check-in");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemReserva() {
+        System.out.println("fazerCheckin (sem reserva)");
+        try {
+            instance.fazerCheckin(RECECAO, null, LocalDateTime.now());
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemSessao() {
+        System.out.println("fazerCheckin (sem sessão)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(null, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinJaNaoPodeNaBD() {
+        System.out.println("fazerCheckin (já não está confirmada na BD)");
+        repositorio.podeFazerCheckinNaBD = false;
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testTotalAPagarReservaSemCheckin() {
+        System.out.println("totalAPagar (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONFIRMADA)";
+        try {
+            instance.totalAPagar(RECECAO, reserva);
+            fail("Devia ter recusado uma reserva que não está em curso");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testTotalAPagarSemSessao() {
+        System.out.println("totalAPagar (sem sessão)");
+        String expResult = "Entre na aplicação como rececionista ou gestor para fazer check-out";
+        try {
+            instance.totalAPagar(null, reservaEmCurso());
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemCheckin() {
+        System.out.println("fazerCheckout (reserva sem check-in)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado uma reserva sem check-in");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckout;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutJaConcluida() {
+        System.out.println("fazerCheckout (reserva já concluída)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = "Só é possível fazer check-out de uma reserva em curso (a reserva "
+                + reserva.getId() + " está CONCLUIDA)";
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado uma reserva já concluída");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemReserva() {
+        System.out.println("fazerCheckout (sem reserva)");
+        try {
+            instance.fazerCheckout(RECECAO, null, LocalDateTime.now());
+            fail("Devia ter recusado sem reserva");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckout;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutSemSessao() {
+        System.out.println("fazerCheckout (sem sessão)");
+        Reserva reserva = reservaEmCurso();
+        try {
+            instance.fazerCheckout(null, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado sem sessão iniciada");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckout;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckoutJaNaoPodeNaBD() {
+        System.out.println("fazerCheckout (já não está em curso na BD)");
+        repositorio.podeFazerCheckoutNaBD = false;
+        Reserva reserva = reservaEmCurso();
+        try {
+            instance.fazerCheckout(RECECAO, reserva, reserva.getDataSaida().atTime(11, 0));
+            fail("Devia ter recusado");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckout;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarSemQuartoQuePermitaOPedido() {
+        System.out.println("criar (nenhum quarto permite o pedido)");
+        String expResult = "Nenhum quarto DUPLO com vista MAR permite o early check-in ou o late check-out "
+                + "nestas datas. Pode fazer a reserva nas horas standard.";
+        try {
+            instance.criar(cliente, TipoQuarto.DUPLO, Vista.MAR, entrada, entrada.plusDays(2), 2, false, true);
+            fail("Devia ter recusado sem quarto que permita o late check-out");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarSemTipoDeQuarto() {
+        System.out.println("criar (sem tipo de quarto)");
+        try {
+            instance.criar(cliente, null, Vista.MAR, entrada, entrada.plusDays(2), 2, false, false);
+            fail("Devia ter recusado sem tipo de quarto");
+        } catch (ValidacaoException expected) {
+            Object expResult = null;
+            Object result = repositorio.gravada;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinComEarlyCheckinAntesDaHora() {
+        System.out.println("fazerCheckin (early check-in antes das 13h)");
+        Reserva reserva = reservaConfirmada();
+        reserva.setEarlyCheckin(true);
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(12, 59));
+            fail("Devia ter recusado antes da hora do early check-in");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemEarlyAs13h30() {
+        System.out.println("fazerCheckin (sem early check-in às 13h30)");
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(13, 30));
+            fail("Devia ter recusado: sem early check-in só a partir das 15h");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.comCheckin;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testListarSemSeparador() {
+        System.out.println("listar (sem separador)");
+        String expResult = "Escolha o separador das reservas";
+        try {
+            ReservaBLL.filtrar(instance.listar(), null, "");
+            fail("Devia ter recusado sem separador");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testApagarCancelada() {
+        System.out.println("apagar (cancelada, aparece o motivo)");
+        Reserva reserva = reservaConfirmada();
+        reserva.cancelar();
+        String expResult = "A reserva 5 não pode ser apagada: só se apagam as reservas por fazer, e esta está cancelada";
+        try {
+            instance.apagar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva do histórico");
+        } catch (IllegalStateException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testApagarRececionista() {
+        System.out.println("apagar (rececionista não pode)");
+        try {
+            instance.apagar(RECECAO, reservaConfirmada());
+            fail("Devia ter recusado o rececionista");
+        } catch (IllegalStateException expected) {
+            Object expResult = null;
+            Object result = repositorio.apagadaId;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testApagarSemReserva() {
+        System.out.println("apagar (sem reserva)");
+        String expResult = "Escolha uma reserva";
+        try {
+            instance.apagar(GESTOR, null);
+            fail("Devia ter pedido uma reserva");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testApagarEmCurso() {
+        System.out.println("apagar (em curso, aparece o motivo)");
+        String expResult = "A reserva 5 não pode ser apagada: só se apagam as reservas por fazer, e esta está em curso";
+        try {
+            instance.apagar(GESTOR, reservaEmCurso());
+            fail("Devia ter recusado uma reserva com check-in");
+        } catch (IllegalStateException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testApagarConcluida() {
+        System.out.println("apagar (concluída, aparece o motivo)");
+        Reserva reserva = reservaEmCurso();
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = "A reserva 5 não pode ser apagada: só se apagam as reservas por fazer, e esta está concluída";
+        try {
+            instance.apagar(GESTOR, reserva);
+            fail("Devia ter recusado uma reserva concluída");
+        } catch (IllegalStateException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+    @Test
+    public void testApagarCheckinNoutroComputador() {
+        System.out.println("apagar (check-in feito entretanto noutro computador)");
+        repositorio.podeApagarNaBD = false;
+        String expResult = "A reserva 5 já não pode ser apagada: não existe ou já não está por fazer";
+        try {
+            instance.apagar(GESTOR, reservaConfirmada());
+            fail("Devia ter recusado o que a BD recusou");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
     public void testCriarQuartoOcupadoNaoGravaServicos() {
         System.out.println("criar (sem quarto livre, nenhum serviço fica gravado)");
         quartos.livres.add(quartoLivre(201, TipoQuarto.DUPLO, Vista.MAR, 2, "100.00"));
@@ -1533,7 +1876,37 @@ public class ReservaBLLTest {
                     servicosEscolhidos());
             fail("Devia ter recusado sem quarto livre");
         } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.servicosGravados);
+            Object expResult = null;
+            Object result = repositorio.servicosGravados;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testResumoDoTotalSemQuarto() {
+        System.out.println("resumoDoTotal (sem quarto escolhido)");
+        String expResult = "Escolha um quarto";
+        try {
+            instance.resumoDoTotal(null, entrada, entrada.plusDays(1), false, false, new ArrayList<>());
+            fail("Devia ter pedido um quarto");
+        } catch (ValidacaoException e) {
+            String result = e.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFazerCheckinSemStock() {
+        System.out.println("fazerCheckin (sem stock dos materiais: diz o que falta e não grava, US76)");
+        repositorio.semStock = true;
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado o check-in");
+        } catch (IllegalStateException expected) {
+            String expResult = SEM_STOCK + " / null";
+            String result = expected.getMessage() + " / " + repositorio.comCheckin;
+            assertEquals(expResult, result);
         }
     }
 }

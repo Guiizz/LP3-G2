@@ -9,22 +9,20 @@ import pt.isep.lp3.g2.hotel4youg2.bll.AcessoCartaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.AcessoCartao;
-import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
+import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.LocalHotel;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
-import java.io.IOException;
-
 /**
- * Controlador do ecrã "Acesso com cartão" (US39): regista a passagem de um cartão num local do hotel e mostra as passagens desse cartão.
- * Também aceita os cartões dos funcionários (US52).
+ * Controlador do ecrã "O meu cartão" (US39, US52 e US74): quem tem a sessão iniciada pica o seu próprio cartão
+ * num local do hotel e vê as suas passagens. O gestor usa o cartão mestre e cada funcionário o seu cartão.
  */
 public class AcessoCartaoController {
 
     private final AcessoCartaoBLL acessoCartaoBLL = new AcessoCartaoBLL();
 
     @FXML
-    private TextField cartaoField;
+    private Label cartaoLabel;
     @FXML
     private ComboBox<LocalHotel> localCombo;
     @FXML
@@ -38,22 +36,25 @@ public class AcessoCartaoController {
 
     @FXML
     private void initialize() {
-        localCombo.getItems().setAll(LocalHotel.values());
         mostrarQuarto(false);
-    }
-
-    @FXML
-    private void aoEscolherCartao() {
+        Utilizador utilizador = Sessao.getUtilizador();
         try {
-            CartaoAtivo escolhido = EscolherPessoaController.escolher("Escolher cartão",
-                    acessoCartaoBLL.listarCartoes(Sessao.getUtilizador()));
-            if (escolhido != null) {
-                cartaoField.setText(escolhido.getCartao());
-                Mensagens.info(mensagemLabel, "");
-                atualizarTabela();
+            String cartao = acessoCartaoBLL.cartaoDoUtilizador(utilizador);
+            if (AcessoCartao.CARTAO_MESTRE.equals(cartao)) {
+                cartaoLabel.setText("O seu cartão: " + cartao + " (cartão mestre)");
+            } else {
+                cartaoLabel.setText("O seu cartão: " + cartao + " (" + utilizador.getNomeUtilizador() + ")");
             }
-        } catch (IOException | IllegalStateException | DataAccessException e) {
-            mostrarErro("Não foi possível abrir a lista de cartões. Tente novamente.");
+            localCombo.getItems().setAll(acessoCartaoBLL.locaisDoCartao(utilizador));
+            atualizarTabela();
+        } catch (IllegalStateException e) {
+            cartaoLabel.setText("Sem cartão");
+            localCombo.setDisable(true);
+            mostrarErro(e.getMessage());
+        } catch (DataAccessException e) {
+            cartaoLabel.setText("Sem cartão");
+            localCombo.setDisable(true);
+            mostrarErro("Não foi possível encontrar o seu cartão. Tente novamente.");
         }
     }
 
@@ -63,31 +64,13 @@ public class AcessoCartaoController {
     }
 
     @FXML
-    private void aoUsarOMeuCartao() {
+    private void aoPicar() {
         try {
-            cartaoField.setText(acessoCartaoBLL.cartaoDoFuncionario(Sessao.getUtilizador()));
-            Mensagens.info(mensagemLabel, "");
+            AcessoCartao acesso = acessoCartaoBLL.picar(Sessao.getUtilizador(), localCombo.getValue(), lerQuarto());
+            Mensagens.sucesso(mensagemLabel, "Acesso permitido: " + acesso.getLocalTexto() + " às "
+                    + acesso.getHoraTexto() + ".");
             atualizarTabela();
-        } catch (IllegalStateException e) {
-            mostrarErro(e.getMessage());
-        } catch (DataAccessException e) {
-            mostrarErro("Não foi possível encontrar o seu cartão. Tente novamente.");
-        }
-    }
-
-    @FXML
-    private void aoRegistarPassagem() {
-        try {
-            int quarto = lerQuarto();
-            AcessoCartao acesso = acessoCartaoBLL.registarPassagem(Sessao.getUtilizador(), cartaoField.getText(),
-                    localCombo.getValue(), quarto);
-            Mensagens.sucesso(mensagemLabel, "Acesso permitido: cartão " + acesso.getCartao() + " em "
-                    + acesso.getLocalTexto() + " às " + acesso.getRegistadoEmTexto() + ".");
-            atualizarTabela();
-        } catch (ValidacaoException e) {
-            mostrarErro(e.getMessage());
-            atualizarTabela();
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (ValidacaoException | IllegalArgumentException | IllegalStateException e) {
             mostrarErro(e.getMessage());
         } catch (DataAccessException e) {
             mostrarErro("Não foi possível registar a passagem. Tente novamente.");
@@ -111,8 +94,8 @@ public class AcessoCartaoController {
 
     private void atualizarTabela() {
         try {
-            tabela.getItems().setAll(acessoCartaoBLL.listarPorCartao(cartaoField.getText()));
-        } catch (DataAccessException e) {
+            tabela.getItems().setAll(acessoCartaoBLL.listarAsMinhasPassagens(Sessao.getUtilizador()));
+        } catch (IllegalStateException | DataAccessException e) {
             tabela.getItems().clear();
         }
     }

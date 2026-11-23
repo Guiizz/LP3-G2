@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.bll;
 
 import pt.isep.lp3.g2.hotel4youg2.dal.EntregaDAL;
+import pt.isep.lp3.g2.hotel4youg2.dal.LeitorJsonEntrega;
 import pt.isep.lp3.g2.hotel4youg2.dal.LeitorXmlEntrega;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IEntregaDAL;
 import pt.isep.lp3.g2.hotel4youg2.exception.ErrosFicheiroException;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Regras de negócio das entregas de fornecedores: ler e validar o ficheiro XML,
+ *  * Regras de negócio das entregas de fornecedores: ler e validar o ficheiro XML ou JSON (US64),,
  * conferir as contas e registar a entrega (US26).
  */
 public class EntregaBLL {
@@ -41,23 +42,36 @@ public class EntregaBLL {
     private static final String ENTREGA_JA_DECIDIDA = "Esta entrega já foi decidida.";
 
     private final LeitorXmlEntrega leitor;
+    private final LeitorJsonEntrega leitorJson;
     private final IEntregaDAL entregaDAL;
 
     /**
      * Cria o BLL ligado à base de dados.
      */
     public EntregaBLL() {
-        this(new LeitorXmlEntrega(), new EntregaDAL());
+        this(new LeitorXmlEntrega(), new LeitorJsonEntrega(), new EntregaDAL());
     }
 
     /**
-     * Cria o BLL com outro leitor de XML e outro DAL.
+     * Cria o BLL com outro leitor de XML e outro DAL (usado nos testes).
      *
      * @param leitor     quem lê e valida o ficheiro XML
      * @param entregaDAL onde as entregas são gravadas
      */
     public EntregaBLL(LeitorXmlEntrega leitor, IEntregaDAL entregaDAL) {
+        this(leitor, new LeitorJsonEntrega(), entregaDAL);
+    }
+
+    /**
+     * Cria o BLL com outros leitores de XML e de JSON e outro DAL.
+     *
+     * @param leitor     quem lê e valida o ficheiro XML
+     * @param leitorJson quem lê e valida o ficheiro JSON
+     * @param entregaDAL onde as entregas são gravadas
+     */
+    public EntregaBLL(LeitorXmlEntrega leitor, LeitorJsonEntrega leitorJson, IEntregaDAL entregaDAL) {
         this.leitor = leitor;
+        this.leitorJson = leitorJson;
         this.entregaDAL = entregaDAL;
     }
 
@@ -84,35 +98,55 @@ public class EntregaBLL {
     }
 
     /**
-     * Lê o ficheiro XML da entrega e valida-o com o XSD e com as regras do negócio (US53):
+     * Lê o ficheiro XML ou JSON da entrega e valida-o com as regras do negócio (US53 e US64): o XML passa
+     * primeiro pelo XSD e o JSON pelos campos obrigatórios; depois os dois passam pelas mesmas regras:
      * data que existe, unidades, uma só moeda, quantidade maior que zero, preço não negativo e as contas
      * de cada linha. Junta todos os erros e só depois recusa. Diferenças de até 0,05 € nas contas são
      * arredondamentos: não recusam, ficam como avisos (ver {@link #verificarContas(Entrega)}).
      *
-     * @param ficheiro o ficheiro XML da entrega
+     * @param ficheiro o ficheiro XML ou JSON da entrega (escolhido pela extensão .json)
      * @return a entrega lida, sem erros
      * @throws IllegalArgumentException se não houver ficheiro
      * @throws ErrosFicheiroException   com todos os erros, se o ficheiro não for válido
      */
     public Entrega lerFicheiro(File ficheiro) {
         if (ficheiro == null) {
-            throw new IllegalArgumentException("Escolha um ficheiro XML.");
+            throw new IllegalArgumentException("Escolha um ficheiro XML ou JSON.");
         }
         List<String> erros = new ArrayList<>();
-        Entrega entrega = leitor.ler(ficheiro, erros);
+        Entrega entrega;
+        if (ficheiro.getName().toLowerCase().endsWith(".json")) {
+            entrega = leitorJson.ler(ficheiro, erros);
+        } else {
+            entrega = leitor.ler(ficheiro, erros);
+        }
         return validar(entrega, erros);
     }
 
     /**
-     * Como {@link #lerFicheiro(File)}, mas lê de um fluxo de dados já aberto.
+     * Como {@link #lerFicheiro(File)} para um ficheiro XML, mas lê de um fluxo de dados já aberto.
      *
      * @param entrada o fluxo com o conteúdo do XML
      * @return a entrega lida, sem erros
-     * @throws ErrosFicheiroException com todos os erros, se o ficheiro não for válido
+     * @throws ErrosFicheiroException se o ficheiro tiver erros
      */
     public Entrega lerFicheiro(InputStream entrada) {
         List<String> erros = new ArrayList<>();
         Entrega entrega = leitor.ler(entrada, erros);
+        return validar(entrega, erros);
+    }
+
+
+    /**
+     * Como {@link #lerFicheiro(File)} para um ficheiro JSON, mas lê de um fluxo de dados já aberto (US64).
+     *
+     * @param entrada o fluxo com o conteúdo do JSON
+     * @return a entrega lida, sem erros
+     * @throws ErrosFicheiroException com todos os erros, se o ficheiro não for válido
+     */
+    public Entrega lerFicheiroJson(InputStream entrada) {
+        List<String> erros = new ArrayList<>();
+        Entrega entrega = leitorJson.ler(entrada, erros);
         return validar(entrega, erros);
     }
 

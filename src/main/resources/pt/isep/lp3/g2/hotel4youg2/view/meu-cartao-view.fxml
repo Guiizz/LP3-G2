@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.MeuCartaoController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="O meu cartão" styleClass="titulo"/>
+    <HBox fx:id="escolherCartaoBox" spacing="10.0" alignment="CENTER_LEFT" visible="false" managed="false">
+        <Label text="Cartão:"/>
+        <ComboBox fx:id="cartaoCombo" prefWidth="220.0" onAction="#aoEscolherCartao"/>
+    </HBox>
+    <Label fx:id="cartaoLabel" style="-fx-font-size: 16px; -fx-font-weight: bold;" wrapText="true"/>
+
+    <HBox fx:id="picarBox" spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Local:"/>
+        <ComboBox fx:id="localCombo" promptText="Escolha o local" prefWidth="220.0" visibleRowCount="12"/>
+        <Button text="Picar" defaultButton="true" onAction="#aoPicar"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true" maxWidth="700"/>
+
+    <Label text="As minhas picagens"/>
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Data e hora" prefWidth="160.0">
+                <cellValueFactory><PropertyValueFactory property="registadoEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Cartão" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="cartao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Local" prefWidth="200.0">
+                <cellValueFactory><PropertyValueFactory property="localTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Reserva" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="reservaTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <placeholder>
+            <Label text="Ainda não picou o cartão."/>
+        </placeholder>
+    </TableView>
+</VBox>

@@ -57,4 +57,26 @@ public interface IQuartoDAL {
      * @return {@code true} se o quarto existia e foi alterado
      */
     boolean atualizarAtivo(int numero, boolean ativo);
+
+    /**
+     * Grava um quarto novo, só se ainda não houver nenhum com esse número.
+     *
+     * @param quarto o quarto a gravar
+     * @return {@code true} se foi gravado; {@code false} se o número já existe
+     */
+    boolean inserir(Quarto quarto);
+
+    /**
+     * @param numero o número do quarto
+     * @return {@code true} se o quarto já teve reservas ou acessos com cartão
+     */
+    boolean foiUsado(int numero);
+
+    /**
+     * Apaga um quarto, só se nunca teve reservas nem acessos com cartão.
+     *
+     * @param numero o número do quarto
+     * @return {@code true} se foi apagado
+     */
+    boolean apagarSeNuncaUsado(int numero);
 }

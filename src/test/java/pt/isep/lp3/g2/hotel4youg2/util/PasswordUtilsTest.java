@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Testes unitários da classe PasswordUtils.
@@ -43,7 +42,9 @@ public class PasswordUtilsTest {
     @Test
     public void testGerarSaltDiferenteACadaVez() {
         System.out.println("gerarSalt (dois salts seguidos são diferentes)");
-        assertNotEquals(instance.gerarSalt(), instance.gerarSalt());
+        boolean expResult = false;
+        boolean result = instance.gerarSalt().equals(instance.gerarSalt());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -76,7 +77,9 @@ public class PasswordUtilsTest {
         System.out.println("hashPassword (salts diferentes dão hashes diferentes)");
         String hashUm = instance.hashPassword("Segredo#123", instance.gerarSalt());
         String hashDois = instance.hashPassword("Segredo#123", instance.gerarSalt());
-        assertNotEquals(hashUm, hashDois);
+        boolean expResult = false;
+        boolean result = hashUm.equals(hashDois);
+        assertEquals(expResult, result);
     }
 
     @Test

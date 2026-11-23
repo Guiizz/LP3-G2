@@ -63,30 +63,6 @@ public class PermissoesTest {
     }
 
     @Test
-    public void testExigirGestor() {
-        System.out.println("exigirGestor");
-        String expResult = null;
-        String result = mensagemAoExigirGestor(gestor);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testExigirGestorComoRececionista() {
-        System.out.println("exigirGestor (rececionista não pode)");
-        String expResult = "Só o gestor pode abrir este ecrã";
-        String result = mensagemAoExigirGestor(rececionista);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testExigirGestorSemSessao() {
-        System.out.println("exigirGestor (sem sessão)");
-        String expResult = "Só o gestor pode abrir este ecrã";
-        String result = mensagemAoExigirGestor(null);
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testPodeGerirReservasGestor() {
         System.out.println("podeGerirReservas (gestor)");
         boolean expResult = true;
@@ -107,6 +83,30 @@ public class PermissoesTest {
         System.out.println("podeGerirReservas (sem sessão)");
         boolean expResult = false;
         boolean result = Permissoes.podeGerirReservas(null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testExigirGestor() {
+        System.out.println("exigirGestor");
+        String expResult = null;
+        String result = mensagemAoExigirGestor(gestor);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testExigirGestorComoRececionista() {
+        System.out.println("exigirGestor (rececionista não pode)");
+        String expResult = "Só o gestor pode abrir este ecrã";
+        String result = mensagemAoExigirGestor(rececionista);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testExigirGestorSemSessao() {
+        System.out.println("exigirGestor (sem sessão)");
+        String expResult = "Só o gestor pode abrir este ecrã";
+        String result = mensagemAoExigirGestor(null);
         assertEquals(expResult, result);
     }
 }

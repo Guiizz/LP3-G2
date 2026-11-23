@@ -38,6 +38,7 @@ public class FuncionarioClienteDALTest {
 
     @BeforeAll
     public static void limparRestosDeTestes() {
+        RestosDosTestes.limpar();
         try {
             limpar();
         } catch (DataAccessException e) {
@@ -105,10 +106,10 @@ public class FuncionarioClienteDALTest {
         ConexaoBD.executar("UPDATE Pessoa SET cc = '11112222', morada = 'Rua B' WHERE id = ?", pessoaId);
         Cliente semCcNemMorada = new Cliente(pessoaId, nome, null, nif, null, "912345678", LocalDate.of(1990, 5, 1), null);
         instance.tornarCliente(semCcNemMorada);
-        String expResult = "11112222";
-        String result = instance.procurarPorNif(nif).getCc();
+        String expResult = "11112222 / Rua B";
+        String obtido = instance.procurarPorNif(nif).getCc();
+        String result = obtido + " / " + instance.procurarPorNif(nif).getMorada();
         assertEquals(expResult, result);
-        assertEquals("Rua B", instance.procurarPorNif(nif).getMorada());
     }
 
     @Test
@@ -151,11 +152,14 @@ public class FuncionarioClienteDALTest {
     public void testTornarClienteMantemAConta() {
         System.out.println("tornarCliente (a conta e o funcionário não mudam)");
         instance.tornarCliente(comoCliente());
-        String expResult = nomeUtilizador;
-        String result = ConexaoBD.select("SELECT nomeUtilizador FROM Utilizador WHERE funcionarioId = ? AND ativo = 1",
+        String esperado = nomeUtilizador;
+        String obtido = ConexaoBD.select("SELECT nomeUtilizador FROM Utilizador WHERE funcionarioId = ? AND ativo = 1",
                 new TextoMapper(), pessoaId).get(0);
+        String expResult = esperado + " / 1";
+        String result = obtido
+                + " / "
+                + ConexaoBD.select("SELECT 1 FROM Funcionario WHERE pessoaId = ?", new InteiroMapper(), pessoaId).size();
         assertEquals(expResult, result);
-        assertEquals(1, ConexaoBD.select("SELECT 1 FROM Funcionario WHERE pessoaId = ?", new InteiroMapper(), pessoaId).size());
     }
 
     @Test

@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+<VBox fx:id="ecra" spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.DetalhesReservaController">
     <padding>
         <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
@@ -88,6 +88,8 @@
     </HBox>
 
     <Button fx:id="servicosButton" text="Serviços…" onAction="#aoServicos"/>
+
+    <Button fx:id="materiaisButton" text="Materiais…" onAction="#aoMateriais"/>
 
     <Label fx:id="avisoLabel" styleClass="mensagem-aviso" wrapText="true"/>
     <Label fx:id="mensagemLabel" wrapText="true"/>

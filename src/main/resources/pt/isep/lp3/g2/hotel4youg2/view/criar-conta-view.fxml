@@ -55,7 +55,11 @@
                        GridPane.rowIndex="8" GridPane.columnIndex="1"/>
 
         <Label text="Perfil *" GridPane.rowIndex="9" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="campoPerfil" GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+        <ComboBox fx:id="campoPerfil" onAction="#aoEscolherPerfil" GridPane.rowIndex="9" GridPane.columnIndex="1"/>
+
+        <Label fx:id="empresaLabel" text="Empresa de restauração *" GridPane.rowIndex="10" GridPane.columnIndex="0"/>
+        <TextField fx:id="campoEmpresa" promptText="nome da empresa externa"
+                   GridPane.rowIndex="10" GridPane.columnIndex="1"/>
     </GridPane>
 
     <Button text="Criar conta" onAction="#aoCriar"/>

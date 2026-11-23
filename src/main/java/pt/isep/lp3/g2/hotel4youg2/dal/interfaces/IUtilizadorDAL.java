@@ -35,4 +35,15 @@ public interface IUtilizadorDAL {
      * @throws DataAccessException se não for possível alterar a base de dados
      */
     boolean atualizarAtivo(int utilizadorId, boolean ativo);
+
+    /**
+     * Muda a palavra-passe de um utilizador.
+     *
+     * @param utilizadorId  o id do utilizador
+     * @param passwordHash  o hash da palavra-passe nova
+     * @param passwordSalt  o salt da palavra-passe nova
+     * @param mudarPassword se tem de escolher outra no próximo login
+     * @return {@code true} se o utilizador existe e foi alterado
+     */
+    boolean definirPassword(int utilizadorId, String passwordHash, String passwordSalt, boolean mudarPassword);
 }

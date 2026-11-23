@@ -100,8 +100,56 @@ public class Quarto {
         this.ativo = ativo;
     }
 
+    /**
+     * @return {@code "Ativo"} ou {@code "Desativado"}
+     */
     public String getEstado() {
         return ativo ? "Ativo" : "Desativado";
+    }
+
+    /**
+     * @return os dados do quarto, um por linha (número, piso, tipo, vista, capacidade, estado e preço por noite)
+     */
+    public String getDetalhes() {
+        String texto = "Quarto " + numero
+                + "\nPiso: " + piso
+                + "\nTipo: " + textoDoTipo()
+                + "\nVista: " + textoDaVista()
+                + "\nCapacidade: " + capacidade + (capacidade == 1 ? " pessoa" : " pessoas")
+                + "\nEstado: " + getEstado();
+        if (getValorNoite() != null) {
+            texto += "\nPreço por noite: " + getValorNoite() + " €";
+        }
+        return texto;
+    }
+
+    /**
+     * @return o tipo e a vista (ex.: Individual · Mar)
+     */
+    public String getResumo() {
+        return textoDoTipo() + " · " + textoDaVista();
+    }
+
+    private String textoDoTipo() {
+        switch (tipo) {
+            case INDIVIDUAL:
+                return "Individual";
+            case DUPLO:
+                return "Duplo";
+            default:
+                return "Família";
+        }
+    }
+
+    private String textoDaVista() {
+        switch (vista) {
+            case MAR:
+                return "Mar";
+            case MONTANHA:
+                return "Montanha";
+            default:
+                return "Sem vista";
+        }
     }
 
     /**

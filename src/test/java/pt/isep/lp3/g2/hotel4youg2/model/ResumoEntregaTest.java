@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ResumoEntregaTest {
 
@@ -36,7 +35,9 @@ public class ResumoEntregaTest {
     @Test
     public void testGetMotivoRecusaSemMotivo() {
         System.out.println("getMotivoRecusa (sem motivo)");
-        assertNull(resumo(LocalDateTime.of(2026, 11, 5, 21, 24, 38)).getMotivoRecusa());
+        String expResult = null;
+        String result = resumo(LocalDateTime.of(2026, 11, 5, 21, 24, 38)).getMotivoRecusa();
+        assertEquals(expResult, result);
     }
 
     @Test

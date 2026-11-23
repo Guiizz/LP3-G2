@@ -16,7 +16,8 @@ import java.util.List;
 
 /**
  * Controlador da "Janela de stock" (US62): mostra cada material com o que entrou, o que saiu e o stock efetivo,
- * permite pesquisar e mostra o histórico de movimentos do material escolhido, com filtro por entradas ou saídas.
+ * permite pesquisar e mostra o histórico de movimentos do material escolhido, com o motivo de cada saída e com
+ * filtro por entradas, saídas temporárias, saídas definitivas e devoluções (US77).
  */
 public class StockController {
 

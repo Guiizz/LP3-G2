@@ -4,6 +4,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 import pt.isep.lp3.g2.hotel4youg2.model.ServicoReserva;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -75,10 +76,18 @@ public interface IReservaDAL {
     boolean cancelar(int id);
 
     /**
-     * Apaga a reserva e os seus serviços, só se ainda não teve check-in (confirmada ou cancelada) (US57).
+     * Cancela as reservas confirmadas que não tiveram check-in e cuja data de entrada já passou.
+     *
+     * @param hoje o dia de hoje
+     * @return quantas reservas foram canceladas
+     */
+    int cancelarSemCheckin(LocalDate hoje);
+
+    /**
+     * Apaga a reserva e os seus serviços, só se ainda estiver por fazer: confirmada e sem check-in (US57 e US79).
      *
      * @param id o id da reserva
-     * @return {@code true} se foi apagada; {@code false} se não existe ou entretanto teve check-in
+     * @return {@code true} se foi apagada; {@code false} se não existe, foi cancelada ou teve check-in
      */
     boolean apagarSemCheckin(int id);
 
@@ -110,12 +119,38 @@ public interface IReservaDAL {
     boolean registarCheckin(Reserva reserva);
 
     /**
+     * Grava o check-in e tira do stock os materiais da reserva, numa só transação (US76). Por defeito só grava o
+     * check-in, como {@link #registarCheckin(Reserva)}; a implementação da base de dados também dá baixa do stock.
+     *
+     * @param reserva       a reserva, já com o check-in feito no objeto
+     * @param funcionarioId o id de quem faz o check-in
+     * @return {@code true} se foi gravado; {@code false} se outro funcionário a cancelou ou fez o check-in entretanto
+     * @throws IllegalStateException se faltar stock de algum material; nesse caso nada é gravado
+     */
+    default boolean registarCheckin(Reserva reserva, int funcionarioId) {
+        return registarCheckin(reserva);
+    }
+
+    /**
      * Grava o check-out (estado e hora), só se a reserva ainda estiver em curso (US36).
      *
      * @param reserva a reserva, já com o check-out feito no objeto
      * @return {@code true} se foi gravado; {@code false} se a reserva já não estava em curso
      */
     boolean registarCheckout(Reserva reserva);
+
+    /**
+     * Grava o check-out e devolve ao stock as saídas temporárias da reserva, numa só transação (US76). Por defeito
+     * só grava o check-out, como {@link #registarCheckout(Reserva)}; a implementação da base de dados também
+     * devolve os materiais.
+     *
+     * @param reserva       a reserva, já com o check-out feito no objeto
+     * @param funcionarioId o id de quem faz o check-out
+     * @return {@code true} se foi gravado; {@code false} se a reserva já não estava em curso
+     */
+    default boolean registarCheckout(Reserva reserva, int funcionarioId) {
+        return registarCheckout(reserva);
+    }
 
     /**
      * Procura a reserva em curso de um cartão (US39 e US48).

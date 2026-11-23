@@ -9,6 +9,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import pt.isep.lp3.g2.hotel4youg2.bll.ReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.ServicoReservaBLL;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
@@ -22,7 +23,8 @@ import java.util.List;
 
 /**
  * Controlador do ecrã "Detalhes da reserva" (US56): mostra o cliente, o quarto, as datas, o early check-in
- * e o late check-out, o cartão, os serviços extra e o total, e deixa alterar as datas e abrir os serviços.
+ * e o late check-out, o cartão, os serviços extra e o total, e deixa alterar as datas e abrir os serviços
+ * e os materiais da reserva (US76).
  * Abre dentro da área, no lugar da lista das reservas.
  */
 public class DetalhesReservaController {
@@ -33,6 +35,7 @@ public class DetalhesReservaController {
     private final ServicoReservaBLL servicoReservaBLL = new ServicoReservaBLL();
     private Reserva reserva;
     private GerirReservasController lista;
+    private boolean soParaVer;
 
     @FXML
     private Label tituloLabel;
@@ -78,6 +81,10 @@ public class DetalhesReservaController {
     private DatePicker novaSaidaPicker;
     @FXML
     private Button servicosButton;
+    @FXML
+    private VBox ecra;
+    @FXML
+    private Button materiaisButton;
     @FXML
     private Label avisoLabel;
     @FXML
@@ -135,10 +142,27 @@ public class DetalhesReservaController {
         totalLabel.setText("Total: " + reserva.getTotal() + " €");
     }
 
+    /**
+     * Abre os detalhes de uma reserva só para ver, sem os botões de alterar (usado na área do cliente).
+     *
+     * @param reserva     a reserva
+     * @param ecraDaLista o ecrã da lista, para onde se volta
+     * @throws IOException se não for possível ler o FXML
+     */
+    public static void abrirSoParaVer(Reserva reserva, Node ecraDaLista) throws IOException {
+        FXMLLoader loader = Navegador.carregar("detalhes-reserva-view.fxml");
+        DetalhesReservaController controller = loader.getController();
+        controller.reserva = reserva;
+        controller.soParaVer = true;
+        controller.mostrar();
+        Navegador.mostrarDetalhe(ecraDaLista, (Parent) loader.getRoot());
+    }
+
     private void mostrarAcoes() {
-        mostrarSe(datasBox, reserva.podeSerAlterada());
-        mostrarSe(servicosButton, reserva.aceitaServicos());
-        String aviso = reserva.getAvisoAlteracoes();
+        mostrarSe(datasBox, !soParaVer && reserva.podeSerAlterada());
+        mostrarSe(servicosButton, !soParaVer && reserva.aceitaServicos());
+        mostrarSe(materiaisButton, !soParaVer);
+        String aviso = soParaVer ? "" : reserva.getAvisoAlteracoes();
         avisoLabel.setText(aviso);
         mostrarSe(avisoLabel, !aviso.isEmpty());
     }
@@ -155,7 +179,9 @@ public class DetalhesReservaController {
     @FXML
     private void aoVoltar() {
         Navegador.voltar();
-        lista.atualizar();
+        if (lista != null) {
+            lista.atualizar();
+        }
     }
 
     @FXML
@@ -168,6 +194,15 @@ public class DetalhesReservaController {
             Mensagens.erro(mensagemLabel, ERRO_BD);
         } catch (RuntimeException e) {
             Mensagens.erro(mensagemLabel, e.getMessage());
+        }
+    }
+
+    @FXML
+    private void aoMateriais() {
+        try {
+            MateriaisReservaController.abrir(reserva, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir os materiais da reserva.");
         }
     }
 

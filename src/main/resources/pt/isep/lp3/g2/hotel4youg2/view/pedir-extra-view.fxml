@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.PedirExtraController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <fx:define>
+        <ToggleGroup fx:id="tipoGrupo"/>
+    </fx:define>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button text="← Voltar" onAction="#aoVoltar"/>
+        <Label text="Pedir extra" styleClass="titulo"/>
+    </HBox>
+    <Label fx:id="reservaLabel" style="-fx-font-weight: bold;"/>
+
+    <HBox spacing="20.0" alignment="CENTER_LEFT">
+        <RadioButton fx:id="servicoRadio" text="Serviço (jantar, piscina…)" toggleGroup="$tipoGrupo"
+                     selected="true" onAction="#aoMudarTipo"/>
+        <RadioButton fx:id="materialRadio" text="Material (toalha, almofada…)" toggleGroup="$tipoGrupo"
+                     onAction="#aoMudarTipo"/>
+    </HBox>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <ComboBox fx:id="servicoCombo" promptText="Escolha o serviço" prefWidth="260.0"/>
+        <ComboBox fx:id="materialCombo" promptText="Escolha o material" prefWidth="260.0"/>
+        <Label text="Quantidade:"/>
+        <Spinner fx:id="quantidadeSpinner" min="1" max="99" initialValue="1" prefWidth="80.0"/>
+        <Button text="Pedir" defaultButton="true" onAction="#aoPedir"/>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true" maxWidth="700"/>
+
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Label text="Os meus pedidos desta reserva"/>
+        <Button text="Atualizar" onAction="#aoAtualizar"/>
+    </HBox>
+    <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Pedido em" prefWidth="110.0">
+                <cellValueFactory><PropertyValueFactory property="pedidoEmTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Tipo" prefWidth="190.0">
+                <cellValueFactory><PropertyValueFactory property="tipoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Pedido" prefWidth="180.0">
+                <cellValueFactory><PropertyValueFactory property="descricao"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Qtd." prefWidth="60.0">
+                <cellValueFactory><PropertyValueFactory property="quantidade"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Estado" prefWidth="100.0">
+                <cellValueFactory><PropertyValueFactory property="estadoTexto"/></cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Motivo da recusa" prefWidth="220.0">
+                <cellValueFactory><PropertyValueFactory property="motivoTexto"/></cellValueFactory>
+            </TableColumn>
+        </columns>
+        <placeholder>
+            <Label text="Ainda não fez pedidos para esta reserva."/>
+        </placeholder>
+    </TableView>
+</VBox>

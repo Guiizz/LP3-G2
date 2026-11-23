@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
@@ -10,9 +11,11 @@ import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.EstadoReserva;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,6 +26,16 @@ public class ReservaDALTest {
     private Cliente cliente;
     private Reserva reserva;
     private final List<Reserva> outras = new ArrayList<>();
+
+    @BeforeAll
+    public static void limparRestosDosTestesDoCancelamento() {
+        RestosDosTestes.limpar();
+        try {
+            ConexaoBD.executar("DELETE FROM Reserva WHERE dataEntrada < '1990-01-05' AND clienteId IN "
+                    + "(SELECT id FROM Pessoa WHERE nome LIKE 'Teste [0-9]%')");
+        } catch (DataAccessException e) {
+        }
+    }
 
     @BeforeEach
     public void setUp() {
@@ -132,12 +145,11 @@ public class ReservaDALTest {
 
     @Test
     public void testApagarSemCheckinCancelada() {
-        System.out.println("apagarSemCheckin (cancelada)");
+        System.out.println("apagarSemCheckin (cancelada não apaga, fica no histórico)");
         instance.cancelar(reserva.getId());
-        boolean expResult = true;
+        boolean expResult = false;
         boolean result = instance.apagarSemCheckin(reserva.getId());
         assertEquals(expResult, result);
-        reserva.setId(0);
     }
 
     @Test
@@ -323,11 +335,12 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(reserva.getDataEntrada().atTime(15, 30));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
+        List<Object> expResult = Arrays.asList(true, true);
+        boolean checkin = instance.registarCheckin(reserva);
         reserva.setEstado(EstadoReserva.CONCLUIDA);
         reserva.setCheckoutEm(reserva.getDataSaida().atTime(11, 0));
-        boolean expResult = true;
-        boolean result = instance.registarCheckout(reserva);
+        boolean checkout = instance.registarCheckout(reserva);
+        List<Object> result = Arrays.asList(checkin, checkout);
         assertEquals(expResult, result);
     }
 
@@ -339,6 +352,67 @@ public class ReservaDALTest {
         boolean expResult = false;
         boolean result = instance.registarCheckout(reserva);
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckin() {
+        System.out.println("cancelarSemCheckin (a entrada já passou sem check-in)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva passada = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(passada), "O quarto estava ocupado nessas datas");
+        soAsDoTeste(antiga.plusDays(1), passada);
+        instance.cancelarSemCheckin(antiga.plusDays(1));
+        EstadoReserva expResult = EstadoReserva.CANCELADA;
+        EstadoReserva result = instance.procurarPorId(passada.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinNoProprioDia() {
+        System.out.println("cancelarSemCheckin (no dia de entrada ainda não cancela)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva doDia = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(doDia), "O quarto estava ocupado nessas datas");
+        soAsDoTeste(antiga, doDia);
+        instance.cancelarSemCheckin(antiga);
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.procurarPorId(doDia.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinNaoMexeNasFuturas() {
+        System.out.println("cancelarSemCheckin (as reservas futuras ficam confirmadas)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva passada = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(passada), "O quarto estava ocupado nessas datas");
+        soAsDoTeste(antiga.plusDays(1), passada);
+        instance.cancelarSemCheckin(antiga.plusDays(1));
+        EstadoReserva expResult = EstadoReserva.CONFIRMADA;
+        EstadoReserva result = instance.procurarPorId(reserva.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCancelarSemCheckinComCheckinFeito() {
+        System.out.println("cancelarSemCheckin (com check-in feito não cancela)");
+        LocalDate antiga = LocalDate.of(1990, 1, 1);
+        Reserva emCurso = outraReserva(antiga, antiga.plusDays(2));
+        Assumptions.assumeTrue(instance.inserirSeLivre(emCurso), "O quarto estava ocupado nessas datas");
+        ConexaoBD.executar("UPDATE Reserva SET estado = 'EM_CURSO', checkinEm = '1990-01-01T15:00:00' WHERE id = ?",
+                emCurso.getId());
+        soAsDoTeste(antiga.plusDays(1), emCurso);
+        instance.cancelarSemCheckin(antiga.plusDays(1));
+        EstadoReserva expResult = EstadoReserva.EM_CURSO;
+        EstadoReserva result = instance.procurarPorId(emCurso.getId()).getEstado();
+        assertEquals(expResult, result);
+    }
+
+    private void soAsDoTeste(LocalDate hoje, Reserva doTeste) {
+        int outras = ConexaoBD.select("SELECT COUNT(*) FROM Reserva WHERE estado = 'CONFIRMADA' "
+                + "AND checkinEm IS NULL AND dataEntrada < ? AND id <> ?", new InteiroMapper(),
+                Date.valueOf(hoje), doTeste.getId()).get(0);
+        Assumptions.assumeTrue(outras == 0, "Há reservas antigas que não são do teste e seriam canceladas");
     }
 
     private Reserva outraReserva(LocalDate entrada, LocalDate saida) {
@@ -391,10 +465,10 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(LocalDateTime.now().withNano(0));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
-        Integer expResult = reserva.getId();
+        List<Object> expResult = Arrays.asList(true, reserva.getId());
+        boolean checkin = instance.registarCheckin(reserva);
         Reserva encontrada = instance.procurarEmCursoPorCartao(reserva.getCartao());
-        Integer result = encontrada == null ? null : encontrada.getId();
+        List<Object> result = Arrays.asList(checkin, encontrada == null ? null : encontrada.getId());
         assertEquals(expResult, result);
     }
 
@@ -413,13 +487,14 @@ public class ReservaDALTest {
         reserva.setEstado(EstadoReserva.EM_CURSO);
         reserva.setCheckinEm(LocalDateTime.now().withNano(0));
         reserva.setCartao("C" + reserva.getQuartoNumero());
-        assertEquals(true, instance.registarCheckin(reserva), "O check-in de preparação devia ter sido registado");
+        List<Object> expResult = Arrays.asList(true, true, false);
+        boolean checkin = instance.registarCheckin(reserva);
         reserva.setEstado(EstadoReserva.CONCLUIDA);
         reserva.setCheckoutEm(reserva.getCheckinEm().plusHours(1));
-        assertEquals(true, instance.registarCheckout(reserva), "O check-out de preparação devia ter sido registado");
-        boolean expResult = false;
+        boolean checkout = instance.registarCheckout(reserva);
         Reserva encontrada = instance.procurarEmCursoPorCartao(reserva.getCartao());
-        boolean result = encontrada != null && encontrada.getId() == reserva.getId();
+        boolean emCurso = encontrada != null && encontrada.getId() == reserva.getId();
+        List<Object> result = Arrays.asList(checkin, checkout, emCurso);
         assertEquals(expResult, result);
     }
 }

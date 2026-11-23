@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="10.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.PlantaController">
+    <padding>
+        <Insets top="15.0" right="15.0" bottom="15.0" left="15.0"/>
+    </padding>
+
+    <Label text="Planta do hotel" styleClass="titulo"/>
+    <Label fx:id="instrucaoLabel" wrapText="true"/>
+    <HBox fx:id="escolherCartaoBox" spacing="10.0" alignment="CENTER_LEFT" visible="false" managed="false">
+        <Label text="Cartão:"/>
+        <ComboBox fx:id="cartaoCombo" prefWidth="220.0" onAction="#aoEscolherCartao"/>
+    </HBox>
+    <Label fx:id="cartaoLabel" styleClass="cartao-planta" wrapText="true"/>
+
+    <HBox spacing="15.0" VBox.vgrow="ALWAYS">
+        <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+            <Label fx:id="atalhosTitulo" text="Este cartão abre — um clique regista a passagem"
+                   styleClass="subtitulo-planta"/>
+            <FlowPane fx:id="atalhosBox" hgap="12.0" vgap="12.0"/>
+            <HBox spacing="12.0" VBox.vgrow="ALWAYS">
+                <VBox fx:id="pisosBox" spacing="8.0" alignment="TOP_CENTER"/>
+                <VBox spacing="6.0" styleClass="cartao" HBox.hgrow="ALWAYS">
+                    <BorderPane>
+                        <right><Label fx:id="pisoLabel" styleClass="fachada"/></right>
+                    </BorderPane>
+                    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="planta-scroll">
+                        <StackPane fx:id="plantaBox"/>
+                    </ScrollPane>
+                    <BorderPane>
+                        <right><Label fx:id="legendaLabel" styleClass="legenda-planta"/></right>
+                    </BorderPane>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <VBox spacing="10.0" prefWidth="280.0" minWidth="260.0">
+            <Label fx:id="detalhesLabel" styleClass="cartao" wrapText="true" maxWidth="Infinity"
+                   text="Escolha um quarto na planta." visible="false" managed="false"/>
+            <VBox fx:id="passagensBox" spacing="6.0" styleClass="cartao" VBox.vgrow="ALWAYS">
+                <Label text="As minhas passagens" styleClass="subtitulo-planta"/>
+                <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn text="Local" prefWidth="130.0">
+                            <cellValueFactory><PropertyValueFactory property="localTexto"/></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn text="Data e hora" prefWidth="125.0">
+                            <cellValueFactory><PropertyValueFactory property="registadoEmTexto"/></cellValueFactory>
+                        </TableColumn>
+                    </columns>
+                    <placeholder>
+                        <Label text="Ainda não picou o cartão."/>
+                    </placeholder>
+                </TableView>
+            </VBox>
+        </VBox>
+    </HBox>
+
+    <Label fx:id="mensagemLabel" wrapText="true" maxWidth="900"/>
+</VBox>

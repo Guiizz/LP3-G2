@@ -9,13 +9,18 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.Vista;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Regras de negócio dos quartos: consultar a lista e pesquisar os que estão disponíveis.
+ * Regras de negócio dos quartos: consultar a lista, pesquisar os que estão disponíveis e criar quartos novos.
+ *
  */
 public class QuartoBLL {
     private final IQuartoDAL quartoDAL;
+    private static final int PRIMEIRO_PISO_DE_QUARTOS = 2;
+    private static final int ULTIMO_PISO = 9;
+
 
     /**
      * Cria o serviço ligado à base de dados.
@@ -123,9 +128,90 @@ public class QuartoBLL {
         }
     }
 
+    /**
+     * @return os pisos que têm quartos, por ordem
+     */
+    public List<Integer> listarPisos() {
+        List<Integer> pisos = new ArrayList<>();
+        for (Quarto quarto : quartoDAL.listarComTarifa()) {
+            if (!pisos.contains(quarto.getPiso())) {
+                pisos.add(quarto.getPiso());
+            }
+        }
+        Collections.sort(pisos);
+        return pisos;
+    }
+
+    /**
+     * Cria um quarto novo. A capacidade vem do tipo de quarto.
+     *
+     * @param perfilAtual o perfil de quem está a usar a aplicação
+     * @param numero      o número do quarto, como foi escrito (ex.: 210)
+     * @param piso        o piso, como foi escrito (2 ou 3)
+     * @param tipo        o tipo de quarto
+     * @param vista       a vista
+     * @return o quarto criado
+     * @throws IllegalStateException    se quem cria não for gestor
+     * @throws IllegalArgumentException se algum dado não for válido ou o número já existir
+     */
+    public Quarto criar(Perfil perfilAtual, String numero, String piso, TipoQuarto tipo, Vista vista) {
+        exigirGestor(perfilAtual);
+        int numeroQuarto = lerInteiro(numero, "Indique o número do quarto.", "O número do quarto tem de ser um número inteiro.");
+        int pisoQuarto = lerInteiro(piso, "Indique o piso do quarto.", "O piso tem de ser um número inteiro.");
+        if (pisoQuarto < PRIMEIRO_PISO_DE_QUARTOS || pisoQuarto > ULTIMO_PISO) {
+            throw new IllegalArgumentException("Os quartos ficam do piso " + PRIMEIRO_PISO_DE_QUARTOS + " ao " + ULTIMO_PISO + ": os pisos −1, 0 e 1 são dos serviços do hotel.");
+        }
+        if (numeroQuarto / 100 != pisoQuarto || numeroQuarto % 100 == 0) {
+            throw new IllegalArgumentException("No piso " + pisoQuarto + " o número do quarto vai de "
+                    + pisoQuarto + "01 a " + pisoQuarto + "99 (o número começa pelo piso).");
+        }
+        if (tipo == null) {
+            throw new IllegalArgumentException("Escolha o tipo de quarto.");
+        }
+        if (vista == null) {
+            throw new IllegalArgumentException("Escolha a vista do quarto.");
+        }
+        Quarto quarto = new Quarto(numeroQuarto, pisoQuarto, tipo, vista, tipo.getCapacidade());
+        if (!quartoDAL.inserir(quarto)) {
+            throw new IllegalArgumentException("Já existe um quarto com o número " + numeroQuarto + ".");
+        }
+        return quarto;
+    }
+
+    private static int lerInteiro(String texto, String vazio, String invalido) {
+        String limpo = texto == null ? "" : texto.trim();
+        if (limpo.isEmpty()) {
+            throw new IllegalArgumentException(vazio);
+        }
+        if (!limpo.matches("-?\\d{1,9}")) {
+            throw new IllegalArgumentException(invalido);
+        }
+        return Integer.parseInt(limpo);
+    }
+    /**
+     * Elimina um quarto que nunca foi usado.
+     *
+     * @param perfilAtual o perfil de quem está a usar a aplicação
+     * @param numero      o número do quarto
+     * @throws IllegalStateException    se quem elimina não for gestor
+     * @throws IllegalArgumentException se o quarto já teve reservas ou picagens, ou não existir
+     */
+    public void eliminar(Perfil perfilAtual, int numero) {
+        exigirGestor(perfilAtual);
+        if (quartoDAL.foiUsado(numero)) {
+            throw new IllegalArgumentException("O quarto " + numero
+                    + " já teve reservas ou picagens: não pode ser eliminado, só desativado.");
+        }
+        if (!quartoDAL.apagarSeNuncaUsado(numero)) {
+            throw new IllegalArgumentException("O quarto " + numero + " não existe");
+        }
+    }
+
+
     private void exigirGestor(Perfil perfilAtual) {
         if (perfilAtual != Perfil.GESTOR) {
-            throw new IllegalStateException("Só o gestor pode gerir quartos");        }
+            throw new IllegalStateException("Só o gestor pode gerir quartos");
+        }
     }
 
     private void validarPesquisa(LocalDate entrada, LocalDate saida, int hospedes) {

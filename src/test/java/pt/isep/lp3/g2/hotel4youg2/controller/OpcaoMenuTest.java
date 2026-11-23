@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OpcaoMenuTest {
 
@@ -44,22 +42,25 @@ public class OpcaoMenuTest {
     @Test
     public void testIsFormularioEcraDaArea() {
         System.out.println("isFormulario (ecrã que abre dentro da área)");
+        boolean expResult = false;
         boolean result = ecra.isFormulario();
-        assertFalse(result);
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testIsFormularioPopUp() {
         System.out.println("isFormulario (formulário que abre em pop-up)");
+        boolean expResult = true;
         boolean result = formulario.isFormulario();
-        assertTrue(result);
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testFicheiroExiste() {
         System.out.println("o ficheiro da opção existe");
-        String expResult = "/pt/isep/lp3/g2/hotel4youg2/view/gerir-reservas-view.fxml";
-        String result = Navegador.localizar(ecra.getFicheiro()).getPath();
-        assertTrue(result.endsWith(expResult));
+        boolean expResult = true;
+        boolean result = Navegador.localizar(ecra.getFicheiro()).getPath()
+                .endsWith("/pt/isep/lp3/g2/hotel4youg2/view/gerir-reservas-view.fxml");
+        assertEquals(expResult, result);
     }
 }
