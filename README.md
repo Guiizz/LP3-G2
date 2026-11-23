@@ -34,6 +34,8 @@ Os valores pedem-se a um elemento da equipa. Se o servidor não usar a porta nor
 Corre `mvn test`. O teste `ConexaoBDTest` é ignorado (não falha) quando não há acesso à base de dados.
 Os testes da DAL gravam e apagam dados na base de dados do `.env`. Com o `.env` normal, isso acontece na base de dados da equipa.
 
+Não corras os testes ao mesmo tempo que outra pessoa da equipa: no início, os testes da DAL apagam os restos de testes da base de dados, e podem apagar os dados que os testes da outra pessoa estão a usar.
+
 ## Problemas conhecidos
 - **Erro de SSL ao testar a ligação** ("The driver could not establish a secure connection to SQL Server by using SSL encryption"): acontece com versões recentes do JDK 17, que recusam o TLS antigo do servidor. Se acontecer, avisa a equipa e indica a tua versão de Java (`java -version`, ou **File → Project Structure → SDK** no IntelliJ).
 - **Erro "Module ... not found" ao correr no IntelliJ**: faz **Reload All Maven Projects** e, se continuar, **File → Invalidate Caches → Invalidate and Restart**.

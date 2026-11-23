@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
@@ -10,6 +11,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.MaterialQuarto;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoQuarto;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,6 +27,11 @@ public class ConfiguracaoQuartoDALTest {
     private int fornecedorId;
     private Material toalha;
     private Material champo;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -92,10 +99,11 @@ public class ConfiguracaoQuartoDALTest {
     @Test
     public void testAlterarConsumivel() {
         System.out.println("alterarConsumivel (a toalha passa a não consumível)");
-        boolean alterado = instance.alterarConsumivel(toalha.getId(), false);
+        boolean obtido = instance.alterarConsumivel(toalha.getId(), false);
         toalha.setConsumivel(false);
-        assertEquals(true, alterado);
-        assertEquals(List.of(champo, toalha), osMateriaisDoTeste());
+        List<Object> expResult = Arrays.asList(true, List.of(champo, toalha));
+        List<Object> result = Arrays.asList(obtido, osMateriaisDoTeste());
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -123,18 +131,22 @@ public class ConfiguracaoQuartoDALTest {
         instance.guardar(TipoQuarto.DUPLO, toalha.getId(), 2);
         instance.guardar(TipoQuarto.FAMILIA, toalha.getId(), 4);
         instance.guardar(TipoQuarto.FAMILIA, champo.getId(), 4);
-        assertEquals(List.of(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2)), configuracaoDoTeste(TipoQuarto.DUPLO));
-        assertEquals(List.of(new MaterialQuarto(TipoQuarto.FAMILIA, champo, 4),
-                new MaterialQuarto(TipoQuarto.FAMILIA, toalha, 4)), configuracaoDoTeste(TipoQuarto.FAMILIA));
+        List<MaterialQuarto> esperado = List.of(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2));
+        List<MaterialQuarto> obtido = configuracaoDoTeste(TipoQuarto.DUPLO);
+        List<Object> expResult = Arrays.asList(esperado,
+                List.of(new MaterialQuarto(TipoQuarto.FAMILIA, champo, 4), new MaterialQuarto(TipoQuarto.FAMILIA, toalha, 4)));
+        List<Object> result = Arrays.asList(obtido, configuracaoDoTeste(TipoQuarto.FAMILIA));
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testRemover() {
         System.out.println("remover (tira as toalhas do quarto duplo)");
         instance.guardar(TipoQuarto.DUPLO, toalha.getId(), 2);
-        boolean removido = instance.remover(TipoQuarto.DUPLO, toalha.getId());
-        assertEquals(true, removido);
-        assertEquals(new ArrayList<MaterialQuarto>(), configuracaoDoTeste(TipoQuarto.DUPLO));
+        List<Object> expResult = Arrays.asList(true, new ArrayList<MaterialQuarto>());
+        List<Object> result = Arrays.asList(instance.remover(TipoQuarto.DUPLO, toalha.getId()),
+                configuracaoDoTeste(TipoQuarto.DUPLO));
+        assertEquals(expResult, result);
     }
 
     @Test

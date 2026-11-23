@@ -389,16 +389,6 @@ public class AcessoCartaoBLLTest {
                 servico.getPreco(), null));
     }
 
-    private void esperarRecusa(String cartao, LocalHotel local, int quarto, String expResult) {
-        try {
-            instance.registarPassagem(RECECAO, cartao, local, quarto);
-            fail("Devia ter recusado o acesso");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, acessoDAL.registados.size());
-        }
-    }
-
     @Test
     public void testRegistarPassagemNoProprioQuarto() {
         System.out.println("registarPassagem (o cartão abre o seu quarto)");
@@ -425,12 +415,6 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testRegistarPassagemNoutroQuarto() {
-        System.out.println("registarPassagem (o cartão não abre outro quarto)");
-        esperarRecusa("C201", LocalHotel.QUARTO, 202, "Acesso recusado: o cartão C201 só abre o quarto 201.");
-    }
-
-    @Test
     public void testRegistarPassagemRestauranteComRefeicao() {
         System.out.println("registarPassagem (restaurante com refeição na reserva)");
         juntarExtra(JANTAR);
@@ -440,33 +424,12 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testRegistarPassagemRestauranteSemRefeicao() {
-        System.out.println("registarPassagem (restaurante sem refeição na reserva)");
-        juntarExtra(PISCINA);
-        esperarRecusa("C201", LocalHotel.RESTAURANTE, 0,
-                "Acesso recusado: a reserva do cartão C201 não inclui refeições no restaurante.");
-    }
-
-    @Test
     public void testRegistarPassagemPiscinaComExtra() {
         System.out.println("registarPassagem (piscina incluída na reserva)");
         juntarExtra(PISCINA);
         AcessoCartao expResult = new AcessoCartao(1, "C201", LocalHotel.PISCINA, 0, 30, acessoDAL.agora);
         AcessoCartao result = instance.registarPassagem(RECECAO, "C201", LocalHotel.PISCINA, 0);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testRegistarPassagemPiscinaSoComGinasio() {
-        System.out.println("registarPassagem (o ginásio não dá acesso à piscina)");
-        juntarExtra(GINASIO);
-        esperarRecusa("C201", LocalHotel.PISCINA, 0, "Acesso recusado: a reserva do cartão C201 não inclui a piscina.");
-    }
-
-    @Test
-    public void testRegistarPassagemPiscinaSemExtras() {
-        System.out.println("registarPassagem (piscina sem extras na reserva)");
-        esperarRecusa("C201", LocalHotel.PISCINA, 0, "Acesso recusado: a reserva do cartão C201 não inclui a piscina.");
     }
 
     @Test
@@ -494,70 +457,6 @@ public class AcessoCartaoBLLTest {
                 acessoDAL.agora);
         AcessoCartao result = instance.registarPassagem(RECECAO, "C000", LocalHotel.PISCINA, 0);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testRegistarPassagemCartaoMestreQuartoQueNaoExiste() {
-        System.out.println("registarPassagem (cartão mestre num quarto que não existe)");
-        String expResult = "O quarto 999 não existe.";
-        try {
-            instance.registarPassagem(RECECAO, "C000", LocalHotel.QUARTO, 999);
-            fail("Devia ter recusado um quarto que não existe");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, acessoDAL.registados.size());
-        }
-    }
-
-    @Test
-    public void testRegistarPassagemCartaoInvalido() {
-        System.out.println("registarPassagem (cartão sem reserva em curso)");
-        esperarRecusa("C999", LocalHotel.QUARTO, 201,
-                "Acesso recusado: o cartão C999 não é válido ou é de uma reserva que já não está em curso.");
-    }
-
-    @Test
-    public void testRegistarPassagemReservaTerminada() {
-        System.out.println("registarPassagem (reserva já fez check-out)");
-        reservaDAL.emCurso = null;
-        esperarRecusa("C201", LocalHotel.QUARTO, 201,
-                "Acesso recusado: o cartão C201 não é válido ou é de uma reserva que já não está em curso.");
-    }
-
-    @Test
-    public void testRegistarPassagemSemCartao() {
-        System.out.println("registarPassagem (sem cartão)");
-        String expResult = "Escreva o número do cartão.";
-        try {
-            instance.registarPassagem(RECECAO, "  ", LocalHotel.QUARTO, 201);
-            fail("Devia ter pedido o cartão");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testRegistarPassagemSemLocal() {
-        System.out.println("registarPassagem (sem local)");
-        String expResult = "Escolha o local.";
-        try {
-            instance.registarPassagem(RECECAO, "C201", null, 0);
-            fail("Devia ter pedido o local");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testRegistarPassagemQuartoSemNumero() {
-        System.out.println("registarPassagem (quarto sem número)");
-        String expResult = "Indique o número do quarto.";
-        try {
-            instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 0);
-            fail("Devia ter pedido o número do quarto");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
     }
 
     @Test
@@ -657,54 +556,6 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testConsultarQuartoComLetras() {
-        System.out.println("consultar (quarto com letras)");
-        String expResult = "O quarto tem de ser um número inteiro, por exemplo 201.";
-        try {
-            instance.consultar(GESTOR, "", "abc", null, null);
-            fail("Devia ter recusado letras");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testConsultarQuartoZero() {
-        System.out.println("consultar (quarto 0)");
-        String expResult = "O quarto tem de ser um número inteiro, por exemplo 201.";
-        try {
-            instance.consultar(GESTOR, "", "0", null, null);
-            fail("Devia ter recusado o quarto 0");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testConsultarRececionista() {
-        System.out.println("consultar (só o gestor)");
-        int expResult = 0;
-        try {
-            instance.consultar(RECECAO, "", "", null, null);
-            fail("Devia ter recusado a rececionista");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, acessoDAL.consultas);
-        }
-    }
-
-    @Test
-    public void testConsultarSemSessao() {
-        System.out.println("consultar (sem sessão iniciada)");
-        int expResult = 0;
-        try {
-            instance.consultar(null, "", "", null, null);
-            fail("Devia ter exigido a sessão");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, acessoDAL.consultas);
-        }
-    }
-
-    @Test
     public void testGetReservaTextoDoHospede() {
         System.out.println("getReservaTexto (hóspede)");
         AcessoCartao acesso = instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
@@ -720,24 +571,6 @@ public class AcessoCartaoBLLTest {
         String expResult = "-";
         String result = acesso.getReservaTexto();
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testRegistarPassagemSemSessao() {
-        System.out.println("registarPassagem (sem sessão iniciada)");
-        String expResult = "Entre na aplicação para registar a passagem de cartões.";
-        try {
-            instance.registarPassagem(null, "C201", LocalHotel.QUARTO, 201);
-            fail("Devia ter exigido a sessão");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    private AcessoCartao picagemDaAna(LocalHotel local) {
-        AcessoCartao picagem = new AcessoCartao(1, "F12", local, 0, 0, acessoDAL.agora);
-        picagem.setFuncionario(7, "Ana Silva");
-        return picagem;
     }
 
     @Test
@@ -781,64 +614,11 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testRegistarPassagemFuncionarioNaGaragem() {
-        System.out.println("registarPassagem (o cartão do funcionário não abre a garagem, no piso -1)");
-        esperarRecusa("F12", LocalHotel.GARAGEM, 0, SO_PISOS_0_E_1);
-    }
-
-    @Test
-    public void testRegistarPassagemFuncionarioNoArmazem() {
-        System.out.println("registarPassagem (o cartão do funcionário não abre o armazém, no piso -1)");
-        esperarRecusa("F12", LocalHotel.ARMAZEM, 0, SO_PISOS_0_E_1);
-    }
-
-    @Test
-    public void testRegistarPassagemFuncionarioNoQuarto() {
-        System.out.println("registarPassagem (o cartão do funcionário não abre os quartos)");
-        esperarRecusa("F12", LocalHotel.QUARTO, 201, SO_PISOS_0_E_1);
-    }
-
-    @Test
-    public void testRegistarPassagemFuncionarioNoQuartoSemNumero() {
-        System.out.println("registarPassagem (o funcionário é recusado no quarto mesmo sem o número)");
-        esperarRecusa("F12", LocalHotel.QUARTO, 0, SO_PISOS_0_E_1);
-    }
-
-    @Test
     public void testRegistarPassagemFuncionarioAceitaMinusculasEEspacos() {
         System.out.println("registarPassagem (minúsculas e espaços no cartão do funcionário)");
         AcessoCartao expResult = picagemDaAna(LocalHotel.BAR);
         AcessoCartao result = instance.registarPassagem(RECECAO, "  f12 ", LocalHotel.BAR, 0);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testRegistarPassagemFuncionarioQueNaoExiste() {
-        System.out.println("registarPassagem (cartão de um funcionário que não existe)");
-        esperarRecusa("F99", LocalHotel.BAR, 0, "Acesso recusado: o cartão F99 não é de nenhum funcionário.");
-    }
-
-    @Test
-    public void testRegistarPassagemFuncionarioComContaDesativada() {
-        System.out.println("registarPassagem (o cartão de uma conta desativada não abre nada)");
-        funcionarioDAL.contaAtiva = false;
-        esperarRecusa("F12", LocalHotel.BAR, 0,
-                "Acesso recusado: o cartão F12 é de um funcionário com a conta desativada.");
-    }
-
-    @Test
-    public void testRegistarPassagemFuncionarioComContaDesativadaNaGaragem() {
-        System.out.println("registarPassagem (com a conta desativada, o motivo é a conta e não o piso)");
-        funcionarioDAL.contaAtiva = false;
-        esperarRecusa("F12", LocalHotel.GARAGEM, 0,
-                "Acesso recusado: o cartão F12 é de um funcionário com a conta desativada.");
-    }
-
-    @Test
-    public void testRegistarPassagemCartaoComZeroAEsquerda() {
-        System.out.println("registarPassagem (F012 não é o cartão do funcionário 12)");
-        esperarRecusa("F012", LocalHotel.BAR, 0,
-                "Acesso recusado: o cartão F012 não é válido ou é de uma reserva que já não está em curso.");
     }
 
     @Test
@@ -889,42 +669,11 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testRegistarPassagemClienteNoBar() {
-        System.out.println("registarPassagem (o cartão de um cliente não abre o bar)");
-        esperarRecusa("C201", LocalHotel.BAR, 0, SO_QUARTO_RESTAURANTE_E_PISCINA);
-    }
-
-    @Test
-    public void testRegistarPassagemClienteNaGaragem() {
-        System.out.println("registarPassagem (o cartão de um cliente não abre a garagem)");
-        esperarRecusa("C201", LocalHotel.GARAGEM, 0, SO_QUARTO_RESTAURANTE_E_PISCINA);
-    }
-
-    @Test
-    public void testRegistarPassagemClienteNaCozinhaComRefeicao() {
-        System.out.println("registarPassagem (a refeição na reserva não abre a cozinha)");
-        juntarExtra(JANTAR);
-        esperarRecusa("C201", LocalHotel.COZINHA, 0, SO_QUARTO_RESTAURANTE_E_PISCINA);
-    }
-
-    @Test
     public void testListarCartoesUsados() {
         System.out.println("listarCartoesUsados (cartões com acessos, com o titular)");
         List<CartaoAtivo> expResult = List.of(new CartaoAtivo("C201", "Rui Costa"), new CartaoAtivo("F12", "Ana Silva"));
         List<CartaoAtivo> result = instance.listarCartoesUsados(GESTOR);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testListarCartoesUsadosRececionista() {
-        System.out.println("listarCartoesUsados (só o gestor)");
-        int expResult = 0;
-        try {
-            instance.listarCartoesUsados(RECECAO);
-            fail("Devia ter recusado a rececionista");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, acessoDAL.consultas);
-        }
     }
 
     @Test
@@ -944,36 +693,18 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testCartaoDoUtilizadorSemSessao() {
-        System.out.println("cartaoDoUtilizador (sem sessão iniciada)");
-        String expResult = "Entre na aplicação para usar o seu cartão.";
-        try {
-            instance.cartaoDoUtilizador(null);
-            fail("Devia ter exigido a sessão");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCartaoDoUtilizadorSemFuncionario() {
-        System.out.println("cartaoDoUtilizador (conta sem funcionário)");
-        String expResult = "A sua conta não tem um cartão de funcionário.";
-        try {
-            instance.cartaoDoUtilizador(SEM_FUNCIONARIO);
-            fail("Devia ter avisado que não há cartão");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
     public void testLocaisDoCartaoFuncionario() {
         System.out.println("locaisDoCartao (o funcionário só vê os locais dos pisos 0 e 1)");
         List<LocalHotel> expResult = List.of(LocalHotel.BAR, LocalHotel.SALA_CONFERENCIAS, LocalHotel.RESTAURANTE,
                 LocalHotel.PISCINA, LocalHotel.COZINHA);
         List<LocalHotel> result = instance.locaisDoCartao(RECECAO);
         assertEquals(expResult, result);
+    }
+
+    private AcessoCartao picagemDaAna(LocalHotel local) {
+        AcessoCartao picagem = new AcessoCartao(1, "F12", local, 0, 0, acessoDAL.agora);
+        picagem.setFuncionario(7, "Ana Silva");
+        return picagem;
     }
 
     @Test
@@ -1002,30 +733,6 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testPicarFuncionarioForaDosPisos() {
-        System.out.println("picar (o funcionário não abre a garagem)");
-        String expResult = SO_PISOS_0_E_1;
-        try {
-            instance.picar(RECECAO, LocalHotel.GARAGEM, 0);
-            fail("Devia ter recusado o acesso");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testPicarSemSessao() {
-        System.out.println("picar (sem sessão iniciada)");
-        int expResult = 0;
-        try {
-            instance.picar(null, LocalHotel.BAR, 0);
-            fail("Devia ter exigido a sessão");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, acessoDAL.registados.size());
-        }
-    }
-
-    @Test
     public void testListarAsMinhasPassagens() {
         System.out.println("listarAsMinhasPassagens (só as passagens de quem tem a sessão)");
         AcessoCartao minha = instance.picar(RECECAO, LocalHotel.BAR, 0);
@@ -1033,32 +740,6 @@ public class AcessoCartaoBLLTest {
         List<AcessoCartao> expResult = List.of(minha);
         List<AcessoCartao> result = instance.listarAsMinhasPassagens(RECECAO);
         assertEquals(expResult, result);
-    }
-
-    private static final ContaCliente RUI = new ContaCliente(5, 15, "123456789", "Rui Costa", "h", "s", false);
-    private static final ContaCliente SEM_RESERVAS = new ContaCliente(6, 16, "987654321", "Eva Lima", "h", "s", false);
-
-    private AcessoCartao doRui(LocalHotel local, int quarto) {
-        return new AcessoCartao(1, "C201", local, quarto, 30, acessoDAL.agora);
-    }
-
-    private void esperarRecusaDoCliente(ContaCliente conta, LocalPicagem local, String expResult) {
-        try {
-            instance.picarComoCliente(conta, local);
-            fail("Devia ter recusado o acesso");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, acessoDAL.registados.size());
-        }
-    }
-
-    private Reserva segundaReservaDoRui() {
-        LocalDate hoje = LocalDate.now();
-        Reserva segunda = new Reserva(31, 15, 202, hoje, hoje.plusDays(3), 2, EstadoReserva.EM_CURSO,
-                new BigDecimal("450.00"), hoje.atTime(15, 0), null);
-        segunda.setCartao("C202");
-        reservaDAL.outraEmCurso = segunda;
-        return segunda;
     }
 
     @Test
@@ -1114,93 +795,11 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testPicarComoClienteCartaoEscolhidoNoutroQuarto() {
-        System.out.println("picarComoCliente (o cartão escolhido usa as regras da sua reserva)");
-        Reserva segunda = segundaReservaDoRui();
-        String expResult = "Acesso recusado: o cartão C202 só abre o quarto 202.";
-        try {
-            instance.picarComoCliente(RUI, segunda, LocalPicagem.quarto(201));
-            fail("Devia ter recusado o acesso");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, acessoDAL.registados.size());
-        }
-    }
-
-    @Test
-    public void testPicarComoClienteCartaoEscolhidoSemPiscina() {
-        System.out.println("picarComoCliente (a piscina da primeira reserva não serve ao segundo cartão)");
-        juntarExtra(PISCINA);
-        Reserva segunda = segundaReservaDoRui();
-        String expResult = "Acesso recusado: a reserva do cartão C202 não inclui a piscina.";
-        try {
-            instance.picarComoCliente(RUI, segunda, new LocalPicagem(LocalHotel.PISCINA, 0));
-            fail("Devia ter recusado o acesso");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testPicarComoClienteDuasReservasSemEscolher() {
-        System.out.println("picarComoCliente (com duas reservas tem de escolher o cartão)");
-        segundaReservaDoRui();
-        String expResult = "Tem mais do que uma reserva em curso: escolha o cartão.";
-        try {
-            instance.picarComoCliente(RUI, LocalPicagem.quarto(201));
-            fail("Devia ter pedido o cartão");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testPicarComoClienteCartaoDeOutraPessoa() {
-        System.out.println("picarComoCliente (não pode usar o cartão de outra pessoa)");
-        LocalDate hoje = LocalDate.now();
-        Reserva deOutro = new Reserva(40, 99, 305, hoje, hoje.plusDays(1), 1, EstadoReserva.EM_CURSO,
-                new BigDecimal("120.00"), hoje.atTime(15, 0), null);
-        deOutro.setCartao("C305");
-        String expResult = "Acesso recusado: o cartão C305 não é de uma reserva sua em curso.";
-        try {
-            instance.picarComoCliente(RUI, deOutro, LocalPicagem.quarto(305));
-            fail("Devia ter recusado o cartão");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, acessoDAL.registados.size());
-        }
-    }
-
-    @Test
     public void testPicarComoClienteNoProprioQuarto() {
         System.out.println("picarComoCliente (o C201 entra no quarto 201, com a reserva)");
         AcessoCartao expResult = doRui(LocalHotel.QUARTO, 201);
         AcessoCartao result = instance.picarComoCliente(RUI, LocalPicagem.quarto(201));
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPicarComoClienteNoutroQuarto() {
-        System.out.println("picarComoCliente (o C201 é recusado no quarto 202)");
-        esperarRecusaDoCliente(RUI, LocalPicagem.quarto(202), "Acesso recusado: o cartão C201 só abre o quarto 201.");
-    }
-
-    @Test
-    public void testPicarComoClienteNoQuarto305() {
-        System.out.println("picarComoCliente (o C201 é recusado no quarto 305)");
-        esperarRecusaDoCliente(RUI, LocalPicagem.quarto(305), "Acesso recusado: o cartão C201 só abre o quarto 201.");
-    }
-
-    @Test
-    public void testPicarComoClienteQuartoQueNaoExiste() {
-        System.out.println("picarComoCliente (quarto que não existe)");
-        String expResult = "O quarto 999 não existe.";
-        try {
-            instance.picarComoCliente(RUI, LocalPicagem.quarto(999));
-            fail("Devia ter recusado o quarto");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
     }
 
     @Test
@@ -1213,69 +812,12 @@ public class AcessoCartaoBLLTest {
     }
 
     @Test
-    public void testPicarComoClientePiscinaForaDaReserva() {
-        System.out.println("picarComoCliente (sem a piscina na reserva)");
-        esperarRecusaDoCliente(RUI, new LocalPicagem(LocalHotel.PISCINA, 0),
-                "Acesso recusado: a reserva do cartão C201 não inclui a piscina.");
-    }
-
-    @Test
     public void testPicarComoClienteRestauranteComRefeicao() {
         System.out.println("picarComoCliente (restaurante com refeição na reserva)");
         juntarExtra(JANTAR);
         AcessoCartao expResult = doRui(LocalHotel.RESTAURANTE, 0);
         AcessoCartao result = instance.picarComoCliente(RUI, new LocalPicagem(LocalHotel.RESTAURANTE, 0));
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPicarComoClienteRestauranteSemRefeicao() {
-        System.out.println("picarComoCliente (restaurante sem refeições na reserva)");
-        esperarRecusaDoCliente(RUI, new LocalPicagem(LocalHotel.RESTAURANTE, 0),
-                "Acesso recusado: a reserva do cartão C201 não inclui refeições no restaurante.");
-    }
-
-    @Test
-    public void testPicarComoClienteNoBar() {
-        System.out.println("picarComoCliente (o cliente não entra no bar)");
-        esperarRecusaDoCliente(RUI, new LocalPicagem(LocalHotel.BAR, 0), SO_QUARTO_RESTAURANTE_E_PISCINA);
-    }
-
-    @Test
-    public void testPicarComoClienteSemReservaEmCurso() {
-        System.out.println("picarComoCliente (sem reserva em curso não há cartão)");
-        esperarRecusaDoCliente(SEM_RESERVAS, LocalPicagem.quarto(201), AcessoCartaoBLL.SEM_RESERVA_EM_CURSO);
-    }
-
-    @Test
-    public void testPicarComoClienteDepoisDoCheckout() {
-        System.out.println("picarComoCliente (depois do check-out)");
-        reservaDAL.emCurso.setEstado(EstadoReserva.CONCLUIDA);
-        esperarRecusaDoCliente(RUI, LocalPicagem.quarto(201), AcessoCartaoBLL.SEM_RESERVA_EM_CURSO);
-    }
-
-    @Test
-    public void testPicarComoClienteSemLocal() {
-        System.out.println("picarComoCliente (sem local)");
-        String expResult = "Escolha o local.";
-        try {
-            instance.picarComoCliente(RUI, null);
-            fail("Devia ter pedido o local");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testPicarComoClienteSemConta() {
-        System.out.println("picarComoCliente (sem conta)");
-        String expResult = "Entre na sua conta para usar o cartão.";
-        try {
-            instance.picarComoCliente(null, LocalPicagem.quarto(201));
-            fail("Devia ter exigido a conta");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
     }
 
     @Test
@@ -1311,26 +853,6 @@ public class AcessoCartaoBLLTest {
         assertEquals(expResult, result);
     }
 
-    private static final Utilizador RESTAURACAO = new Utilizador(5, 9, "rita", "h", "s", Perfil.RESTAURACAO, true);
-    private static final String SO_COZINHA_E_RESTAURANTE =
-            "Acesso recusado: o cartão R13 é da restauração e só abre a cozinha e o restaurante.";
-
-    private AcessoCartao picagemDaRita(LocalHotel local) {
-        AcessoCartao picagem = new AcessoCartao(1, "R13", local, 0, 0, acessoDAL.agora);
-        picagem.setFuncionario(9, "Rita Sousa");
-        return picagem;
-    }
-
-    private void esperarRecusaDaRestauracao(LocalHotel local, int quarto, String expResult) {
-        try {
-            instance.picar(RESTAURACAO, local, quarto);
-            fail("Devia ter recusado o acesso");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, acessoDAL.registados.size());
-        }
-    }
-
     @Test
     public void testCartaoDoUtilizadorRestauracao() {
         System.out.println("cartaoDoUtilizador (a restauração tem o cartão R e o número)");
@@ -1353,50 +875,6 @@ public class AcessoCartaoBLLTest {
         AcessoCartao expResult = picagemDaRita(LocalHotel.RESTAURANTE);
         AcessoCartao result = instance.picar(RESTAURACAO, LocalHotel.RESTAURANTE, 0);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPicarRestauracaoNoBar() {
-        System.out.println("picar (a restauração é recusada no bar, mesmo no piso 0)");
-        esperarRecusaDaRestauracao(LocalHotel.BAR, 0, SO_COZINHA_E_RESTAURANTE);
-    }
-
-    @Test
-    public void testPicarRestauracaoNaPiscina() {
-        System.out.println("picar (a restauração é recusada na piscina, mesmo no piso 1)");
-        esperarRecusaDaRestauracao(LocalHotel.PISCINA, 0, SO_COZINHA_E_RESTAURANTE);
-    }
-
-    @Test
-    public void testPicarRestauracaoNoArmazem() {
-        System.out.println("picar (a restauração é recusada no armazém)");
-        esperarRecusaDaRestauracao(LocalHotel.ARMAZEM, 0, SO_COZINHA_E_RESTAURANTE);
-    }
-
-    @Test
-    public void testPicarRestauracaoNumQuarto() {
-        System.out.println("picar (a restauração é recusada nos quartos)");
-        esperarRecusaDaRestauracao(LocalHotel.QUARTO, 201, SO_COZINHA_E_RESTAURANTE);
-    }
-
-    @Test
-    public void testPicarRestauracaoComContaDesativada() {
-        System.out.println("picar (conta da restauração desativada)");
-        funcionarioDAL.contaDaRitaAtiva = false;
-        esperarRecusaDaRestauracao(LocalHotel.COZINHA, 0,
-                "Acesso recusado: o cartão R13 é de um funcionário com a conta desativada.");
-    }
-
-    @Test
-    public void testCartaoFDeUmFuncionarioDaRestauracao() {
-        System.out.println("registarPassagem (o funcionário da restauração não tem cartão F)");
-        esperarRecusa("F13", LocalHotel.COZINHA, 0, "Acesso recusado: o cartão F13 não é de nenhum funcionário.");
-    }
-
-    @Test
-    public void testCartaoRDeUmFuncionarioDaRececao() {
-        System.out.println("registarPassagem (um funcionário da receção não tem cartão R)");
-        esperarRecusa("R12", LocalHotel.COZINHA, 0, "Acesso recusado: o cartão R12 não é de nenhum funcionário.");
     }
 
     @Test
@@ -1429,7 +907,729 @@ public class AcessoCartaoBLLTest {
     @Test
     public void testLocaisQueAbreSemReserva() {
         System.out.println("locaisQueAbre (sem reserva em curso: nenhum)");
+        List<LocalPicagem> expResult = new ArrayList<>();
         List<LocalPicagem> result = instance.locaisQueAbre(SEM_RESERVAS, null);
-        assertTrue(result.isEmpty());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarPassagemNoutroQuarto() {
+        System.out.println("registarPassagem (o cartão não abre outro quarto)");
+        String expResult = "Acesso recusado: o cartão C201 só abre o quarto 201. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 202);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemRestauranteSemRefeicao() {
+        System.out.println("registarPassagem (restaurante sem refeição na reserva)");
+        juntarExtra(PISCINA);
+        String expResult = "Acesso recusado: a reserva do cartão C201 não inclui refeições no restaurante. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.RESTAURANTE, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemPiscinaSoComGinasio() {
+        System.out.println("registarPassagem (o ginásio não dá acesso à piscina)");
+        juntarExtra(GINASIO);
+        String expResult = "Acesso recusado: a reserva do cartão C201 não inclui a piscina. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.PISCINA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemPiscinaSemExtras() {
+        System.out.println("registarPassagem (piscina sem extras na reserva)");
+        String expResult = "Acesso recusado: a reserva do cartão C201 não inclui a piscina. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.PISCINA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemCartaoMestreQuartoQueNaoExiste() {
+        System.out.println("registarPassagem (cartão mestre num quarto que não existe)");
+        String expResult = "O quarto 999 não existe. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C000", LocalHotel.QUARTO, 999);
+            fail("Devia ter recusado um quarto que não existe");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemCartaoInvalido() {
+        System.out.println("registarPassagem (cartão sem reserva em curso)");
+        String expResult = "Acesso recusado: o cartão C999 não é válido ou é de uma reserva que já não está em curso. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C999", LocalHotel.QUARTO, 201);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String obtido = expected.getMessage();
+            String result = obtido + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemReservaTerminada() {
+        System.out.println("registarPassagem (reserva já fez check-out)");
+        reservaDAL.emCurso = null;
+        String expResult = "Acesso recusado: o cartão C201 não é válido ou é de uma reserva que já não está em curso. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 201);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String obtido = expected.getMessage();
+            String result = obtido + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemSemCartao() {
+        System.out.println("registarPassagem (sem cartão)");
+        String expResult = "Escreva o número do cartão.";
+        try {
+            instance.registarPassagem(RECECAO, "  ", LocalHotel.QUARTO, 201);
+            fail("Devia ter pedido o cartão");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemSemLocal() {
+        System.out.println("registarPassagem (sem local)");
+        String expResult = "Escolha o local.";
+        try {
+            instance.registarPassagem(RECECAO, "C201", null, 0);
+            fail("Devia ter pedido o local");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemQuartoSemNumero() {
+        System.out.println("registarPassagem (quarto sem número)");
+        String expResult = "Indique o número do quarto.";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.QUARTO, 0);
+            fail("Devia ter pedido o número do quarto");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testConsultarQuartoComLetras() {
+        System.out.println("consultar (quarto com letras)");
+        String expResult = "O quarto tem de ser um número inteiro, por exemplo 201.";
+        try {
+            instance.consultar(GESTOR, "", "abc", null, null);
+            fail("Devia ter recusado letras");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testConsultarQuartoZero() {
+        System.out.println("consultar (quarto 0)");
+        String expResult = "O quarto tem de ser um número inteiro, por exemplo 201.";
+        try {
+            instance.consultar(GESTOR, "", "0", null, null);
+            fail("Devia ter recusado o quarto 0");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    private static final ContaCliente RUI = new ContaCliente(5, 15, "123456789", "Rui Costa", "h", "s", false);
+    private static final ContaCliente SEM_RESERVAS = new ContaCliente(6, 16, "987654321", "Eva Lima", "h", "s", false);
+
+    private AcessoCartao doRui(LocalHotel local, int quarto) {
+        return new AcessoCartao(1, "C201", local, quarto, 30, acessoDAL.agora);
+    }
+
+    private Reserva segundaReservaDoRui() {
+        LocalDate hoje = LocalDate.now();
+        Reserva segunda = new Reserva(31, 15, 202, hoje, hoje.plusDays(3), 2, EstadoReserva.EM_CURSO,
+                new BigDecimal("450.00"), hoje.atTime(15, 0), null);
+        segunda.setCartao("C202");
+        reservaDAL.outraEmCurso = segunda;
+        return segunda;
+    }
+
+    @Test
+    public void testConsultarRececionista() {
+        System.out.println("consultar (só o gestor)");
+        int expResult = 0;
+        try {
+            instance.consultar(RECECAO, "", "", null, null);
+            fail("Devia ter recusado a rececionista");
+        } catch (IllegalStateException expected) {
+            int result = acessoDAL.consultas;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testConsultarSemSessao() {
+        System.out.println("consultar (sem sessão iniciada)");
+        int expResult = 0;
+        try {
+            instance.consultar(null, "", "", null, null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            int result = acessoDAL.consultas;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemSemSessao() {
+        System.out.println("registarPassagem (sem sessão iniciada)");
+        String expResult = "Entre na aplicação para registar a passagem de cartões.";
+        try {
+            instance.registarPassagem(null, "C201", LocalHotel.QUARTO, 201);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNaGaragem() {
+        System.out.println("registarPassagem (o cartão do funcionário não abre a garagem, no piso -1)");
+        String expResult = SO_PISOS_0_E_1 + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F12", LocalHotel.GARAGEM, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoArmazem() {
+        System.out.println("registarPassagem (o cartão do funcionário não abre o armazém, no piso -1)");
+        String expResult = SO_PISOS_0_E_1 + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F12", LocalHotel.ARMAZEM, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoQuarto() {
+        System.out.println("registarPassagem (o cartão do funcionário não abre os quartos)");
+        String expResult = SO_PISOS_0_E_1 + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F12", LocalHotel.QUARTO, 201);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioNoQuartoSemNumero() {
+        System.out.println("registarPassagem (o funcionário é recusado no quarto mesmo sem o número)");
+        String expResult = SO_PISOS_0_E_1 + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F12", LocalHotel.QUARTO, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioQueNaoExiste() {
+        System.out.println("registarPassagem (cartão de um funcionário que não existe)");
+        String expResult = "Acesso recusado: o cartão F99 não é de nenhum funcionário. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F99", LocalHotel.BAR, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioComContaDesativada() {
+        System.out.println("registarPassagem (o cartão de uma conta desativada não abre nada)");
+        funcionarioDAL.contaAtiva = false;
+        String expResult = "Acesso recusado: o cartão F12 é de um funcionário com a conta desativada. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F12", LocalHotel.BAR, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemFuncionarioComContaDesativadaNaGaragem() {
+        System.out.println("registarPassagem (com a conta desativada, o motivo é a conta e não o piso)");
+        funcionarioDAL.contaAtiva = false;
+        String expResult = "Acesso recusado: o cartão F12 é de um funcionário com a conta desativada. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F12", LocalHotel.GARAGEM, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemCartaoComZeroAEsquerda() {
+        System.out.println("registarPassagem (F012 não é o cartão do funcionário 12)");
+        String expResult = "Acesso recusado: o cartão F012 não é válido ou é de uma reserva que já não está em curso. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F012", LocalHotel.BAR, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String obtido = expected.getMessage();
+            String result = obtido + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemClienteNoBar() {
+        System.out.println("registarPassagem (o cartão de um cliente não abre o bar)");
+        String expResult = SO_QUARTO_RESTAURANTE_E_PISCINA + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.BAR, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemClienteNaGaragem() {
+        System.out.println("registarPassagem (o cartão de um cliente não abre a garagem)");
+        String expResult = SO_QUARTO_RESTAURANTE_E_PISCINA + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.GARAGEM, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarPassagemClienteNaCozinhaComRefeicao() {
+        System.out.println("registarPassagem (a refeição na reserva não abre a cozinha)");
+        juntarExtra(JANTAR);
+        String expResult = SO_QUARTO_RESTAURANTE_E_PISCINA + " / 0";
+        try {
+            instance.registarPassagem(RECECAO, "C201", LocalHotel.COZINHA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testListarCartoesUsadosRececionista() {
+        System.out.println("listarCartoesUsados (só o gestor)");
+        int expResult = 0;
+        try {
+            instance.listarCartoesUsados(RECECAO);
+            fail("Devia ter recusado a rececionista");
+        } catch (IllegalStateException expected) {
+            int result = acessoDAL.consultas;
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCartaoDoUtilizadorSemSessao() {
+        System.out.println("cartaoDoUtilizador (sem sessão iniciada)");
+        String expResult = "Entre na aplicação para usar o seu cartão.";
+        try {
+            instance.cartaoDoUtilizador(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCartaoDoUtilizadorSemFuncionario() {
+        System.out.println("cartaoDoUtilizador (conta sem funcionário)");
+        String expResult = "A sua conta não tem um cartão de funcionário.";
+        try {
+            instance.cartaoDoUtilizador(SEM_FUNCIONARIO);
+            fail("Devia ter avisado que não há cartão");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarFuncionarioForaDosPisos() {
+        System.out.println("picar (o funcionário não abre a garagem)");
+        String expResult = SO_PISOS_0_E_1;
+        try {
+            instance.picar(RECECAO, LocalHotel.GARAGEM, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarSemSessao() {
+        System.out.println("picar (sem sessão iniciada)");
+        int expResult = 0;
+        try {
+            instance.picar(null, LocalHotel.BAR, 0);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            int result = acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteCartaoEscolhidoNoutroQuarto() {
+        System.out.println("picarComoCliente (o cartão escolhido usa as regras da sua reserva)");
+        Reserva segunda = segundaReservaDoRui();
+        String expResult = "Acesso recusado: o cartão C202 só abre o quarto 202. / 0";
+        try {
+            instance.picarComoCliente(RUI, segunda, LocalPicagem.quarto(201));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteCartaoEscolhidoSemPiscina() {
+        System.out.println("picarComoCliente (a piscina da primeira reserva não serve ao segundo cartão)");
+        juntarExtra(PISCINA);
+        Reserva segunda = segundaReservaDoRui();
+        String expResult = "Acesso recusado: a reserva do cartão C202 não inclui a piscina.";
+        try {
+            instance.picarComoCliente(RUI, segunda, new LocalPicagem(LocalHotel.PISCINA, 0));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteDuasReservasSemEscolher() {
+        System.out.println("picarComoCliente (com duas reservas tem de escolher o cartão)");
+        segundaReservaDoRui();
+        String expResult = "Tem mais do que uma reserva em curso: escolha o cartão.";
+        try {
+            instance.picarComoCliente(RUI, LocalPicagem.quarto(201));
+            fail("Devia ter pedido o cartão");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteCartaoDeOutraPessoa() {
+        System.out.println("picarComoCliente (não pode usar o cartão de outra pessoa)");
+        LocalDate hoje = LocalDate.now();
+        Reserva deOutro = new Reserva(40, 99, 305, hoje, hoje.plusDays(1), 1, EstadoReserva.EM_CURSO,
+                new BigDecimal("120.00"), hoje.atTime(15, 0), null);
+        deOutro.setCartao("C305");
+        String expResult = "Acesso recusado: o cartão C305 não é de uma reserva sua em curso. / 0";
+        try {
+            instance.picarComoCliente(RUI, deOutro, LocalPicagem.quarto(305));
+            fail("Devia ter recusado o cartão");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteNoutroQuarto() {
+        System.out.println("picarComoCliente (o C201 é recusado no quarto 202)");
+        String expResult = "Acesso recusado: o cartão C201 só abre o quarto 201. / 0";
+        try {
+            instance.picarComoCliente(RUI, LocalPicagem.quarto(202));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteNoQuarto305() {
+        System.out.println("picarComoCliente (o C201 é recusado no quarto 305)");
+        String expResult = "Acesso recusado: o cartão C201 só abre o quarto 201. / 0";
+        try {
+            instance.picarComoCliente(RUI, LocalPicagem.quarto(305));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteQuartoQueNaoExiste() {
+        System.out.println("picarComoCliente (quarto que não existe)");
+        String expResult = "O quarto 999 não existe.";
+        try {
+            instance.picarComoCliente(RUI, LocalPicagem.quarto(999));
+            fail("Devia ter recusado o quarto");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    private static final Utilizador RESTAURACAO = new Utilizador(5, 9, "rita", "h", "s", Perfil.RESTAURACAO, true);
+    private static final String SO_COZINHA_E_RESTAURANTE =
+            "Acesso recusado: o cartão R13 é da restauração e só abre a cozinha e o restaurante.";
+
+    private AcessoCartao picagemDaRita(LocalHotel local) {
+        AcessoCartao picagem = new AcessoCartao(1, "R13", local, 0, 0, acessoDAL.agora);
+        picagem.setFuncionario(9, "Rita Sousa");
+        return picagem;
+    }
+
+    @Test
+    public void testPicarComoClientePiscinaForaDaReserva() {
+        System.out.println("picarComoCliente (sem a piscina na reserva)");
+        String expResult = "Acesso recusado: a reserva do cartão C201 não inclui a piscina. / 0";
+        try {
+            instance.picarComoCliente(RUI, new LocalPicagem(LocalHotel.PISCINA, 0));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteRestauranteSemRefeicao() {
+        System.out.println("picarComoCliente (restaurante sem refeições na reserva)");
+        String expResult = "Acesso recusado: a reserva do cartão C201 não inclui refeições no restaurante. / 0";
+        try {
+            instance.picarComoCliente(RUI, new LocalPicagem(LocalHotel.RESTAURANTE, 0));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteNoBar() {
+        System.out.println("picarComoCliente (o cliente não entra no bar)");
+        String expResult = SO_QUARTO_RESTAURANTE_E_PISCINA + " / 0";
+        try {
+            instance.picarComoCliente(RUI, new LocalPicagem(LocalHotel.BAR, 0));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteSemReservaEmCurso() {
+        System.out.println("picarComoCliente (sem reserva em curso não há cartão)");
+        String expResult = AcessoCartaoBLL.SEM_RESERVA_EM_CURSO + " / 0";
+        try {
+            instance.picarComoCliente(SEM_RESERVAS, LocalPicagem.quarto(201));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteDepoisDoCheckout() {
+        System.out.println("picarComoCliente (depois do check-out)");
+        reservaDAL.emCurso.setEstado(EstadoReserva.CONCLUIDA);
+        String expResult = AcessoCartaoBLL.SEM_RESERVA_EM_CURSO + " / 0";
+        try {
+            instance.picarComoCliente(RUI, LocalPicagem.quarto(201));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteSemLocal() {
+        System.out.println("picarComoCliente (sem local)");
+        String expResult = "Escolha o local.";
+        try {
+            instance.picarComoCliente(RUI, null);
+            fail("Devia ter pedido o local");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarComoClienteSemConta() {
+        System.out.println("picarComoCliente (sem conta)");
+        String expResult = "Entre na sua conta para usar o cartão.";
+        try {
+            instance.picarComoCliente(null, LocalPicagem.quarto(201));
+            fail("Devia ter exigido a conta");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarRestauracaoNoBar() {
+        System.out.println("picar (a restauração é recusada no bar, mesmo no piso 0)");
+        String expResult = SO_COZINHA_E_RESTAURANTE + " / 0";
+        try {
+            instance.picar(RESTAURACAO, LocalHotel.BAR, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarRestauracaoNaPiscina() {
+        System.out.println("picar (a restauração é recusada na piscina, mesmo no piso 1)");
+        String expResult = SO_COZINHA_E_RESTAURANTE + " / 0";
+        try {
+            instance.picar(RESTAURACAO, LocalHotel.PISCINA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarRestauracaoNoArmazem() {
+        System.out.println("picar (a restauração é recusada no armazém)");
+        String expResult = SO_COZINHA_E_RESTAURANTE + " / 0";
+        try {
+            instance.picar(RESTAURACAO, LocalHotel.ARMAZEM, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarRestauracaoNumQuarto() {
+        System.out.println("picar (a restauração é recusada nos quartos)");
+        String expResult = SO_COZINHA_E_RESTAURANTE + " / 0";
+        try {
+            instance.picar(RESTAURACAO, LocalHotel.QUARTO, 201);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarRestauracaoComContaDesativada() {
+        System.out.println("picar (conta da restauração desativada)");
+        funcionarioDAL.contaDaRitaAtiva = false;
+        String expResult = "Acesso recusado: o cartão R13 é de um funcionário com a conta desativada. / 0";
+        try {
+            instance.picar(RESTAURACAO, LocalHotel.COZINHA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCartaoFDeUmFuncionarioDaRestauracao() {
+        System.out.println("registarPassagem (o funcionário da restauração não tem cartão F)");
+        String expResult = "Acesso recusado: o cartão F13 não é de nenhum funcionário. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "F13", LocalHotel.COZINHA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCartaoRDeUmFuncionarioDaRececao() {
+        System.out.println("registarPassagem (um funcionário da receção não tem cartão R)");
+        String expResult = "Acesso recusado: o cartão R12 não é de nenhum funcionário. / 0";
+        try {
+            instance.registarPassagem(RECECAO, "R12", LocalHotel.COZINHA, 0);
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
     }
 }

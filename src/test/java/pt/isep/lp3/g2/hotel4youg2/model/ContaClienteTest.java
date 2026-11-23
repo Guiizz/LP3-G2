@@ -12,7 +12,8 @@ public class ContaClienteTest {
         ContaCliente instance = new ContaCliente(5, 15, "123456789", "Rui Costa", "codigo", "salt1", true);
         instance.definirPassword("nova", "salt2", false);
         ContaCliente expResult = new ContaCliente(5, 15, "123456789", "Rui Costa", "nova", "salt2", false);
-        assertEquals(expResult, instance);
+        ContaCliente result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test

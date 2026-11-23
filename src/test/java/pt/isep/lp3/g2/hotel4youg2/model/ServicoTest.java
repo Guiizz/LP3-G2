@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class ServicoTest {
 
@@ -38,7 +37,9 @@ public class ServicoTest {
         System.out.println("equals (preço diferente)");
         Servico instance = new Servico(1, "Ginásio", new BigDecimal("5.00"), lazer, true);
         Servico outro = new Servico(1, "Ginásio", new BigDecimal("7.50"), lazer, true);
-        assertNotEquals(instance, outro);
+        boolean expResult = false;
+        boolean result = instance.equals(outro);
+        assertEquals(expResult, result);
     }
 
     @Test

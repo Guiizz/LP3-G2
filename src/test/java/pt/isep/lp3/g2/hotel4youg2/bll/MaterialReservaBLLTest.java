@@ -83,16 +83,6 @@ public class MaterialReservaBLLTest {
         instance = null;
     }
 
-    private void esperarErroAoAjustar(MaterialQuarto linha, String quantidade, String expResult) {
-        try {
-            instance.ajustar(RECECAO, reserva, linha, quantidade);
-            fail("Devia ter recusado o ajuste");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, materialReservaDAL.ajustes);
-        }
-    }
-
     @Test
     public void testListarCarregaAConfiguracaoDoTipoDeQuarto() {
         System.out.println("listar (sem ajustes, a reserva leva a configuração do quarto duplo)");
@@ -155,8 +145,9 @@ public class MaterialReservaBLLTest {
             instance.listar(null, reserva);
             fail("Devia ter exigido a sessão");
         } catch (IllegalStateException expected) {
-            assertEquals("Entre na aplicação como rececionista ou gestor para ver os materiais da reserva.",
-                    expected.getMessage());
+            String expResult = "Entre na aplicação como rececionista ou gestor para ver os materiais da reserva.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -167,7 +158,9 @@ public class MaterialReservaBLLTest {
             instance.listar(RECECAO, null);
             fail("Devia ter pedido a reserva");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha uma reserva.", expected.getMessage());
+            String expResult = "Escolha uma reserva.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -180,9 +173,9 @@ public class MaterialReservaBLLTest {
             instance.ajustar(RECECAO, emCurso, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "1");
             fail("Devia ter recusado o ajuste");
         } catch (IllegalStateException expected) {
-            assertEquals("Os materiais só se ajustam antes do check-in, numa reserva confirmada.",
-                    expected.getMessage());
-            assertEquals(0, materialReservaDAL.ajustes);
+            String expResult = "Os materiais só se ajustam antes do check-in, numa reserva confirmada. / 0";
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
+            assertEquals(expResult, result);
         }
     }
 
@@ -193,7 +186,9 @@ public class MaterialReservaBLLTest {
             instance.ajustar(null, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "1");
             fail("Devia ter exigido a sessão");
         } catch (IllegalStateException expected) {
-            assertEquals(0, materialReservaDAL.ajustes);
+            int expResult = 0;
+            int result = materialReservaDAL.ajustes;
+            assertEquals(expResult, result);
         }
     }
 
@@ -204,33 +199,61 @@ public class MaterialReservaBLLTest {
             instance.ajustar(RECECAO, null, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "1");
             fail("Devia ter pedido a reserva");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha uma reserva.", expected.getMessage());
+            String expResult = "Escolha uma reserva.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
     @Test
     public void testAjustarSemMaterial() {
         System.out.println("ajustar (sem material escolhido)");
-        esperarErroAoAjustar(null, "1", "Escolha o material na tabela.");
+        String expResult = "Escolha o material na tabela. / 0";
+        try {
+            instance.ajustar(RECECAO, reserva, null, "1");
+            fail("Devia ter recusado o ajuste");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     public void testAjustarSemQuantidade() {
         System.out.println("ajustar (sem quantidade)");
-        esperarErroAoAjustar(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), " ", "Indique a quantidade.");
+        String expResult = "Indique a quantidade. / 0";
+        try {
+            instance.ajustar(RECECAO, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), " ");
+            fail("Devia ter recusado o ajuste");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     public void testAjustarQuantidadeAcimaDoMaximo() {
         System.out.println("ajustar (quantidade acima de 99)");
-        esperarErroAoAjustar(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "100",
-                "A quantidade tem de ser um número inteiro de 0 a 99.");
+        String expResult = "A quantidade tem de ser um número inteiro de 0 a 99. / 0";
+        try {
+            instance.ajustar(RECECAO, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "100");
+            fail("Devia ter recusado o ajuste");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     public void testAjustarQuantidadeNegativa() {
         System.out.println("ajustar (quantidade negativa)");
-        esperarErroAoAjustar(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "-1",
-                "A quantidade tem de ser um número inteiro de 0 a 99.");
+        String expResult = "A quantidade tem de ser um número inteiro de 0 a 99. / 0";
+        try {
+            instance.ajustar(RECECAO, reserva, new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2), "-1");
+            fail("Devia ter recusado o ajuste");
+        } catch (IllegalArgumentException expected) {
+            String result = expected.getMessage() + " / " + materialReservaDAL.ajustes;
+            assertEquals(expResult, result);
+        }
     }
 }

@@ -41,22 +41,13 @@ public class LeitorJsonEntregaTest {
         return LeitorJsonEntregaTest.class.getResourceAsStream(PASTA + nome);
     }
 
-    private List<String> errosAoLer(String nome) {
-        try {
-            instance.ler(ficheiro(nome), erros);
-            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
-            return null;
-        } catch (ErrosFicheiroException expected) {
-            return expected.getErros();
-        }
-    }
-
     @Test
     public void testLer() {
         System.out.println("ler (JSON de exemplo do enunciado)");
         String expResult = "X012X";
-        Entrega result = instance.ler(ficheiro("entrega-valida.json"), erros);
-        assertEquals(expResult, result.getNumeroEncomenda());
+        Entrega obtido = instance.ler(ficheiro("entrega-valida.json"), erros);
+        String result = "" + obtido.getNumeroEncomenda();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -89,9 +80,9 @@ public class LeitorJsonEntregaTest {
     @Test
     public void testLerTotal() {
         System.out.println("ler (total da entrega)");
-        BigDecimal expResult = new BigDecimal("3508.80");
-        BigDecimal result = instance.ler(ficheiro("entrega-valida.json"), erros).getTotal();
-        assertEquals(0, expResult.compareTo(result));
+        BigDecimal expResult = new BigDecimal("3508.80").stripTrailingZeros();
+        BigDecimal result = instance.ler(ficheiro("entrega-valida.json"), erros).getTotal().stripTrailingZeros();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -123,30 +114,7 @@ public class LeitorJsonEntregaTest {
         System.out.println("ler (o ficheiro de exemplo não tem erros)");
         instance.ler(ficheiro("entrega-valida.json"), erros);
         List<String> expResult = new ArrayList<>();
-        assertEquals(expResult, erros);
-    }
-
-    @Test
-    public void testLerMalFormado() {
-        System.out.println("ler (mal formado, diz a linha do ficheiro)");
-        String expResult = "Linha 5, coluna 8 do ficheiro: o JSON não está bem formado.";
-        List<String> result = errosAoLer("entrega-mal-formada.json");
-        assertEquals(List.of(expResult), result);
-    }
-
-    @Test
-    public void testLerCamposEmFalta() {
-        System.out.println("ler (campos em falta, aparecem todos juntos)");
-        List<String> expResult = List.of("Cabeçalho: falta o campo OrderNumber.", "Linha 2: falta o campo Quantity.");
-        List<String> result = errosAoLer("entrega-campos-em-falta.json");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testLerTextoNumNumero() {
-        System.out.println("ler (texto onde devia estar um número)");
-        List<String> expResult = List.of("Linha 1, Quantity.Value, campo Value: tem de ser um número inteiro.");
-        List<String> result = errosAoLer("entrega-texto-num-numero.json");
+        List<String> result = erros;
         assertEquals(expResult, result);
     }
 
@@ -156,7 +124,8 @@ public class LeitorJsonEntregaTest {
         List<String> expResult = List.of("Cabeçalho, campo OrderDate: a data da encomenda não existe ou não está "
                 + "no formato AAAA-MM-DD (2026-02-30).");
         instance.ler(ficheiro("entrega-data-invalida.json"), erros);
-        assertEquals(expResult, erros);
+        List<String> result = erros;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -165,7 +134,8 @@ public class LeitorJsonEntregaTest {
         List<String> expResult = List.of("Linha 2, campo LineBaseAmount: o valor está em USD, mas a encomenda "
                 + "está em EUR.");
         instance.ler(ficheiro("entrega-duas-moedas.json"), erros);
-        assertEquals(expResult, erros);
+        List<String> result = erros;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -174,15 +144,63 @@ public class LeitorJsonEntregaTest {
         List<String> expResult = List.of("Linha 1, campo InformationalQuantity: a quantidade vem em Caixa e o "
                 + "ficheiro não indica quantas unidades são.");
         instance.ler(ficheiro("entrega-caixas-sem-unidades.json"), erros);
-        assertEquals(expResult, erros);
+        List<String> result = erros;
+        assertEquals(expResult, result);
     }
 
+    @Test
+    public void testLerMalFormado() {
+        System.out.println("ler (mal formado, diz a linha do ficheiro)");
+        List<String> expResult = List.of("Linha 5, coluna 8 do ficheiro: o JSON não está bem formado.");
+        List<String> result = null;
+        try {
+            instance.ler(ficheiro("entrega-mal-formada.json"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerCamposEmFalta() {
+        System.out.println("ler (campos em falta, aparecem todos juntos)");
+        List<String> expResult = List.of("Cabeçalho: falta o campo OrderNumber.", "Linha 2: falta o campo Quantity.");
+        List<String> result = null;
+        try {
+            instance.ler(ficheiro("entrega-campos-em-falta.json"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerTextoNumNumero() {
+        System.out.println("ler (texto onde devia estar um número)");
+        List<String> expResult = List.of("Linha 1, Quantity.Value, campo Value: tem de ser um número inteiro.");
+        List<String> result = null;
+        try {
+            instance.ler(ficheiro("entrega-texto-num-numero.json"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        assertEquals(expResult, result);
+    }
 
     @Test
     public void testLerNumeroEnorme() {
         System.out.println("ler (número demasiado grande para uma quantidade)");
         List<String> expResult = List.of("Linha 1, Quantity.Value, campo Value: tem de ser um número inteiro.");
-        List<String> result = errosAoLer("entrega-numero-enorme.json");
+        List<String> result = null;
+        try {
+            instance.ler(ficheiro("entrega-numero-enorme.json"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
         assertEquals(expResult, result);
     }
 }

@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Testes unitários da classe Tarifa.
@@ -83,41 +82,53 @@ public class TarifaTest {
     public void testEquals() {
         System.out.println("equals (mesmo tipo, vista e preço)");
         Tarifa outra = new Tarifa(TipoQuarto.DUPLO, Vista.MONTANHA, new BigDecimal("90.00"));
-        assertEquals(outra, instance);
+        Tarifa expResult = outra;
+        Tarifa result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsPrecoComOutraEscala() {
         System.out.println("equals (90.0 e 90.00 contam como iguais)");
         Tarifa outra = new Tarifa(TipoQuarto.DUPLO, Vista.MONTANHA, new BigDecimal("90.0"));
-        assertEquals(outra, instance);
+        Tarifa expResult = outra;
+        Tarifa result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsOutroTipo() {
         System.out.println("equals (tipo diferente)");
         Tarifa outra = new Tarifa(TipoQuarto.FAMILIA, Vista.MONTANHA, new BigDecimal("90.00"));
-        assertNotEquals(outra, instance);
+        boolean expResult = false;
+        boolean result = outra.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsOutraVista() {
         System.out.println("equals (vista diferente)");
         Tarifa outra = new Tarifa(TipoQuarto.DUPLO, Vista.MAR, new BigDecimal("90.00"));
-        assertNotEquals(outra, instance);
+        boolean expResult = false;
+        boolean result = outra.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsOutroPreco() {
         System.out.println("equals (preço diferente)");
         Tarifa outra = new Tarifa(TipoQuarto.DUPLO, Vista.MONTANHA, new BigDecimal("95.00"));
-        assertNotEquals(outra, instance);
+        boolean expResult = false;
+        boolean result = outra.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsComNull() {
         System.out.println("equals (null)");
-        assertNotEquals(null, instance);
+        boolean expResult = false;
+        boolean result = instance.equals(null);
+        assertEquals(expResult, result);
     }
 
     @Test

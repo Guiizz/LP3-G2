@@ -87,7 +87,9 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar("F-1", "errada");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("A password está errada.", expected.getMessage());
+            String expResult = "A password está errada.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -98,7 +100,9 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar("XX", "Forn#2026");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Não existe nenhum fornecedor com o código \"XX\".", expected.getMessage());
+            String expResult = "Não existe nenhum fornecedor com o código \"XX\".";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -109,24 +113,31 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar("F-2", "qualquer");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Este fornecedor ainda não tem conta. Contacte o hotel.", expected.getMessage());
+            String expResult = "Este fornecedor ainda não tem conta. Contacte o hotel.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
     @Test
     public void testAutenticarCamposVazios() {
         System.out.println("autenticar (campos vazios)");
+        String expResult = "Escreva o código de fornecedor. / Escreva a password.";
+        String codigoVazio = null;
         try {
             instance.autenticar(" ", "Forn#2026");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva o código de fornecedor.", expected.getMessage());
+            codigoVazio = expected.getMessage();
         }
+        String passwordVazia = null;
         try {
             instance.autenticar("F-1", "");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva a password.", expected.getMessage());
+            passwordVazia = expected.getMessage();
         }
+        String result = codigoVazio + " / " + passwordVazia;
+        assertEquals(expResult, result);
     }
 }

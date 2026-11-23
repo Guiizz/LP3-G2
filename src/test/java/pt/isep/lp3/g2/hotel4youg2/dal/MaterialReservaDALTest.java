@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
@@ -19,6 +20,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,6 +43,11 @@ public class MaterialReservaDALTest {
     private Material toalha;
     private Material champo;
     private int funcionarioId;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -162,10 +169,11 @@ public class MaterialReservaDALTest {
         System.out.println("ajustar (uma só toalha nesta reserva; o padrão do quarto não muda)");
         configurar(toalha, 2);
         instance.ajustar(reserva.getId(), toalha.getId(), 1);
-        assertEquals(List.of(new MaterialQuarto(tipoDoQuarto, toalha, 1)), osDoTeste());
+        List<Object> expResult = Arrays.asList(List.of(new MaterialQuarto(tipoDoQuarto, toalha, 1)), 2);
         int padrao = ConexaoBD.select("SELECT quantidade FROM ConfiguracaoQuarto WHERE tipoQuarto = ? "
                 + "AND materialId = ?", new InteiroMapper(), tipoDoQuarto.name(), toalha.getId()).get(0);
-        assertEquals(2, padrao);
+        List<Object> result = Arrays.asList(osDoTeste(), padrao);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -173,10 +181,10 @@ public class MaterialReservaDALTest {
         System.out.println("registarCheckin (os dois materiais saem do stock)");
         darAReserva(toalha, 2);
         darAReserva(champo, 3);
+        List<Object> expResult = Arrays.asList(true, 8, 7);
         boolean feito = fazerCheckin();
-        assertEquals(true, feito);
-        assertEquals(8, emStock(toalha));
-        assertEquals(7, emStock(champo));
+        List<Object> result = Arrays.asList(feito, emStock(toalha), emStock(champo));
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -185,8 +193,9 @@ public class MaterialReservaDALTest {
         darAReserva(toalha, 2);
         darAReserva(champo, 3);
         fazerCheckin();
-        assertEquals("TEMPORARIA/-/fora", saidaDaReserva(toalha));
-        assertEquals("DEFINITIVA/CONSUMO_RESERVA/fora", saidaDaReserva(champo));
+        String expResult = "TEMPORARIA/-/fora / DEFINITIVA/CONSUMO_RESERVA/fora";
+        String result = saidaDaReserva(toalha) + " / " + saidaDaReserva(champo);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -195,8 +204,9 @@ public class MaterialReservaDALTest {
         darAReserva(toalha, 0);
         darAReserva(champo, 1);
         fazerCheckin();
-        assertEquals(10, emStock(toalha));
-        assertEquals(9, emStock(champo));
+        String expResult = "10 / 9";
+        String result = emStock(toalha) + " / " + emStock(champo);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -206,27 +216,10 @@ public class MaterialReservaDALTest {
         darAReserva(champo, 3);
         fazerCheckin();
         reserva.fazerCheckout(reserva.getDataSaida().atTime(11, 0));
+        List<Object> expResult = Arrays.asList(true, 10, 7, "TEMPORARIA/-/devolvida");
         boolean feito = reservaDAL.registarCheckout(reserva, funcionarioId);
-        assertEquals(true, feito);
-        assertEquals(10, emStock(toalha));
-        assertEquals(7, emStock(champo));
-        assertEquals("TEMPORARIA/-/devolvida", saidaDaReserva(toalha));
-    }
-
-    @Test
-    public void testCheckinSemStockNaoFazNada() {
-        System.out.println("registarCheckin (sem stock suficiente: avisa e não muda nada)");
-        darAReserva(toalha, 2);
-        darAReserva(champo, 11);
-        try {
-            fazerCheckin();
-            fail("Devia ter recusado o check-in");
-        } catch (IllegalStateException expected) {
-            assertEquals(true, expected.getMessage().contains("Teste champô (precisa de 11, há 10)"));
-        }
-        assertEquals(10, emStock(toalha));
-        assertEquals(10, emStock(champo));
-        assertEquals(EstadoReserva.CONFIRMADA, reservaDAL.procurarPorId(reserva.getId()).getEstado());
+        List<Object> result = Arrays.asList(feito, emStock(toalha), emStock(champo), saidaDaReserva(toalha));
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -234,8 +227,27 @@ public class MaterialReservaDALTest {
         System.out.println("registarCheckin (segundo check-in da mesma reserva não tira outra vez)");
         darAReserva(toalha, 2);
         fazerCheckin();
-        boolean result = reservaDAL.registarCheckin(reserva, funcionarioId);
-        assertEquals(false, result);
-        assertEquals(8, emStock(toalha));
+        boolean obtido = reservaDAL.registarCheckin(reserva, funcionarioId);
+        String expResult = "false / 8";
+        String result = obtido + " / " + emStock(toalha);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCheckinSemStockNaoFazNada() {
+        System.out.println("registarCheckin (sem stock suficiente: avisa e não muda nada)");
+        darAReserva(toalha, 2);
+        darAReserva(champo, 11);
+        List<Object> expResult = Arrays.asList(true, 10, 10, EstadoReserva.CONFIRMADA);
+        boolean avisou = false;
+        try {
+            fazerCheckin();
+            fail("Devia ter recusado o check-in");
+        } catch (IllegalStateException expected) {
+            avisou = expected.getMessage().contains("Teste champô (precisa de 11, há 10)");
+        }
+        List<Object> result = Arrays.asList(avisou, emStock(toalha), emStock(champo),
+                reservaDAL.procurarPorId(reserva.getId()).getEstado());
+        assertEquals(expResult, result);
     }
 }

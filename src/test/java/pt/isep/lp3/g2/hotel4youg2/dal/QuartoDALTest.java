@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
@@ -15,6 +16,8 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,6 +25,11 @@ public class QuartoDALTest {
 
     private QuartoDAL instance;
     private int numero;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -101,10 +109,10 @@ public class QuartoDALTest {
     public void testInserirRepetido() {
         System.out.println("inserir (número repetido não grava e devolve false)");
         instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
-        Quarto expResult = procurar(numero);
-        boolean result = instance.inserir(new Quarto(numero, 9, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1));
-        assertEquals(false, result);
-        assertEquals(expResult, procurar(numero));
+        List<Object> expResult = Arrays.asList(false, procurar(numero));
+        boolean inserido = instance.inserir(new Quarto(numero, 9, TipoQuarto.INDIVIDUAL, Vista.NENHUMA, 1));
+        List<Object> result = Arrays.asList(inserido, procurar(numero));
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -130,10 +138,9 @@ public class QuartoDALTest {
     public void testApagarSeNuncaUsado() {
         System.out.println("apagarSeNuncaUsado (o quarto deixa de existir)");
         instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
+        List<Object> expResult = Arrays.asList(true, null);
         boolean apagado = instance.apagarSeNuncaUsado(numero);
-        Quarto expResult = null;
-        Quarto result = procurar(numero);
-        assertEquals(true, apagado);
+        List<Object> result = Arrays.asList(apagado, procurar(numero));
         assertEquals(expResult, result);
     }
 
@@ -142,10 +149,10 @@ public class QuartoDALTest {
         System.out.println("apagarSeNuncaUsado (quarto com picagens não é apagado)");
         instance.inserir(new Quarto(numero, 9, TipoQuarto.DUPLO, Vista.MAR, 2));
         picarNoQuarto();
-        Quarto expResult = procurar(numero);
+        List<Object> expResult = Arrays.asList(false, procurar(numero));
         boolean apagado = instance.apagarSeNuncaUsado(numero);
-        assertEquals(false, apagado);
-        assertEquals(expResult, procurar(numero));
+        List<Object> result = Arrays.asList(apagado, procurar(numero));
+        assertEquals(expResult, result);
     }
 
     @Test

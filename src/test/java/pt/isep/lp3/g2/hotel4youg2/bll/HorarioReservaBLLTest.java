@@ -76,13 +76,24 @@ public class HorarioReservaBLLTest {
     }
 
     @Test
+    public void testHoraMinimaCheckin() {
+        System.out.println("horaMinimaCheckin (com e sem early check-in)");
+        HorarioReserva horario = instance.obter();
+        String expResult = "13:00 / 15:00";
+        String result = horario.horaMinimaCheckin(true) + " / " + horario.horaMinimaCheckin(false);
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testAlterarRececionista() {
         System.out.println("alterar (rececionista)");
         try {
             instance.alterar(RECECAO, horarioStandard());
             fail("Devia ter recusado o rececionista");
         } catch (IllegalStateException expected) {
-            assertEquals(null, repositorio.atualizado);
+            Object expResult = null;
+            Object result = repositorio.atualizado;
+            assertEquals(expResult, result);
         }
     }
 
@@ -95,7 +106,9 @@ public class HorarioReservaBLLTest {
             instance.alterar(GESTOR, novo);
             fail("Devia ter recusado uma taxa negativa");
         } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.atualizado);
+            Object expResult = null;
+            Object result = repositorio.atualizado;
+            assertEquals(expResult, result);
         }
     }
 
@@ -138,16 +151,9 @@ public class HorarioReservaBLLTest {
             instance.alterar(GESTOR, novo);
             fail("Devia ter recusado sem a hora de check-in");
         } catch (ValidacaoException expected) {
-            assertEquals(null, repositorio.atualizado);
+            Object expResult = null;
+            Object result = repositorio.atualizado;
+            assertEquals(expResult, result);
         }
-    }
-
-    @Test
-    public void testHoraMinimaCheckin() {
-        System.out.println("horaMinimaCheckin (com e sem early check-in)");
-        HorarioReserva horario = instance.obter();
-        String expResult = "13:00 / 15:00";
-        String result = horario.horaMinimaCheckin(true) + " / " + horario.horaMinimaCheckin(false);
-        assertEquals(expResult, result);
     }
 }

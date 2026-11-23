@@ -27,6 +27,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoSaida;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -342,83 +343,6 @@ public class PedidoExtraBLLTest {
         assertEquals(expResult, result);
     }
 
-    private void esperarErro(ContaCliente conta, Reserva reserva, Servico servico, int quantidade, String expResult) {
-        try {
-            instance.pedirServico(conta, reserva, servico, quantidade);
-            fail("Devia ter recusado o pedido");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, pedidoDAL.pedidos.size());
-        }
-    }
-
-    @Test
-    public void testPedirNumaReservaConcluida() {
-        System.out.println("pedirServico (a reserva já acabou)");
-        esperarErro(RUI, concluida, JANTAR, 1, "Só pode pedir extras para uma reserva sua em curso.");
-    }
-
-    @Test
-    public void testPedirNaReservaDeOutroCliente() {
-        System.out.println("pedirServico (a reserva é de outro cliente)");
-        esperarErro(EVA, emCurso, JANTAR, 1, "Só pode pedir extras para uma reserva sua em curso.");
-    }
-
-    @Test
-    public void testPedirSemServico() {
-        System.out.println("pedirServico (sem serviço)");
-        esperarErro(RUI, emCurso, null, 1, "Escolha o serviço.");
-    }
-
-    @Test
-    public void testPedirQuantidadeZero() {
-        System.out.println("pedirServico (quantidade 0)");
-        esperarErro(RUI, emCurso, JANTAR, 0, "A quantidade tem de ser entre 1 e 99.");
-    }
-
-    @Test
-    public void testPedirQuantidadeDemasiado() {
-        System.out.println("pedirServico (quantidade 100)");
-        esperarErro(RUI, emCurso, JANTAR, 100, "A quantidade tem de ser entre 1 e 99.");
-    }
-
-    @Test
-    public void testPedirSemReserva() {
-        System.out.println("pedirServico (sem reserva)");
-        esperarErro(RUI, null, JANTAR, 1, "Escolha a reserva em curso.");
-    }
-
-    @Test
-    public void testPedirQuandoAReservaAcabouEntretanto() {
-        System.out.println("pedirServico (a reserva saiu de curso antes de gravar)");
-        pedidoDAL.reservaEmCurso = false;
-        esperarErro(RUI, emCurso, JANTAR, 1, "A reserva 30 já não está em curso.");
-    }
-
-    @Test
-    public void testPedirMaterialSemMaterial() {
-        System.out.println("pedirMaterial (sem material)");
-        String expResult = "Escolha o material.";
-        try {
-            instance.pedirMaterial(RUI, emCurso, null, 1);
-            fail("Devia ter pedido o material");
-        } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testPedirSemConta() {
-        System.out.println("pedirServico (sem conta)");
-        String expResult = "Entre na sua conta para pedir extras.";
-        try {
-            instance.pedirServico(null, emCurso, JANTAR, 1);
-            fail("Devia ter exigido a conta");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
     @Test
     public void testListarDoCliente() {
         System.out.println("listarDoCliente (o cliente vê os seus pedidos e o estado)");
@@ -441,26 +365,14 @@ public class PedidoExtraBLLTest {
     }
 
     @Test
-    public void testListarPendentesSemSessao() {
-        System.out.println("listarPendentes (só a receção e o gestor)");
-        String expResult = "Só a receção e o gestor podem decidir os pedidos dos clientes.";
-        try {
-            instance.listarPendentes(null);
-            fail("Devia ter exigido a sessão");
-        } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-        }
-    }
-
-    @Test
     public void testAceitarServico() {
         System.out.println("aceitar (o serviço entra na reserva)");
         PedidoExtra pedido = instance.pedirServico(RUI, emCurso, JANTAR, 2);
         instance.aceitar(RECECAO, pedido);
-        List<String> expResult = List.of("serviço 1 por 7");
-        List<String> result = pedidoDAL.decisoes;
+        List<String> esperado = List.of("serviço 1 por 7");
+        List<Object> expResult = Arrays.asList(esperado, EstadoPedido.ACEITE);
+        List<Object> result = Arrays.asList(pedidoDAL.decisoes, pedido.getEstado());
         assertEquals(expResult, result);
-        assertEquals(EstadoPedido.ACEITE, pedido.getEstado());
     }
 
     @Test
@@ -485,17 +397,161 @@ public class PedidoExtraBLLTest {
     }
 
     @Test
+    public void testRecusar() {
+        System.out.println("recusar (com o motivo, sem mexer em nada)");
+        PedidoExtra pedido = toalhaPendente(false);
+        instance.recusar(RECECAO, pedido, "  Já não há toalhas de banho limpas  ");
+        PedidoExtra esperado = new PedidoExtra(1, 30, 0, 7, "Toalha", 2, EstadoPedido.RECUSADO);
+        esperado.setMotivoRecusa("Já não há toalhas de banho limpas");
+        List<Object> expResult = Arrays.asList(esperado,
+                List.of("recusado 1 por 7: Já não há toalhas de banho limpas"));
+        List<Object> result = Arrays.asList(pedido, pedidoDAL.decisoes);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPedirNumaReservaConcluida() {
+        System.out.println("pedirServico (a reserva já acabou)");
+        String expResult = "Só pode pedir extras para uma reserva sua em curso. / 0";
+        try {
+            instance.pedirServico(RUI, concluida, JANTAR, 1);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirNaReservaDeOutroCliente() {
+        System.out.println("pedirServico (a reserva é de outro cliente)");
+        String expResult = "Só pode pedir extras para uma reserva sua em curso. / 0";
+        try {
+            instance.pedirServico(EVA, emCurso, JANTAR, 1);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirSemServico() {
+        System.out.println("pedirServico (sem serviço)");
+        String expResult = "Escolha o serviço. / 0";
+        try {
+            instance.pedirServico(RUI, emCurso, null, 1);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirQuantidadeZero() {
+        System.out.println("pedirServico (quantidade 0)");
+        String expResult = "A quantidade tem de ser entre 1 e 99. / 0";
+        try {
+            instance.pedirServico(RUI, emCurso, JANTAR, 0);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirQuantidadeDemasiado() {
+        System.out.println("pedirServico (quantidade 100)");
+        String expResult = "A quantidade tem de ser entre 1 e 99. / 0";
+        try {
+            instance.pedirServico(RUI, emCurso, JANTAR, 100);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirSemReserva() {
+        System.out.println("pedirServico (sem reserva)");
+        String expResult = "Escolha a reserva em curso. / 0";
+        try {
+            instance.pedirServico(RUI, null, JANTAR, 1);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirQuandoAReservaAcabouEntretanto() {
+        System.out.println("pedirServico (a reserva saiu de curso antes de gravar)");
+        pedidoDAL.reservaEmCurso = false;
+        String expResult = "A reserva 30 já não está em curso. / 0";
+        try {
+            instance.pedirServico(RUI, emCurso, JANTAR, 1);
+            fail("Devia ter recusado o pedido");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + pedidoDAL.pedidos.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirMaterialSemMaterial() {
+        System.out.println("pedirMaterial (sem material)");
+        String expResult = "Escolha o material.";
+        try {
+            instance.pedirMaterial(RUI, emCurso, null, 1);
+            fail("Devia ter pedido o material");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPedirSemConta() {
+        System.out.println("pedirServico (sem conta)");
+        String expResult = "Entre na sua conta para pedir extras.";
+        try {
+            instance.pedirServico(null, emCurso, JANTAR, 1);
+            fail("Devia ter exigido a conta");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testListarPendentesSemSessao() {
+        System.out.println("listarPendentes (só a receção e o gestor)");
+        String expResult = "Só a receção e o gestor podem decidir os pedidos dos clientes.";
+        try {
+            instance.listarPendentes(null);
+            fail("Devia ter exigido a sessão");
+        } catch (IllegalStateException expected) {
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
     public void testAceitarSemStockSuficiente() {
         System.out.println("aceitar (sem stock suficiente não se aceita)");
         PedidoExtra pedido = instance.pedirMaterial(RUI, emCurso, GEL, 5);
-        String expResult = "Não há stock suficiente de Gel de banho: há 3 e o cliente pediu 5.";
+        String expResult = "Não há stock suficiente de Gel de banho: há 3 e o cliente pediu 5. / 0 / "
+                + EstadoPedido.PENDENTE;
         try {
             instance.aceitar(RECECAO, pedido);
             fail("Devia ter recusado por falta de stock");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, pedidoDAL.decisoes.size());
-            assertEquals(EstadoPedido.PENDENTE, pedido.getEstado());
+            String result = expected.getMessage() + " / " + pedidoDAL.decisoes.size() + " / " + pedido.getEstado();
+            assertEquals(expResult, result);
         }
     }
 
@@ -509,7 +565,8 @@ public class PedidoExtraBLLTest {
             instance.aceitar(RECECAO, pedido);
             fail("Devia ter recusado");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -518,13 +575,13 @@ public class PedidoExtraBLLTest {
         System.out.println("aceitar (o pedido já foi decidido)");
         PedidoExtra pedido = instance.pedirServico(RUI, emCurso, JANTAR, 1);
         instance.aceitar(RECECAO, pedido);
-        String expResult = "Este pedido já foi decidido.";
+        String expResult = "Este pedido já foi decidido. / 1";
         try {
             instance.aceitar(RECECAO, pedido);
             fail("Não devia aceitar duas vezes");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(1, pedidoDAL.decisoes.size());
+            String result = expected.getMessage() + " / " + pedidoDAL.decisoes.size();
+            assertEquals(expResult, result);
         }
     }
 
@@ -533,14 +590,15 @@ public class PedidoExtraBLLTest {
         System.out.println("aceitar (a reserva acabou ou outra pessoa decidiu primeiro)");
         PedidoExtra pedido = instance.pedirServico(RUI, emCurso, JANTAR, 1);
         pedidoDAL.decisaoFalha = true;
-        String expResult = "Não foi possível aceitar: o pedido já foi decidido, a reserva já não está em curso "
+        String esperado = "Não foi possível aceitar: o pedido já foi decidido, a reserva já não está em curso "
                 + "ou já não há stock suficiente.";
         try {
             instance.aceitar(RECECAO, pedido);
             fail("Devia ter avisado");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(EstadoPedido.PENDENTE, pedido.getEstado());
+            String expResult = esperado + " / " + EstadoPedido.PENDENTE;
+            String result = expected.getMessage() + " / " + pedido.getEstado();
+            assertEquals(expResult, result);
         }
     }
 
@@ -552,7 +610,8 @@ public class PedidoExtraBLLTest {
             instance.aceitar(RECECAO, null);
             fail("Devia ter pedido o pedido");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -560,38 +619,27 @@ public class PedidoExtraBLLTest {
     public void testAceitarSemSessao() {
         System.out.println("aceitar (sem sessão de funcionário)");
         PedidoExtra pedido = instance.pedirServico(RUI, emCurso, JANTAR, 1);
-        String expResult = "Só a receção e o gestor podem decidir os pedidos dos clientes.";
+        String expResult = "Só a receção e o gestor podem decidir os pedidos dos clientes. / 0";
         try {
             instance.aceitar(null, pedido);
             fail("Devia ter exigido a sessão");
         } catch (IllegalStateException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(0, pedidoDAL.decisoes.size());
+            String result = expected.getMessage() + " / " + pedidoDAL.decisoes.size();
+            assertEquals(expResult, result);
         }
-    }
-
-    @Test
-    public void testRecusar() {
-        System.out.println("recusar (com o motivo, sem mexer em nada)");
-        PedidoExtra pedido = toalhaPendente(false);
-        instance.recusar(RECECAO, pedido, "  Já não há toalhas de banho limpas  ");
-        PedidoExtra expResult = new PedidoExtra(1, 30, 0, 7, "Toalha", 2, EstadoPedido.RECUSADO);
-        expResult.setMotivoRecusa("Já não há toalhas de banho limpas");
-        assertEquals(expResult, pedido);
-        assertEquals(List.of("recusado 1 por 7: Já não há toalhas de banho limpas"), pedidoDAL.decisoes);
     }
 
     @Test
     public void testRecusarSemMotivo() {
         System.out.println("recusar (sem motivo)");
         PedidoExtra pedido = toalhaPendente(false);
-        String expResult = "Escreva o motivo da recusa.";
+        String expResult = "Escreva o motivo da recusa. / " + EstadoPedido.PENDENTE;
         try {
             instance.recusar(RECECAO, pedido, "   ");
             fail("Devia ter pedido o motivo");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
-            assertEquals(EstadoPedido.PENDENTE, pedido.getEstado());
+            String result = expected.getMessage() + " / " + pedido.getEstado();
+            assertEquals(expResult, result);
         }
     }
 
@@ -604,7 +652,8 @@ public class PedidoExtraBLLTest {
             instance.recusar(RECECAO, pedido, "a".repeat(201));
             fail("Devia ter recusado o motivo");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -618,7 +667,8 @@ public class PedidoExtraBLLTest {
             instance.recusar(RECECAO, pedido, "Sem stock");
             fail("Devia ter avisado");
         } catch (ValidacaoException expected) {
-            assertEquals(expResult, expected.getMessage());
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 }

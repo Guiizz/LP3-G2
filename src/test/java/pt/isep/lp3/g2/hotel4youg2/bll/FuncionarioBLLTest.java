@@ -11,10 +11,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Testes unitários da classe FuncionarioBLL.
@@ -131,12 +131,13 @@ public class FuncionarioBLLTest {
     public void testCriarContaGravaAConta() {
         System.out.println("criarConta (grava a conta de acesso)");
         instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        Utilizador result = dal.contaGravada;
-        Utilizador expResult = new Utilizador(0, 0, "ana.silva",
-                passwordUtils.hashPassword("password123", result.getPasswordSalt()), result.getPasswordSalt(),
+        Utilizador obtido = dal.contaGravada;
+        Utilizador esperado = new Utilizador(0, 0, "ana.silva",
+                passwordUtils.hashPassword("password123", obtido.getPasswordSalt()), obtido.getPasswordSalt(),
                 Perfil.RECECIONISTA, true);
+        List<Object> expResult = Arrays.asList(esperado, 1);
+        List<Object> result = Arrays.asList(obtido, dal.contasCriadas);
         assertEquals(expResult, result);
-        assertEquals(1, dal.contasCriadas);
     }
 
     @Test
@@ -144,9 +145,13 @@ public class FuncionarioBLLTest {
         System.out.println("criarConta (password guardada com hash e salt)");
         instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
         Utilizador conta = dal.contaGravada;
-        assertNotEquals("password123", conta.getPasswordHash());
-        assertEquals(64, conta.getPasswordHash().length());
-        assertEquals(32, conta.getPasswordSalt().length());
+        String expResult = "false / 64 / 32";
+        String result = "password123".equals(conta.getPasswordHash())
+                + " / "
+                + conta.getPasswordHash().length()
+                + " / "
+                + conta.getPasswordSalt().length();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -172,149 +177,15 @@ public class FuncionarioBLLTest {
     }
 
     @Test
-    public void testCriarContaComoRececionista() {
-        System.out.println("criarConta (rececionista não pode)");
-        Utilizador rececionista = new Utilizador(2, 2, "rece", "h", "s", Perfil.RECECIONISTA, true);
-        String expResult = "Só o gestor pode criar contas.";
-        String result = mensagemAoCriar(rececionista, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaSemUtilizador() {
-        System.out.println("criarConta (sem utilizador com sessão)");
-        String expResult = "Só o gestor pode criar contas.";
-        String result = mensagemAoCriar(null, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaSemDados() {
-        System.out.println("criarConta (sem dados do funcionário)");
-        String expResult = "Faltam os dados do funcionário.";
-        String result = mensagemAoCriar(gestor, null, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaSemNome() {
-        System.out.println("criarConta (nome vazio)");
-        dados.setNome("  ");
-        String expResult = "O nome é obrigatório (até 100 caracteres).";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaNifCurto() {
-        System.out.println("criarConta (NIF com poucos algarismos)");
-        dados.setNif("12345");
-        String expResult = "O NIF tem de ter 9 algarismos.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaNifComLetra() {
-        System.out.println("criarConta (NIF com letra)");
-        dados.setNif("12345678A");
-        String expResult = "O NIF tem de ter 9 algarismos.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaNifRepetido() {
-        System.out.println("criarConta (NIF repetido)");
-        dal.nifExiste = true;
-        String expResult = "Já existe uma pessoa com esse NIF.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaNomeDeUtilizadorRepetido() {
-        System.out.println("criarConta (nome de utilizador repetido)");
-        dal.nomeExiste = true;
-        String expResult = "Esse nome de utilizador já existe.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaNomeDeUtilizadorCurto() {
-        System.out.println("criarConta (nome de utilizador curto)");
-        String expResult = "O nome de utilizador tem de ter entre 3 e 50 caracteres.";
-        String result = mensagemAoCriar(gestor, dados, "an", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaPasswordCurta() {
-        System.out.println("criarConta (password curta)");
-        String expResult = "A password tem de ter pelo menos 8 caracteres.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "1234567", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaSemPerfil() {
-        System.out.println("criarConta (sem perfil)");
-        String expResult = "Escolha o perfil.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", null);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaEmailInvalido() {
-        System.out.println("criarConta (email inválido)");
-        dados.setEmail("sem-arroba");
-        String expResult = "O email não é válido.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
     public void testCriarContaRestauracaoGuardaAEmpresa() {
         System.out.println("criarConta (restauração, com o nome da empresa externa)");
         dados.setEmpresa("  Sabores do Norte Lda ");
         instance.criarConta(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
-        Funcionario expResult = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
+        Funcionario esperado = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
                 LocalDate.now());
-        expResult.setEmpresa("Sabores do Norte Lda");
-        Funcionario result = dal.funcionarioGravado;
-        assertEquals(expResult, result);
-        assertEquals(Perfil.RESTAURACAO, dal.contaGravada.getPerfil());
-    }
-
-    @Test
-    public void testCriarContaRestauracaoSemEmpresa() {
-        System.out.println("criarConta (restauração sem o nome da empresa)");
-        dados.setEmpresa("   ");
-        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres).";
-        String result = mensagemAoCriar(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    @Test
-    public void testCriarContaRestauracaoEmpresaDemasiadoLonga() {
-        System.out.println("criarConta (restauração com empresa de mais de 100 caracteres)");
-        dados.setEmpresa("a".repeat(101));
-        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres).";
-        String result = mensagemAoCriar(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
+        esperado.setEmpresa("Sabores do Norte Lda");
+        List<Object> expResult = Arrays.asList(esperado, Perfil.RESTAURACAO);
+        List<Object> result = Arrays.asList(dal.funcionarioGravado, dal.contaGravada.getPerfil());
         assertEquals(expResult, result);
     }
 
@@ -326,30 +197,6 @@ public class FuncionarioBLLTest {
         String expResult = null;
         String result = dal.funcionarioGravado.getEmpresa();
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testCriarContaNascimentoNoFuturo() {
-        System.out.println("criarConta (data de nascimento no futuro)");
-        dados.setDataNascimento(LocalDate.now().plusDays(1));
-        String expResult = "A data de nascimento não pode ser no futuro.";
-        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.contasCriadas);
-    }
-
-    private Funcionario ana() {
-        return new Funcionario(7, "Ana Silva", "12345678", "123456789", "Rua A", "910000000",
-                LocalDate.of(1990, 5, 1), "ana@hotel.pt", 12, LocalDate.of(2026, 10, 1));
-    }
-
-    private String erroAoEditar(Utilizador quemAge, Utilizador conta, Funcionario novos, Perfil perfil) {
-        try {
-            instance.editar(quemAge, conta, novos, perfil);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return e.getMessage();
-        }
-        return null;
     }
 
     @Test
@@ -387,11 +234,11 @@ public class FuncionarioBLLTest {
         novos.setEmail("ana.sofia@hotel.pt");
         novos.setMorada("Rua B");
         instance.editar(gestor, conta, novos, Perfil.RECECIONISTA);
-        Funcionario expResult = new Funcionario(7, "Ana Sofia Silva", "12345678", "123456789", "Rua B",
+        Funcionario esperado = new Funcionario(7, "Ana Sofia Silva", "12345678", "123456789", "Rua B",
                 "930000000", LocalDate.of(1990, 5, 1), "ana.sofia@hotel.pt", 12, LocalDate.of(2026, 10, 1));
-        Funcionario result = dal.editado;
+        List<Object> expResult = Arrays.asList(esperado, 5);
+        List<Object> result = Arrays.asList(dal.editado, dal.contaEditada);
         assertEquals(expResult, result);
-        assertEquals(5, dal.contaEditada);
     }
 
     @Test
@@ -399,10 +246,9 @@ public class FuncionarioBLLTest {
         System.out.println("editar (muda o perfil da conta)");
         Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
         instance.editar(gestor, conta, ana(), Perfil.GESTOR);
-        Perfil expResult = Perfil.GESTOR;
-        Perfil result = conta.getPerfil();
+        String expResult = Perfil.GESTOR + " / " + Perfil.GESTOR;
+        String result = conta.getPerfil() + " / " + dal.perfilEditado;
         assertEquals(expResult, result);
-        assertEquals(Perfil.GESTOR, dal.perfilEditado);
     }
 
     @Test
@@ -418,16 +264,6 @@ public class FuncionarioBLLTest {
     }
 
     @Test
-    public void testEditarParaRestauracaoSemEmpresa() {
-        System.out.println("editar (restauração sem empresa)");
-        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
-        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres).";
-        String result = erroAoEditar(gestor, conta, ana(), Perfil.RESTAURACAO);
-        assertEquals(expResult, result);
-        assertEquals(null, dal.editado);
-    }
-
-    @Test
     public void testEditarSaiDaRestauracaoSemEmpresa() {
         System.out.println("editar (fora da restauração a empresa fica vazia)");
         Utilizador conta = new Utilizador(5, 7, "rita", "h", "s", Perfil.RESTAURACAO, true);
@@ -440,20 +276,198 @@ public class FuncionarioBLLTest {
     }
 
     @Test
-    public void testEditarRetirarOGestorAoProprio() {
-        System.out.println("editar (o gestor não tira a si próprio o perfil de gestor)");
-        String expResult = "Não pode retirar o perfil de gestor à sua própria conta.";
-        String result = erroAoEditar(gestor, gestor, ana(), Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-        assertEquals(Perfil.GESTOR, gestor.getPerfil());
-    }
-
-    @Test
     public void testEditarOProprioMantendoGestor() {
         System.out.println("editar (o gestor pode mudar os seus contactos)");
         instance.editar(gestor, gestor, ana(), Perfil.GESTOR);
         Perfil expResult = Perfil.GESTOR;
         Perfil result = dal.perfilEditado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaComoRececionista() {
+        System.out.println("criarConta (rececionista não pode)");
+        Utilizador rececionista = new Utilizador(2, 2, "rece", "h", "s", Perfil.RECECIONISTA, true);
+        String expResult = "Só o gestor pode criar contas. / 0";
+        String result = mensagemAoCriar(rececionista, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaSemUtilizador() {
+        System.out.println("criarConta (sem utilizador com sessão)");
+        String expResult = "Só o gestor pode criar contas. / 0";
+        String result = mensagemAoCriar(null, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaSemDados() {
+        System.out.println("criarConta (sem dados do funcionário)");
+        String expResult = "Faltam os dados do funcionário. / 0";
+        String result = mensagemAoCriar(gestor, null, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaSemNome() {
+        System.out.println("criarConta (nome vazio)");
+        dados.setNome("  ");
+        String expResult = "O nome é obrigatório (até 100 caracteres). / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaNifCurto() {
+        System.out.println("criarConta (NIF com poucos algarismos)");
+        dados.setNif("12345");
+        String expResult = "O NIF tem de ter 9 algarismos. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaNifComLetra() {
+        System.out.println("criarConta (NIF com letra)");
+        dados.setNif("12345678A");
+        String expResult = "O NIF tem de ter 9 algarismos. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaNifRepetido() {
+        System.out.println("criarConta (NIF repetido)");
+        dal.nifExiste = true;
+        String expResult = "Já existe uma pessoa com esse NIF. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaNomeDeUtilizadorRepetido() {
+        System.out.println("criarConta (nome de utilizador repetido)");
+        dal.nomeExiste = true;
+        String expResult = "Esse nome de utilizador já existe. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    private Funcionario ana() {
+        return new Funcionario(7, "Ana Silva", "12345678", "123456789", "Rua A", "910000000",
+                LocalDate.of(1990, 5, 1), "ana@hotel.pt", 12, LocalDate.of(2026, 10, 1));
+    }
+
+    private String erroAoEditar(Utilizador quemAge, Utilizador conta, Funcionario novos, Perfil perfil) {
+        try {
+            instance.editar(quemAge, conta, novos, perfil);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    @Test
+    public void testCriarContaNomeDeUtilizadorCurto() {
+        System.out.println("criarConta (nome de utilizador curto)");
+        String expResult = "O nome de utilizador tem de ter entre 3 e 50 caracteres. / 0";
+        String result = mensagemAoCriar(gestor, dados, "an", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaPasswordCurta() {
+        System.out.println("criarConta (password curta)");
+        String expResult = "A password tem de ter pelo menos 8 caracteres. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "1234567", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaSemPerfil() {
+        System.out.println("criarConta (sem perfil)");
+        String expResult = "Escolha o perfil. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", null) + " / " + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaEmailInvalido() {
+        System.out.println("criarConta (email inválido)");
+        dados.setEmail("sem-arroba");
+        String expResult = "O email não é válido. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaRestauracaoSemEmpresa() {
+        System.out.println("criarConta (restauração sem o nome da empresa)");
+        dados.setEmpresa("   ");
+        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres). / 0";
+        String result = mensagemAoCriar(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaRestauracaoEmpresaDemasiadoLonga() {
+        System.out.println("criarConta (restauração com empresa de mais de 100 caracteres)");
+        dados.setEmpresa("a".repeat(101));
+        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres).";
+        String result = mensagemAoCriar(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaNascimentoNoFuturo() {
+        System.out.println("criarConta (data de nascimento no futuro)");
+        dados.setDataNascimento(LocalDate.now().plusDays(1));
+        String expResult = "A data de nascimento não pode ser no futuro. / 0";
+        String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA)
+                + " / "
+                + dal.contasCriadas;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEditarParaRestauracaoSemEmpresa() {
+        System.out.println("editar (restauração sem empresa)");
+        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
+        String expResult = "Escreva o nome da empresa de restauração (até 100 caracteres). / null";
+        String result = erroAoEditar(gestor, conta, ana(), Perfil.RESTAURACAO) + " / " + dal.editado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEditarRetirarOGestorAoProprio() {
+        System.out.println("editar (o gestor não tira a si próprio o perfil de gestor)");
+        String expResult = "Não pode retirar o perfil de gestor à sua própria conta. / " + Perfil.GESTOR;
+        String result = erroAoEditar(gestor, gestor, ana(), Perfil.RECECIONISTA) + " / " + gestor.getPerfil();
         assertEquals(expResult, result);
     }
 

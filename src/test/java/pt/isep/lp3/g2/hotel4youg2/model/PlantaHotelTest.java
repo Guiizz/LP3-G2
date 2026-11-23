@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PlantaHotelTest {
 
@@ -64,7 +61,9 @@ public class PlantaHotelTest {
     public void testProcurarQuartoQueNaoExiste() {
         System.out.println("procurarQuarto (999 não existe)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        assertNull(instance.procurarQuarto(999));
+        Quarto expResult = null;
+        Quarto result = instance.procurarQuarto(999);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -80,9 +79,10 @@ public class PlantaHotelTest {
     public void testGetDetalhesDoQuarto() {
         System.out.println("getDetalhes (quarto individual sem tarifa)");
         Quarto instance = new Quarto(301, 3, TipoQuarto.INDIVIDUAL, Vista.MONTANHA, 1);
-        String result = instance.getDetalhes();
-        assertTrue(result.contains("Capacidade: 1 pessoa"));
-        assertFalse(result.contains("Preço por noite"));
+        String detalhes = instance.getDetalhes();
+        String expResult = "true / false";
+        String result = detalhes.contains("Capacidade: 1 pessoa") + " / " + detalhes.contains("Preço por noite");
+        assertEquals(expResult, result);
     }
 
     private List<Quarto> tresQuartosNoPiso2() {
@@ -115,16 +115,20 @@ public class PlantaHotelTest {
     public void testPisoDeUmQuartoEDeUmLocal() {
         System.out.println("pisoDe (quarto 301 no piso 3, piscina no piso 1)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        assertEquals(3, instance.pisoDe(LocalPicagem.quarto(301)));
-        assertEquals(1, instance.pisoDe(new LocalPicagem(LocalHotel.PISCINA, 0)));
+        String expResult = "3 / 1";
+        String result = instance.pisoDe(LocalPicagem.quarto(301))
+                + " / "
+                + instance.pisoDe(new LocalPicagem(LocalHotel.PISCINA, 0));
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testTemQuartos() {
         System.out.println("temQuartos (piso 2 sim, piso 0 não)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        assertTrue(instance.temQuartos(2));
-        assertFalse(instance.temQuartos(0));
+        String expResult = "true / false";
+        String result = instance.temQuartos(2) + " / " + instance.temQuartos(0);
+        assertEquals(expResult, result);
     }
 
     @Test
