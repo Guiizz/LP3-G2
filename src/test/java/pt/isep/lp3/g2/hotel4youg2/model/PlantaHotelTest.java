@@ -9,9 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PlantaHotelTest {
 
@@ -64,7 +61,9 @@ public class PlantaHotelTest {
     public void testProcurarQuartoQueNaoExiste() {
         System.out.println("procurarQuarto (999 não existe)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        assertNull(instance.procurarQuarto(999));
+        Quarto expResult = null;
+        Quarto result = instance.procurarQuarto(999);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -80,9 +79,11 @@ public class PlantaHotelTest {
     public void testGetDetalhesDoQuarto() {
         System.out.println("getDetalhes (quarto individual sem tarifa)");
         Quarto instance = new Quarto(301, 3, TipoQuarto.INDIVIDUAL, Vista.MONTANHA, 1);
-        String result = instance.getDetalhes();
-        assertTrue(result.contains("Capacidade: 1 pessoa"));
-        assertFalse(result.contains("Preço por noite"));
+        String detalhes = instance.getDetalhes();
+        boolean expResult = true;
+        boolean result = detalhes.contains("Capacidade: 1 pessoa");
+        assertEquals(expResult, result);
+        assertEquals(false, detalhes.contains("Preço por noite"));
     }
 
     private List<Quarto> tresQuartosNoPiso2() {
@@ -115,7 +116,9 @@ public class PlantaHotelTest {
     public void testPisoDeUmQuartoEDeUmLocal() {
         System.out.println("pisoDe (quarto 301 no piso 3, piscina no piso 1)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        assertEquals(3, instance.pisoDe(LocalPicagem.quarto(301)));
+        int expResult = 3;
+        int result = instance.pisoDe(LocalPicagem.quarto(301));
+        assertEquals(expResult, result);
         assertEquals(1, instance.pisoDe(new LocalPicagem(LocalHotel.PISCINA, 0)));
     }
 
@@ -123,8 +126,10 @@ public class PlantaHotelTest {
     public void testTemQuartos() {
         System.out.println("temQuartos (piso 2 sim, piso 0 não)");
         PlantaHotel instance = new PlantaHotel(quartos());
-        assertTrue(instance.temQuartos(2));
-        assertFalse(instance.temQuartos(0));
+        boolean expResult = true;
+        boolean result = instance.temQuartos(2);
+        assertEquals(expResult, result);
+        assertEquals(false, instance.temQuartos(0));
     }
 
     @Test

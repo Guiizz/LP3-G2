@@ -87,7 +87,9 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar("F-1", "errada");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("A password está errada.", expected.getMessage());
+            String expResult = "A password está errada.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -98,7 +100,9 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar("XX", "Forn#2026");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Não existe nenhum fornecedor com o código \"XX\".", expected.getMessage());
+            String expResult = "Não existe nenhum fornecedor com o código \"XX\".";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -109,7 +113,9 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar("F-2", "qualquer");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Este fornecedor ainda não tem conta. Contacte o hotel.", expected.getMessage());
+            String expResult = "Este fornecedor ainda não tem conta. Contacte o hotel.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -120,7 +126,9 @@ class AutenticacaoFornecedorBLLTest {
             instance.autenticar(" ", "Forn#2026");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva o código de fornecedor.", expected.getMessage());
+            String expResult = "Escreva o código de fornecedor.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
         try {
             instance.autenticar("F-1", "");

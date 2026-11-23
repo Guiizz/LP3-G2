@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Testes unitários da classe FuncionarioBLL.
@@ -144,7 +143,9 @@ public class FuncionarioBLLTest {
         System.out.println("criarConta (password guardada com hash e salt)");
         instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
         Utilizador conta = dal.contaGravada;
-        assertNotEquals("password123", conta.getPasswordHash());
+        boolean expResult = false;
+        boolean result = "password123".equals(conta.getPasswordHash());
+        assertEquals(expResult, result);
         assertEquals(64, conta.getPasswordHash().length());
         assertEquals(32, conta.getPasswordSalt().length());
     }
@@ -168,6 +169,115 @@ public class FuncionarioBLLTest {
                 LocalDate.now());
         instance.criarConta(gestor, comVazios, "ana.silva", "password123", Perfil.RECECIONISTA);
         Funcionario result = dal.funcionarioGravado;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testCriarContaRestauracaoGuardaAEmpresa() {
+        System.out.println("criarConta (restauração, com o nome da empresa externa)");
+        dados.setEmpresa("  Sabores do Norte Lda ");
+        instance.criarConta(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
+        Funcionario expResult = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
+                LocalDate.now());
+        expResult.setEmpresa("Sabores do Norte Lda");
+        Funcionario result = dal.funcionarioGravado;
+        assertEquals(expResult, result);
+        assertEquals(Perfil.RESTAURACAO, dal.contaGravada.getPerfil());
+    }
+
+    @Test
+    public void testCriarContaRececionistaSemEmpresa() {
+        System.out.println("criarConta (a empresa só fica guardada na restauração)");
+        dados.setEmpresa("Sabores do Norte Lda");
+        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
+        String expResult = null;
+        String result = dal.funcionarioGravado.getEmpresa();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testProcurarDaConta() {
+        System.out.println("procurarDaConta (os dados do funcionário da conta)");
+        dal.guardado = ana();
+        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
+        Funcionario expResult = ana();
+        Funcionario result = instance.procurarDaConta(gestor, conta);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testProcurarDaContaSemFuncionario() {
+        System.out.println("procurarDaConta (o funcionário já não existe)");
+        Utilizador conta = new Utilizador(5, 99, "fantasma", "h", "s", Perfil.RECECIONISTA, true);
+        String expResult = "O funcionário desta conta já não existe.";
+        String result;
+        try {
+            instance.procurarDaConta(gestor, conta);
+            result = null;
+        } catch (IllegalArgumentException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEditarGravaOsDados() {
+        System.out.println("editar (muda o nome e os contactos)");
+        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
+        Funcionario novos = ana();
+        novos.setNome("  Ana Sofia Silva ");
+        novos.setTelemovel("930000000");
+        novos.setEmail("ana.sofia@hotel.pt");
+        novos.setMorada("Rua B");
+        instance.editar(gestor, conta, novos, Perfil.RECECIONISTA);
+        Funcionario expResult = new Funcionario(7, "Ana Sofia Silva", "12345678", "123456789", "Rua B",
+                "930000000", LocalDate.of(1990, 5, 1), "ana.sofia@hotel.pt", 12, LocalDate.of(2026, 10, 1));
+        Funcionario result = dal.editado;
+        assertEquals(expResult, result);
+        assertEquals(5, dal.contaEditada);
+    }
+
+    @Test
+    public void testEditarMudaOPerfil() {
+        System.out.println("editar (muda o perfil da conta)");
+        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
+        instance.editar(gestor, conta, ana(), Perfil.GESTOR);
+        Perfil expResult = Perfil.GESTOR;
+        Perfil result = conta.getPerfil();
+        assertEquals(expResult, result);
+        assertEquals(Perfil.GESTOR, dal.perfilEditado);
+    }
+
+    @Test
+    public void testEditarParaRestauracaoComEmpresa() {
+        System.out.println("editar (passar para a restauração guarda a empresa)");
+        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
+        Funcionario novos = ana();
+        novos.setEmpresa("Sabores do Norte Lda");
+        instance.editar(gestor, conta, novos, Perfil.RESTAURACAO);
+        String expResult = "Sabores do Norte Lda";
+        String result = dal.editado.getEmpresa();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEditarSaiDaRestauracaoSemEmpresa() {
+        System.out.println("editar (fora da restauração a empresa fica vazia)");
+        Utilizador conta = new Utilizador(5, 7, "rita", "h", "s", Perfil.RESTAURACAO, true);
+        Funcionario novos = ana();
+        novos.setEmpresa("Sabores do Norte Lda");
+        instance.editar(gestor, conta, novos, Perfil.RECECIONISTA);
+        String expResult = null;
+        String result = dal.editado.getEmpresa();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEditarOProprioMantendoGestor() {
+        System.out.println("editar (o gestor pode mudar os seus contactos)");
+        instance.editar(gestor, gestor, ana(), Perfil.GESTOR);
+        Perfil expResult = Perfil.GESTOR;
+        Perfil result = dal.perfilEditado;
         assertEquals(expResult, result);
     }
 
@@ -249,6 +359,20 @@ public class FuncionarioBLLTest {
         assertEquals(0, dal.contasCriadas);
     }
 
+    private Funcionario ana() {
+        return new Funcionario(7, "Ana Silva", "12345678", "123456789", "Rua A", "910000000",
+                LocalDate.of(1990, 5, 1), "ana@hotel.pt", 12, LocalDate.of(2026, 10, 1));
+    }
+
+    private String erroAoEditar(Utilizador quemAge, Utilizador conta, Funcionario novos, Perfil perfil) {
+        try {
+            instance.editar(quemAge, conta, novos, perfil);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
     @Test
     public void testCriarContaNomeDeUtilizadorCurto() {
         System.out.println("criarConta (nome de utilizador curto)");
@@ -287,19 +411,6 @@ public class FuncionarioBLLTest {
     }
 
     @Test
-    public void testCriarContaRestauracaoGuardaAEmpresa() {
-        System.out.println("criarConta (restauração, com o nome da empresa externa)");
-        dados.setEmpresa("  Sabores do Norte Lda ");
-        instance.criarConta(gestor, dados, "rita.sabores", "password123", Perfil.RESTAURACAO);
-        Funcionario expResult = new Funcionario(0, "Ana Silva", null, "123456789", null, null, null, null, 0,
-                LocalDate.now());
-        expResult.setEmpresa("Sabores do Norte Lda");
-        Funcionario result = dal.funcionarioGravado;
-        assertEquals(expResult, result);
-        assertEquals(Perfil.RESTAURACAO, dal.contaGravada.getPerfil());
-    }
-
-    @Test
     public void testCriarContaRestauracaoSemEmpresa() {
         System.out.println("criarConta (restauração sem o nome da empresa)");
         dados.setEmpresa("   ");
@@ -319,16 +430,6 @@ public class FuncionarioBLLTest {
     }
 
     @Test
-    public void testCriarContaRececionistaSemEmpresa() {
-        System.out.println("criarConta (a empresa só fica guardada na restauração)");
-        dados.setEmpresa("Sabores do Norte Lda");
-        instance.criarConta(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
-        String expResult = null;
-        String result = dal.funcionarioGravado.getEmpresa();
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testCriarContaNascimentoNoFuturo() {
         System.out.println("criarConta (data de nascimento no futuro)");
         dados.setDataNascimento(LocalDate.now().plusDays(1));
@@ -336,85 +437,6 @@ public class FuncionarioBLLTest {
         String result = mensagemAoCriar(gestor, dados, "ana.silva", "password123", Perfil.RECECIONISTA);
         assertEquals(expResult, result);
         assertEquals(0, dal.contasCriadas);
-    }
-
-    private Funcionario ana() {
-        return new Funcionario(7, "Ana Silva", "12345678", "123456789", "Rua A", "910000000",
-                LocalDate.of(1990, 5, 1), "ana@hotel.pt", 12, LocalDate.of(2026, 10, 1));
-    }
-
-    private String erroAoEditar(Utilizador quemAge, Utilizador conta, Funcionario novos, Perfil perfil) {
-        try {
-            instance.editar(quemAge, conta, novos, perfil);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return e.getMessage();
-        }
-        return null;
-    }
-
-    @Test
-    public void testProcurarDaConta() {
-        System.out.println("procurarDaConta (os dados do funcionário da conta)");
-        dal.guardado = ana();
-        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
-        Funcionario expResult = ana();
-        Funcionario result = instance.procurarDaConta(gestor, conta);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testProcurarDaContaSemFuncionario() {
-        System.out.println("procurarDaConta (o funcionário já não existe)");
-        Utilizador conta = new Utilizador(5, 99, "fantasma", "h", "s", Perfil.RECECIONISTA, true);
-        String expResult = "O funcionário desta conta já não existe.";
-        String result;
-        try {
-            instance.procurarDaConta(gestor, conta);
-            result = null;
-        } catch (IllegalArgumentException e) {
-            result = e.getMessage();
-        }
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testEditarGravaOsDados() {
-        System.out.println("editar (muda o nome e os contactos)");
-        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
-        Funcionario novos = ana();
-        novos.setNome("  Ana Sofia Silva ");
-        novos.setTelemovel("930000000");
-        novos.setEmail("ana.sofia@hotel.pt");
-        novos.setMorada("Rua B");
-        instance.editar(gestor, conta, novos, Perfil.RECECIONISTA);
-        Funcionario expResult = new Funcionario(7, "Ana Sofia Silva", "12345678", "123456789", "Rua B",
-                "930000000", LocalDate.of(1990, 5, 1), "ana.sofia@hotel.pt", 12, LocalDate.of(2026, 10, 1));
-        Funcionario result = dal.editado;
-        assertEquals(expResult, result);
-        assertEquals(5, dal.contaEditada);
-    }
-
-    @Test
-    public void testEditarMudaOPerfil() {
-        System.out.println("editar (muda o perfil da conta)");
-        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
-        instance.editar(gestor, conta, ana(), Perfil.GESTOR);
-        Perfil expResult = Perfil.GESTOR;
-        Perfil result = conta.getPerfil();
-        assertEquals(expResult, result);
-        assertEquals(Perfil.GESTOR, dal.perfilEditado);
-    }
-
-    @Test
-    public void testEditarParaRestauracaoComEmpresa() {
-        System.out.println("editar (passar para a restauração guarda a empresa)");
-        Utilizador conta = new Utilizador(5, 7, "ana.silva", "h", "s", Perfil.RECECIONISTA, true);
-        Funcionario novos = ana();
-        novos.setEmpresa("Sabores do Norte Lda");
-        instance.editar(gestor, conta, novos, Perfil.RESTAURACAO);
-        String expResult = "Sabores do Norte Lda";
-        String result = dal.editado.getEmpresa();
-        assertEquals(expResult, result);
     }
 
     @Test
@@ -428,33 +450,12 @@ public class FuncionarioBLLTest {
     }
 
     @Test
-    public void testEditarSaiDaRestauracaoSemEmpresa() {
-        System.out.println("editar (fora da restauração a empresa fica vazia)");
-        Utilizador conta = new Utilizador(5, 7, "rita", "h", "s", Perfil.RESTAURACAO, true);
-        Funcionario novos = ana();
-        novos.setEmpresa("Sabores do Norte Lda");
-        instance.editar(gestor, conta, novos, Perfil.RECECIONISTA);
-        String expResult = null;
-        String result = dal.editado.getEmpresa();
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testEditarRetirarOGestorAoProprio() {
         System.out.println("editar (o gestor não tira a si próprio o perfil de gestor)");
         String expResult = "Não pode retirar o perfil de gestor à sua própria conta.";
         String result = erroAoEditar(gestor, gestor, ana(), Perfil.RECECIONISTA);
         assertEquals(expResult, result);
         assertEquals(Perfil.GESTOR, gestor.getPerfil());
-    }
-
-    @Test
-    public void testEditarOProprioMantendoGestor() {
-        System.out.println("editar (o gestor pode mudar os seus contactos)");
-        instance.editar(gestor, gestor, ana(), Perfil.GESTOR);
-        Perfil expResult = Perfil.GESTOR;
-        Perfil result = dal.perfilEditado;
-        assertEquals(expResult, result);
     }
 
     @Test

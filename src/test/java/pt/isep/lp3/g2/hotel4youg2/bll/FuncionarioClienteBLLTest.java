@@ -132,54 +132,6 @@ public class FuncionarioClienteBLLTest {
     }
 
     @Test
-    public void testRegistarFuncionarioRegistadoEntretanto() {
-        System.out.println("registar (outro rececionista registou-o ao mesmo tempo)");
-        clienteDAL.outroJaRegistou = true;
-        try {
-            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("Este funcionário já foi registado como cliente", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testRegistarFuncionarioValidaComoCliente() {
-        System.out.println("registar (funcionário sem contacto)");
-        try {
-            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, null, null, null, null);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("Indique pelo menos o telemóvel ou o email", expected.getMessage());
-            assertEquals(null, clienteDAL.tornado);
-        }
-    }
-
-    @Test
-    public void testRegistarFuncionarioDuasVezes() {
-        System.out.println("registar (o mesmo funcionário duas vezes)");
-        instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
-        try {
-            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("Já existe uma pessoa registada com o NIF " + NIF_FUNCIONARIO, expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testRegistarClienteRepetido() {
-        System.out.println("registar (NIF de outro cliente)");
-        try {
-            instance.registar("Ana Silva", NIF_CLIENTE, ADULTO, "912345678", null, null, null);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("Já existe uma pessoa registada com o NIF " + NIF_CLIENTE, expected.getMessage());
-            assertEquals(false, clienteDAL.inseriuPessoaNova);
-        }
-    }
-
-    @Test
     public void testRegistarNifNovo() {
         System.out.println("registar (NIF novo continua a criar a pessoa)");
         boolean expResult = true;
@@ -210,5 +162,61 @@ public class FuncionarioClienteBLLTest {
         Cliente expResult = null;
         Cliente result = instance.funcionarioComNif("abc");
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRegistarFuncionarioRegistadoEntretanto() {
+        System.out.println("registar (outro rececionista registou-o ao mesmo tempo)");
+        clienteDAL.outroJaRegistou = true;
+        try {
+            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "Este funcionário já foi registado como cliente";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarFuncionarioValidaComoCliente() {
+        System.out.println("registar (funcionário sem contacto)");
+        try {
+            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, null, null, null, null);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "Indique pelo menos o telemóvel ou o email";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(null, clienteDAL.tornado);
+        }
+    }
+
+    @Test
+    public void testRegistarFuncionarioDuasVezes() {
+        System.out.println("registar (o mesmo funcionário duas vezes)");
+        instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
+        try {
+            instance.registar("Rui Costa", NIF_FUNCIONARIO, ADULTO, "912345678", null, null, null);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "Já existe uma pessoa registada com o NIF " + NIF_FUNCIONARIO;
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarClienteRepetido() {
+        System.out.println("registar (NIF de outro cliente)");
+        try {
+            instance.registar("Ana Silva", NIF_CLIENTE, ADULTO, "912345678", null, null, null);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "Já existe uma pessoa registada com o NIF " + NIF_CLIENTE;
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(false, clienteDAL.inseriuPessoaNova);
+        }
     }
 }

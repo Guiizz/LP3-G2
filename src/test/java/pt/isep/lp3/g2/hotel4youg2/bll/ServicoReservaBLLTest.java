@@ -209,99 +209,6 @@ public class ServicoReservaBLLTest {
     }
 
     @Test
-    public void testAdicionarReservaCancelada() {
-        System.out.println("adicionar (reserva cancelada)");
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        try {
-            instance.adicionar(RECECAO, reserva, jantar, 1);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("A reserva 10 está cancelada: já não é possível juntar serviços", expected.getMessage());
-            assertEquals(0, servicoReservaDAL.tabela.size());
-        }
-    }
-
-    @Test
-    public void testAdicionarReservaConcluida() {
-        System.out.println("adicionar (reserva concluída)");
-        reserva.setEstado(EstadoReserva.CONCLUIDA);
-        try {
-            instance.adicionar(RECECAO, reserva, jantar, 1);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("A reserva 10 está concluída: já não é possível juntar serviços", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testAdicionarReservaFechadaEntretanto() {
-        System.out.println("adicionar (reserva cancelada noutro computador)");
-        servicoReservaDAL.reservasFechadas.add(10);
-        try {
-            instance.adicionar(RECECAO, reserva, jantar, 1);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals(new BigDecimal("0"), reserva.getTotalServicos());
-        }
-    }
-
-    @Test
-    public void testAdicionarServicoDesativado() {
-        System.out.println("adicionar (serviço desativado)");
-        Servico desativado = servicoDAL.procurarPorId(3).orElseThrow();
-        try {
-            instance.adicionar(RECECAO, reserva, desativado, 1);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("O serviço Almoço antigo está desativado", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testAdicionarSemServico() {
-        System.out.println("adicionar (sem serviço)");
-        try {
-            instance.adicionar(RECECAO, reserva, null, 1);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("Escolha um serviço", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testAdicionarQuantidadeZero() {
-        System.out.println("adicionar (quantidade zero)");
-        try {
-            instance.adicionar(RECECAO, reserva, jantar, 0);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("A quantidade tem de ser pelo menos 1", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testAdicionarQuantidadeAcimaDoMaximo() {
-        System.out.println("adicionar (quantidade acima de 99)");
-        try {
-            instance.adicionar(RECECAO, reserva, jantar, 100);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("A quantidade não pode ser maior que 99", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testAdicionarSemSessao() {
-        System.out.println("adicionar (sem sessão)");
-        try {
-            instance.adicionar(null, reserva, jantar, 1);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(0, servicoReservaDAL.tabela.size());
-        }
-    }
-
-    @Test
     public void testListarDaReserva() {
         System.out.println("listarDaReserva");
         ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 1);
@@ -319,34 +226,6 @@ public class ServicoReservaBLLTest {
         BigDecimal result = reserva.getTotal();
         assertEquals(expResult, result);
         assertEquals(0, servicoReservaDAL.tabela.size());
-    }
-
-    @Test
-    public void testRetirarReservaCancelada() {
-        System.out.println("retirar (reserva cancelada)");
-        ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 2);
-        reserva.setEstado(EstadoReserva.CANCELADA);
-        try {
-            instance.retirar(RECECAO, reserva, junto);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals("A reserva 10 está cancelada: já não é possível retirar serviços", expected.getMessage());
-            assertEquals(1, servicoReservaDAL.tabela.size());
-        }
-    }
-
-    @Test
-    public void testRetirarDeOutraReserva() {
-        System.out.println("retirar (o serviço é de outra reserva)");
-        ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 2);
-        Reserva outra = new Reserva(11, 5, 202, LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 3), 2,
-                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
-        try {
-            instance.retirar(RECECAO, outra, junto);
-            fail("Devia ter lançado ValidacaoException, mas não lançou");
-        } catch (ValidacaoException expected) {
-            assertEquals(1, servicoReservaDAL.tabela.size());
-        }
     }
 
     @Test
@@ -377,6 +256,147 @@ public class ServicoReservaBLLTest {
     }
 
     @Test
+    public void testAdicionarReservaCancelada() {
+        System.out.println("adicionar (reserva cancelada)");
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.adicionar(RECECAO, reserva, jantar, 1);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "A reserva 10 está cancelada: já não é possível juntar serviços";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(0, servicoReservaDAL.tabela.size());
+        }
+    }
+
+    @Test
+    public void testAdicionarReservaConcluida() {
+        System.out.println("adicionar (reserva concluída)");
+        reserva.setEstado(EstadoReserva.CONCLUIDA);
+        try {
+            instance.adicionar(RECECAO, reserva, jantar, 1);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "A reserva 10 está concluída: já não é possível juntar serviços";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAdicionarReservaFechadaEntretanto() {
+        System.out.println("adicionar (reserva cancelada noutro computador)");
+        servicoReservaDAL.reservasFechadas.add(10);
+        try {
+            instance.adicionar(RECECAO, reserva, jantar, 1);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            BigDecimal expResult = new BigDecimal("0");
+            BigDecimal result = reserva.getTotalServicos();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAdicionarServicoDesativado() {
+        System.out.println("adicionar (serviço desativado)");
+        Servico desativado = servicoDAL.procurarPorId(3).orElseThrow();
+        try {
+            instance.adicionar(RECECAO, reserva, desativado, 1);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "O serviço Almoço antigo está desativado";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAdicionarSemServico() {
+        System.out.println("adicionar (sem serviço)");
+        try {
+            instance.adicionar(RECECAO, reserva, null, 1);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "Escolha um serviço";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAdicionarQuantidadeZero() {
+        System.out.println("adicionar (quantidade zero)");
+        try {
+            instance.adicionar(RECECAO, reserva, jantar, 0);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "A quantidade tem de ser pelo menos 1";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAdicionarQuantidadeAcimaDoMaximo() {
+        System.out.println("adicionar (quantidade acima de 99)");
+        try {
+            instance.adicionar(RECECAO, reserva, jantar, 100);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "A quantidade não pode ser maior que 99";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAdicionarSemSessao() {
+        System.out.println("adicionar (sem sessão)");
+        try {
+            instance.adicionar(null, reserva, jantar, 1);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            int expResult = 0;
+            int result = servicoReservaDAL.tabela.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRetirarReservaCancelada() {
+        System.out.println("retirar (reserva cancelada)");
+        ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 2);
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        try {
+            instance.retirar(RECECAO, reserva, junto);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            String expResult = "A reserva 10 está cancelada: já não é possível retirar serviços";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(1, servicoReservaDAL.tabela.size());
+        }
+    }
+
+    @Test
+    public void testRetirarDeOutraReserva() {
+        System.out.println("retirar (o serviço é de outra reserva)");
+        ServicoReserva junto = instance.adicionar(RECECAO, reserva, jantar, 2);
+        Reserva outra = new Reserva(11, 5, 202, LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 3), 2,
+                EstadoReserva.CONFIRMADA, new BigDecimal("200.00"), null, null);
+        try {
+            instance.retirar(RECECAO, outra, junto);
+            fail("Devia ter lançado ValidacaoException, mas não lançou");
+        } catch (ValidacaoException expected) {
+            int expResult = 1;
+            int result = servicoReservaDAL.tabela.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
     public void testNovoServicoSemServico() {
         System.out.println("novoServico (sem serviço)");
         String expResult = "Escolha um serviço";
@@ -384,7 +404,8 @@ public class ServicoReservaBLLTest {
             ServicoReservaBLL.novoServico(0, null, 1);
             fail("Devia ter pedido um serviço");
         } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
+            String result = e.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -397,7 +418,8 @@ public class ServicoReservaBLLTest {
             ServicoReservaBLL.novoServico(0, antigo, 1);
             fail("Devia ter recusado um serviço desativado");
         } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
+            String result = e.getMessage();
+            assertEquals(expResult, result);
         }
     }
 
@@ -409,7 +431,8 @@ public class ServicoReservaBLLTest {
             ServicoReservaBLL.novoServico(0, pequenoAlmoco, 0);
             fail("Devia ter recusado a quantidade zero");
         } catch (ValidacaoException e) {
-            assertEquals(expResult, e.getMessage());
+            String result = e.getMessage();
+            assertEquals(expResult, result);
         }
     }
 }

@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ConexaoBDTest {
@@ -42,8 +41,11 @@ public class ConexaoBDTest {
 
     @Test
     void ligacaoAbreEFecha() throws Exception {
-        try(Connection conn = ConexaoBD.abrir()) {
-            assertTrue(conn.isValid(2));
+        System.out.println("ligacaoAbreEFecha");
+        try (Connection conn = ConexaoBD.abrir()) {
+            boolean expResult = true;
+            boolean result = conn.isValid(2);
+            assertEquals(expResult, result);
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
         }
@@ -82,21 +84,6 @@ public class ConexaoBDTest {
     }
 
     @Test
-    public void testSelectDepoisDeUmErro() {
-        System.out.println("select (um erro de SQL não estraga as consultas seguintes)");
-        exigirBD();
-        try {
-            ConexaoBD.select("SELECT * FROM TabelaQueNaoExiste", new InteiroMapper());
-            fail("Devia ter recusado uma tabela que não existe");
-        } catch (DataAccessException e) {
-            assertEquals("Erro ao executar a consulta", e.getMessage());
-        }
-        List<Integer> expResult = List.of(1);
-        List<Integer> result = ConexaoBD.select("SELECT 1", new InteiroMapper());
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testAbrirTentaOutraVez() {
         System.out.println("abrir (a primeira tentativa falha e a segunda liga)");
         FonteQueFalha fonte = new FonteQueFalha(1);
@@ -112,21 +99,6 @@ public class ConexaoBDTest {
         FonteQueFalha fonte = new FonteQueFalha(0);
         ConexaoBD.abrir(fonte, ConexaoBD.TENTATIVAS);
         int expResult = 1;
-        int result = fonte.chamadas;
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testAbrirDesisteDepoisDasTentativas() {
-        System.out.println("abrir (desiste depois das tentativas, com uma mensagem clara)");
-        FonteQueFalha fonte = new FonteQueFalha(5);
-        try {
-            ConexaoBD.abrir(fonte, ConexaoBD.TENTATIVAS);
-            fail("Devia ter desistido de ligar");
-        } catch (DataAccessException e) {
-            assertEquals(ConexaoBD.SEM_LIGACAO, e.getMessage());
-        }
-        int expResult = ConexaoBD.TENTATIVAS;
         int result = fonte.chamadas;
         assertEquals(expResult, result);
     }
@@ -179,6 +151,36 @@ public class ConexaoBDTest {
         System.out.println("mensagem (erro sem código de estado)");
         String expResult = "Erro ao executar a instrução";
         String result = ConexaoBD.mensagem(new SQLException("erro"), "Erro ao executar a instrução");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testSelectDepoisDeUmErro() {
+        System.out.println("select (um erro de SQL não estraga as consultas seguintes)");
+        exigirBD();
+        try {
+            ConexaoBD.select("SELECT * FROM TabelaQueNaoExiste", new InteiroMapper());
+            fail("Devia ter recusado uma tabela que não existe");
+        } catch (DataAccessException e) {
+            assertEquals("Erro ao executar a consulta", e.getMessage());
+        }
+        List<Integer> expResult = List.of(1);
+        List<Integer> result = ConexaoBD.select("SELECT 1", new InteiroMapper());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAbrirDesisteDepoisDasTentativas() {
+        System.out.println("abrir (desiste depois das tentativas, com uma mensagem clara)");
+        FonteQueFalha fonte = new FonteQueFalha(5);
+        try {
+            ConexaoBD.abrir(fonte, ConexaoBD.TENTATIVAS);
+            fail("Devia ter desistido de ligar");
+        } catch (DataAccessException e) {
+            assertEquals(ConexaoBD.SEM_LIGACAO, e.getMessage());
+        }
+        int expResult = ConexaoBD.TENTATIVAS;
+        int result = fonte.chamadas;
         assertEquals(expResult, result);
     }
 }

@@ -147,7 +147,8 @@ public class EditarClienteTest {
                 "ana@mail.pt");
         String mensagem = mensagemAoEditar(ana, "  ", ADULTO, "912345678", null);
         assertEquals("O nome é obrigatório", mensagem);
-        assertEquals(expResult, ana);
+        Cliente result = ana;
+        assertEquals(expResult, result);
         assertEquals(0, dal.atualizacoes);
     }
 
@@ -195,6 +196,7 @@ public class EditarClienteTest {
                 "ana@mail.pt");
         String mensagem = mensagemAoEditar(ana, "Ana Costa", ADULTO, "912345678", null);
         assertEquals("O cliente já não existe", mensagem);
-        assertEquals(expResult, ana);
+        Cliente result = ana;
+        assertEquals(expResult, result);
     }
 }

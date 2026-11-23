@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 /**
  * Testes unitários da classe SugestaoQueixa.
@@ -134,7 +133,9 @@ public class SugestaoQueixaTest {
     public void testEquals() {
         System.out.println("equals (mesmos dados)");
         SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.QUEIXA, "Ar condicionado avariado", 2, QUANDO);
-        assertEquals(outra, instance);
+        SugestaoQueixa expResult = outra;
+        SugestaoQueixa result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -142,14 +143,18 @@ public class SugestaoQueixaTest {
         System.out.println("equals (o nome do cliente não conta)");
         SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.QUEIXA, "Ar condicionado avariado", 2, QUANDO);
         outra.setNomeCliente("Ana Silva");
-        assertEquals(outra, instance);
+        SugestaoQueixa expResult = outra;
+        SugestaoQueixa result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsOutraDescricao() {
         System.out.println("equals (descrição diferente)");
         SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.QUEIXA, "Barulho", 2, QUANDO);
-        assertNotEquals(outra, instance);
+        boolean expResult = false;
+        boolean result = outra.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -157,7 +162,9 @@ public class SugestaoQueixaTest {
         System.out.println("equals (tipo diferente)");
         SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.SUGESTAO, "Ar condicionado avariado", 2,
                 QUANDO);
-        assertNotEquals(outra, instance);
+        boolean expResult = false;
+        boolean result = outra.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -201,7 +208,9 @@ public class SugestaoQueixaTest {
         System.out.println("equals (reserva diferente)");
         SugestaoQueixa outra = new SugestaoQueixa(3, 7, TipoSugestao.QUEIXA, "Ar condicionado avariado", 2, QUANDO);
         outra.setReserva(30, 201);
-        assertNotEquals(outra, instance);
+        boolean expResult = false;
+        boolean result = outra.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test

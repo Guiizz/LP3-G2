@@ -201,88 +201,6 @@ public class ServicoBLLTest {
     }
 
     @Test
-    public void testCriarRececionista() {
-        System.out.println("criar (rececionista)");
-        try {
-            instance.criar(RECECAO, "Sauna", new BigDecimal("15"), spa);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(0, servicoDAL.tabela.size());
-        }
-    }
-
-    @Test
-    public void testCriarDesignacaoVazia() {
-        System.out.println("criar (designação vazia)");
-        try {
-            instance.criar(GESTOR, "   ", new BigDecimal("15"), spa);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva a designação do serviço.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCriarPrecoZero() {
-        System.out.println("criar (preço zero)");
-        try {
-            instance.criar(GESTOR, "Wi-Fi", BigDecimal.ZERO, lazer);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("O preço tem de ser maior que zero.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCriarPrecoNegativo() {
-        System.out.println("criar (preço negativo)");
-        try {
-            instance.criar(GESTOR, "Sauna", new BigDecimal("-5"), spa);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("O preço tem de ser maior que zero.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCriarPrecoComTresCasasDecimais() {
-        System.out.println("criar (3 casas decimais)");
-        try {
-            instance.criar(GESTOR, "Sauna", new BigDecimal("12.505"), spa);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("O preço só pode ter 2 casas decimais.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCriarSemCategoria() {
-        System.out.println("criar (sem categoria)");
-        try {
-            instance.criar(GESTOR, "Sauna", new BigDecimal("15"), null);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha a categoria.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testCriarRepetido() {
-        System.out.println("criar (repetido)");
-        instance.criar(GESTOR, "Sauna", new BigDecimal("15"), spa);
-        try {
-            instance.criar(GESTOR, " SAUNA ", new BigDecimal("18"), spa);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Já existe o serviço \"SAUNA\". Para mudar o preço, edite o serviço que já existe.",
-                    expected.getMessage());
-            assertEquals(1, servicoDAL.tabela.size());
-        }
-    }
-
-    // ---------- editar ----------
-
-    @Test
     public void testEditar() {
         System.out.println("editar");
         Servico sauna = instance.criar(GESTOR, "Sauna", new BigDecimal("15.00"), spa);
@@ -303,30 +221,6 @@ public class ServicoBLLTest {
     }
 
     @Test
-    public void testEditarPrecoNegativo() {
-        System.out.println("editar (preço negativo)");
-        Servico ginasio = instance.criar(GESTOR, "Ginásio", new BigDecimal("5.00"), lazer);
-        try {
-            instance.editar(GESTOR, ginasio.getId(), "Ginásio", new BigDecimal("-1"), lazer);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(new BigDecimal("5.00"), servicoDAL.procurarPorId(ginasio.getId()).orElseThrow().getPreco());
-        }
-    }
-
-    @Test
-    public void testEditarRececionista() {
-        System.out.println("editar (rececionista não muda o preço)");
-        Servico ginasio = instance.criar(GESTOR, "Ginásio", new BigDecimal("5.00"), lazer);
-        try {
-            instance.editar(RECECAO, ginasio.getId(), "Ginásio", new BigDecimal("1.00"), lazer);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(new BigDecimal("5.00"), servicoDAL.procurarPorId(ginasio.getId()).orElseThrow().getPreco());
-        }
-    }
-
-    @Test
     public void testEditarDesativadoContinuaDesativado() {
         System.out.println("editar (serviço desativado)");
         Servico sauna = instance.criar(GESTOR, "Sauna", new BigDecimal("15.00"), spa);
@@ -336,19 +230,6 @@ public class ServicoBLLTest {
         boolean result = editado.isAtivo();
         assertEquals(expResult, result);
     }
-
-    @Test
-    public void testEditarQueNaoExiste() {
-        System.out.println("editar (não existe)");
-        try {
-            instance.editar(GESTOR, 99, "Sauna", new BigDecimal("15"), spa);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha um serviço da lista.", expected.getMessage());
-        }
-    }
-
-    // ---------- desativar e reativar ----------
 
     @Test
     public void testDesativar() {
@@ -373,50 +254,12 @@ public class ServicoBLLTest {
     }
 
     @Test
-    public void testDesativarRececionista() {
-        System.out.println("desativar (rececionista)");
-        Servico sauna = instance.criar(GESTOR, "Sauna", new BigDecimal("15.00"), spa);
-        try {
-            instance.desativar(RECECAO, sauna.getId());
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(true, servicoDAL.procurarPorId(sauna.getId()).orElseThrow().isAtivo());
-        }
-    }
-
-    // ---------- categorias ----------
-
-    @Test
     public void testCriarCategoria() {
         System.out.println("criarCategoria");
         Categoria expResult = new Categoria(3, "Transporte");
         Categoria result = instance.criarCategoria(GESTOR, "  Transporte ");
         assertEquals(expResult, result);
     }
-
-    @Test
-    public void testCriarCategoriaRepetida() {
-        System.out.println("criarCategoria (repetida)");
-        try {
-            instance.criarCategoria(GESTOR, "LAZER");
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals(2, categoriaDAL.tabela.size());
-        }
-    }
-
-    @Test
-    public void testCriarCategoriaRececionista() {
-        System.out.println("criarCategoria (rececionista)");
-        try {
-            instance.criarCategoria(RECECAO, "Transporte");
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(2, categoriaDAL.tabela.size());
-        }
-    }
-
-    // ---------- lerPreco ----------
 
     @Test
     public void testLerPreco() {
@@ -427,6 +270,188 @@ public class ServicoBLLTest {
         assertEquals(expResult, result);
     }
 
+    // ---------- editar ----------
+
+    @Test
+    public void testCriarRececionista() {
+        System.out.println("criar (rececionista)");
+        try {
+            instance.criar(RECECAO, "Sauna", new BigDecimal("15"), spa);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            int expResult = 0;
+            int result = servicoDAL.tabela.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarDesignacaoVazia() {
+        System.out.println("criar (designação vazia)");
+        try {
+            instance.criar(GESTOR, "   ", new BigDecimal("15"), spa);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Escreva a designação do serviço.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarPrecoZero() {
+        System.out.println("criar (preço zero)");
+        try {
+            instance.criar(GESTOR, "Wi-Fi", BigDecimal.ZERO, lazer);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "O preço tem de ser maior que zero.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarPrecoNegativo() {
+        System.out.println("criar (preço negativo)");
+        try {
+            instance.criar(GESTOR, "Sauna", new BigDecimal("-5"), spa);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "O preço tem de ser maior que zero.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarPrecoComTresCasasDecimais() {
+        System.out.println("criar (3 casas decimais)");
+        try {
+            instance.criar(GESTOR, "Sauna", new BigDecimal("12.505"), spa);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "O preço só pode ter 2 casas decimais.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarSemCategoria() {
+        System.out.println("criar (sem categoria)");
+        try {
+            instance.criar(GESTOR, "Sauna", new BigDecimal("15"), null);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Escolha a categoria.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    // ---------- desativar e reativar ----------
+
+    @Test
+    public void testCriarRepetido() {
+        System.out.println("criar (repetido)");
+        instance.criar(GESTOR, "Sauna", new BigDecimal("15"), spa);
+        try {
+            instance.criar(GESTOR, " SAUNA ", new BigDecimal("18"), spa);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Já existe o serviço \"SAUNA\". Para mudar o preço, edite o serviço que já existe.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(1, servicoDAL.tabela.size());
+        }
+    }
+
+    @Test
+    public void testEditarPrecoNegativo() {
+        System.out.println("editar (preço negativo)");
+        Servico ginasio = instance.criar(GESTOR, "Ginásio", new BigDecimal("5.00"), lazer);
+        try {
+            instance.editar(GESTOR, ginasio.getId(), "Ginásio", new BigDecimal("-1"), lazer);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            BigDecimal expResult = new BigDecimal("5.00");
+            BigDecimal result = servicoDAL.procurarPorId(ginasio.getId()).orElseThrow().getPreco();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testEditarRececionista() {
+        System.out.println("editar (rececionista não muda o preço)");
+        Servico ginasio = instance.criar(GESTOR, "Ginásio", new BigDecimal("5.00"), lazer);
+        try {
+            instance.editar(RECECAO, ginasio.getId(), "Ginásio", new BigDecimal("1.00"), lazer);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            BigDecimal expResult = new BigDecimal("5.00");
+            BigDecimal result = servicoDAL.procurarPorId(ginasio.getId()).orElseThrow().getPreco();
+            assertEquals(expResult, result);
+        }
+    }
+
+    // ---------- categorias ----------
+
+    @Test
+    public void testEditarQueNaoExiste() {
+        System.out.println("editar (não existe)");
+        try {
+            instance.editar(GESTOR, 99, "Sauna", new BigDecimal("15"), spa);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Escolha um serviço da lista.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testDesativarRececionista() {
+        System.out.println("desativar (rececionista)");
+        Servico sauna = instance.criar(GESTOR, "Sauna", new BigDecimal("15.00"), spa);
+        try {
+            instance.desativar(RECECAO, sauna.getId());
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            boolean expResult = true;
+            boolean result = servicoDAL.procurarPorId(sauna.getId()).orElseThrow().isAtivo();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCriarCategoriaRepetida() {
+        System.out.println("criarCategoria (repetida)");
+        try {
+            instance.criarCategoria(GESTOR, "LAZER");
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            int expResult = 2;
+            int result = categoriaDAL.tabela.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    // ---------- lerPreco ----------
+
+    @Test
+    public void testCriarCategoriaRececionista() {
+        System.out.println("criarCategoria (rececionista)");
+        try {
+            instance.criarCategoria(RECECAO, "Transporte");
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            int expResult = 2;
+            int result = categoriaDAL.tabela.size();
+            assertEquals(expResult, result);
+        }
+    }
+
     @Test
     public void testLerPrecoInvalido() {
         System.out.println("lerPreco (inválido)");
@@ -434,7 +459,9 @@ public class ServicoBLLTest {
             ServicoBLL.lerPreco("doze");
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escreva um preço válido (por exemplo, 12,50).", expected.getMessage());
+            String expResult = "Escreva um preço válido (por exemplo, 12,50).";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
     }
 }

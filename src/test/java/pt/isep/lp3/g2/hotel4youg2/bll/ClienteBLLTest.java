@@ -184,6 +184,102 @@ public class ClienteBLLTest {
     }
 
     @Test
+    public void testRegistarFuncionarioComoCliente() {
+        System.out.println("registar (funcionário passa a cliente, o nome e os dados que já tinha ficam)");
+        Cliente expResult = new Cliente(20, "Rui Costa", "CC123", "111222333", "Rua F", "922222222", ADULTO,
+                "rui@hotel.pt");
+        Cliente result = instance.registar("Outro Nome", "111222333", ADULTO, "922222222", null, null, null);
+        assertEquals(expResult, result);
+        assertEquals(expResult, dal.clientes.get(1));
+        assertEquals(1, dal.insercoes);
+    }
+
+    @Test
+    public void testFuncionarioComNif() {
+        System.out.println("funcionarioComNif");
+        Cliente expResult = new Cliente(20, "Rui Costa", "CC123", "111222333", "Rua F", "911111111", ADULTO,
+                "rui@hotel.pt");
+        Cliente result = instance.funcionarioComNif(" 111222333 ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFuncionarioComNifQueNaoEFuncionario() {
+        System.out.println("funcionarioComNif (o NIF não é de um funcionário)");
+        Cliente expResult = null;
+        Cliente result = instance.funcionarioComNif("987654321");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFuncionarioComNifInvalido() {
+        System.out.println("funcionarioComNif (NIF inválido)");
+        Cliente expResult = null;
+        Cliente result = instance.funcionarioComNif("1234");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFuncionarioComNifVazio() {
+        System.out.println("funcionarioComNif (sem NIF)");
+        Cliente expResult = null;
+        Cliente result = instance.funcionarioComNif(null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisar() {
+        System.out.println("pesquisar");
+        List<Cliente> expResult = new ArrayList<>();
+        expResult.add(new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null));
+        List<Cliente> result = instance.pesquisar("  ana ");
+        assertEquals(expResult, result);
+        assertEquals("ana", dal.ultimoTermo);
+    }
+
+    @Test
+    public void testPesquisarSemResultados() {
+        System.out.println("pesquisar (nenhum cliente encontrado)");
+        List<Cliente> expResult = new ArrayList<>();
+        List<Cliente> result = instance.pesquisar("Zé");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarSemTermoMostraTodos() {
+        System.out.println("pesquisar (sem termo mostra todos)");
+        List<Cliente> expResult = dal.clientes;
+        List<Cliente> result = instance.pesquisar(null);
+        assertEquals(expResult, result);
+        assertEquals("", dal.ultimoTermo);
+    }
+
+    @Test
+    public void testPesquisarPorNif() {
+        System.out.println("pesquisarPorNif");
+        Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
+        Cliente result = instance.pesquisarPorNif("123456789");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarPorNifInexistente() {
+        System.out.println("pesquisarPorNif (o NIF não existe)");
+        Cliente expResult = null;
+        Cliente result = instance.pesquisarPorNif("987654321");
+        assertEquals(expResult, result);
+        assertEquals(1, dal.procurasPorNif);
+    }
+
+    @Test
+    public void testPesquisarPorNifIgnoraEspacos() {
+        System.out.println("pesquisarPorNif (espaços à volta do NIF)");
+        Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
+        Cliente result = instance.pesquisarPorNif("  123456789 ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testRegistarNomeVazio() {
         System.out.println("registar (nome vazio)");
         String expResult = "O nome é obrigatório";
@@ -191,6 +287,8 @@ public class ClienteBLLTest {
         assertEquals(expResult, result);
         assertEquals(0, dal.insercoes);
     }
+
+    // ---------- US43: funcionário que passa a cliente ----------
 
     @Test
     public void testRegistarNomeMuitoLongo() {
@@ -246,6 +344,8 @@ public class ClienteBLLTest {
         assertEquals(0, dal.insercoes);
     }
 
+    // ---------- US14: pesquisar clientes ----------
+
     @Test
     public void testRegistarDataNoFuturo() {
         System.out.println("registar (data de nascimento no futuro)");
@@ -293,19 +393,6 @@ public class ClienteBLLTest {
         assertEquals(0, dal.insercoes);
     }
 
-    // ---------- US43: funcionário que passa a cliente ----------
-
-    @Test
-    public void testRegistarFuncionarioComoCliente() {
-        System.out.println("registar (funcionário passa a cliente, o nome e os dados que já tinha ficam)");
-        Cliente expResult = new Cliente(20, "Rui Costa", "CC123", "111222333", "Rua F", "922222222", ADULTO,
-                "rui@hotel.pt");
-        Cliente result = instance.registar("Outro Nome", "111222333", ADULTO, "922222222", null, null, null);
-        assertEquals(expResult, result);
-        assertEquals(expResult, dal.clientes.get(1));
-        assertEquals(1, dal.insercoes);
-    }
-
     @Test
     public void testRegistarFuncionarioJaRegistadoComoCliente() {
         System.out.println("registar (funcionário já foi registado como cliente)");
@@ -314,93 +401,6 @@ public class ClienteBLLTest {
         String result = mensagemAoRegistar("Rui Costa", "111222333", ADULTO, "922222222", null);
         assertEquals(expResult, result);
         assertEquals(1, dal.clientes.size());
-    }
-
-    @Test
-    public void testFuncionarioComNif() {
-        System.out.println("funcionarioComNif");
-        Cliente expResult = new Cliente(20, "Rui Costa", "CC123", "111222333", "Rua F", "911111111", ADULTO,
-                "rui@hotel.pt");
-        Cliente result = instance.funcionarioComNif(" 111222333 ");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testFuncionarioComNifQueNaoEFuncionario() {
-        System.out.println("funcionarioComNif (o NIF não é de um funcionário)");
-        Cliente expResult = null;
-        Cliente result = instance.funcionarioComNif("987654321");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testFuncionarioComNifInvalido() {
-        System.out.println("funcionarioComNif (NIF inválido)");
-        Cliente expResult = null;
-        Cliente result = instance.funcionarioComNif("1234");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testFuncionarioComNifVazio() {
-        System.out.println("funcionarioComNif (sem NIF)");
-        Cliente expResult = null;
-        Cliente result = instance.funcionarioComNif(null);
-        assertEquals(expResult, result);
-    }
-
-    // ---------- US14: pesquisar clientes ----------
-
-    @Test
-    public void testPesquisar() {
-        System.out.println("pesquisar");
-        List<Cliente> expResult = new ArrayList<>();
-        expResult.add(new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null));
-        List<Cliente> result = instance.pesquisar("  ana ");
-        assertEquals(expResult, result);
-        assertEquals("ana", dal.ultimoTermo);
-    }
-
-    @Test
-    public void testPesquisarSemResultados() {
-        System.out.println("pesquisar (nenhum cliente encontrado)");
-        List<Cliente> expResult = new ArrayList<>();
-        List<Cliente> result = instance.pesquisar("Zé");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarSemTermoMostraTodos() {
-        System.out.println("pesquisar (sem termo mostra todos)");
-        List<Cliente> expResult = dal.clientes;
-        List<Cliente> result = instance.pesquisar(null);
-        assertEquals(expResult, result);
-        assertEquals("", dal.ultimoTermo);
-    }
-
-    @Test
-    public void testPesquisarPorNif() {
-        System.out.println("pesquisarPorNif");
-        Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
-        Cliente result = instance.pesquisarPorNif("123456789");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarPorNifInexistente() {
-        System.out.println("pesquisarPorNif (o NIF não existe)");
-        Cliente expResult = null;
-        Cliente result = instance.pesquisarPorNif("987654321");
-        assertEquals(expResult, result);
-        assertEquals(1, dal.procurasPorNif);
-    }
-
-    @Test
-    public void testPesquisarPorNifIgnoraEspacos() {
-        System.out.println("pesquisarPorNif (espaços à volta do NIF)");
-        Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
-        Cliente result = instance.pesquisarPorNif("  123456789 ");
-        assertEquals(expResult, result);
     }
 
     @Test

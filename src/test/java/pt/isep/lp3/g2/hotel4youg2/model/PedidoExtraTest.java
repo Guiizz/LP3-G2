@@ -62,7 +62,8 @@ public class PedidoExtraTest {
         instance.recusar("Sem stock");
         PedidoExtra expResult = new PedidoExtra(1, 30, 0, 7, "Toalha", 1, EstadoPedido.RECUSADO);
         expResult.setMotivoRecusa("Sem stock");
-        assertEquals(expResult, instance);
+        PedidoExtra result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test

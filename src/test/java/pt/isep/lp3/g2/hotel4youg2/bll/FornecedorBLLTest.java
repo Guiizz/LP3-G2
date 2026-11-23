@@ -15,9 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FornecedorBLLTest {
 
@@ -80,7 +77,8 @@ class FornecedorBLLTest {
     public void testCriar() {
         System.out.println("criar");
         Fornecedor result = instance.criar(GESTOR, " F-1 ", "Fornecedor Um", "Forn#2026");
-        assertEquals("F-1", result.getCodigo());
+        String expResult = "F-1";
+        assertEquals(expResult, result.getCodigo());
         assertEquals("Fornecedor Um", result.getNome());
         assertEquals(result, fornecedorDAL.fornecedores.get("F-1"));
     }
@@ -89,9 +87,23 @@ class FornecedorBLLTest {
     public void testCriarGuardaSoOHashDaPassword() {
         System.out.println("criar (a password não fica em claro)");
         Fornecedor result = instance.criar(GESTOR, "F-1", "Fornecedor Um", "Forn#2026");
-        assertNotNull(result.getPasswordSalt());
-        assertTrue(passwordUtils.verificarPassword("Forn#2026", result.getPasswordSalt(), result.getPasswordHash()));
-        assertFalse(result.getPasswordHash().contains("Forn#2026"));
+        boolean expResult = true;
+        boolean resultado = passwordUtils.verificarPassword("Forn#2026", result.getPasswordSalt(),
+                result.getPasswordHash());
+        assertEquals(expResult, resultado);
+        assertEquals(false, result.getPasswordHash().contains("Forn#2026"));
+    }
+
+    @Test
+    public void testCriarParaFornecedorSemConta() {
+        System.out.println("criar (fornecedor vindo de uma entrega, sem conta)");
+        Fornecedor semConta = new Fornecedor(5, "F-2", "Fornecedor Dois", "Rua A", "", "Porto", "4000", "Portugal", "PT");
+        fornecedorDAL.fornecedores.put("F-2", semConta);
+        Fornecedor result = instance.criar(GESTOR, "F-2", "Fornecedor Dois", "Forn#2026");
+        int expResult = 1;
+        assertEquals(expResult, fornecedorDAL.passwordsDefinidas);
+        assertEquals(true, result.getPasswordHash() != null);
+        assertEquals(1, fornecedorDAL.fornecedores.size());
     }
 
     @Test
@@ -122,17 +134,6 @@ class FornecedorBLLTest {
     }
 
     @Test
-    public void testCriarParaFornecedorSemConta() {
-        System.out.println("criar (fornecedor vindo de uma entrega, sem conta)");
-        Fornecedor semConta = new Fornecedor(5, "F-2", "Fornecedor Dois", "Rua A", "", "Porto", "4000", "Portugal", "PT");
-        fornecedorDAL.fornecedores.put("F-2", semConta);
-        Fornecedor result = instance.criar(GESTOR, "F-2", "Fornecedor Dois", "Forn#2026");
-        assertEquals(1, fornecedorDAL.passwordsDefinidas);
-        assertNotNull(result.getPasswordHash());
-        assertEquals(1, fornecedorDAL.fornecedores.size());
-    }
-
-    @Test
     public void testCriarQuandoOutroGestorDefiniuAPasswordEntretanto() {
         System.out.println("criar (outro gestor definiu a password ao mesmo tempo)");
         Fornecedor semConta = new Fornecedor(5, "F-2", "Fornecedor Dois", "Rua A", "", "Porto", "4000", "Portugal", "PT");
@@ -146,27 +147,34 @@ class FornecedorBLLTest {
     @Test
     public void testCriarSemCodigo() {
         System.out.println("criar (sem código)");
-        assertEquals("Escreva o código do fornecedor.", mensagemDoErro(GESTOR, " ", "Nome", "Forn#2026"));
+        String expResult = "Escreva o código do fornecedor.";
+        String result = mensagemDoErro(GESTOR, " ", "Nome", "Forn#2026");
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testCriarSemNome() {
         System.out.println("criar (sem nome)");
-        assertEquals("Escreva o nome do fornecedor.", mensagemDoErro(GESTOR, "F-1", "", "Forn#2026"));
+        String expResult = "Escreva o nome do fornecedor.";
+        String result = mensagemDoErro(GESTOR, "F-1", "", "Forn#2026");
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testCriarComPasswordCurta() {
         System.out.println("criar (password curta)");
-        assertEquals("A password tem de ter pelo menos 8 caracteres.", mensagemDoErro(GESTOR, "F-1", "Nome", "curta"));
+        String expResult = "A password tem de ter pelo menos 8 caracteres.";
+        String result = mensagemDoErro(GESTOR, "F-1", "Nome", "curta");
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testCriarComCodigoDemasiadoLongo() {
         System.out.println("criar (código com mais de 30 caracteres)");
         String codigoLongo = "X".repeat(31);
-        assertEquals("O código pode ter no máximo 30 caracteres.",
-                mensagemDoErro(GESTOR, codigoLongo, "Nome", "Forn#2026"));
+        String expResult = "O código pode ter no máximo 30 caracteres.";
+        String result = mensagemDoErro(GESTOR, codigoLongo, "Nome", "Forn#2026");
+        assertEquals(expResult, result);
         assertEquals(0, fornecedorDAL.fornecedores.size());
     }
 }

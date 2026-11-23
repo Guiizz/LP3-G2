@@ -6,7 +6,6 @@ import pt.isep.lp3.g2.hotel4youg2.model.enums.TipoMovimento;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class MovimentoStockTest {
 
@@ -76,14 +75,18 @@ public class MovimentoStockTest {
     public void testEquals() {
         System.out.println("equals (mesmos dados)");
         MovimentoStock outro = new MovimentoStock(TipoMovimento.SAIDA_DEFINITIVA, 4, 3, "Ana Silva", QUANDO);
-        assertEquals(outro, instance);
+        MovimentoStock expResult = outro;
+        MovimentoStock result = instance;
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testEqualsOutroTipo() {
         System.out.println("equals (tipo diferente)");
         MovimentoStock outro = new MovimentoStock(TipoMovimento.ENTRADA, 4, 3, "Ana Silva", QUANDO);
-        assertNotEquals(outro, instance);
+        boolean expResult = false;
+        boolean result = outro.equals(instance);
+        assertEquals(expResult, result);
     }
 
     @Test

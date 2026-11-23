@@ -57,35 +57,14 @@ public class LeitorXmlEntregaTest {
         }
     }
 
-    // lê um ficheiro que devia ser recusado logo (formato ou XSD) e devolve os erros
-    private List<String> errosAoLer(String nome) {
-        try {
-            instance.ler(ficheiro(nome), erros);
-            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
-            return null;
-        } catch (ErrosFicheiroException expected) {
-            return expected.getErros();
-        }
-    }
-
-    // importa um XSD que devia ser recusado e devolve os erros
-    private List<String> errosAoImportar(String nome) {
-        try {
-            LeitorXmlEntrega.importarXsd(ficheiroEmDisco(nome));
-            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
-            return null;
-        } catch (ErrosFicheiroException expected) {
-            return expected.getErros();
-        }
-    }
-
     @Test
     public void testLer() {
         System.out.println("ler");
         Fornecedor fornecedor = new Fornecedor(0, "11PT920", "ProductHero", "Rua da Alegria", "nº1", "Porto",
                 "4000-032", "Portugal", "PT");
         Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
-        assertEquals("OC56974", result.getNumeroEncomenda());
+        String expResult = "OC56974";
+        assertEquals(expResult, result.getNumeroEncomenda());
         assertEquals(LocalDate.of(2026, 10, 5), result.getDataEncomenda());
         assertEquals(fornecedor, result.getFornecedor());
         assertEquals(5, result.getLinhas().size());
@@ -106,7 +85,8 @@ public class LeitorXmlEntregaTest {
         System.out.println("ler (unidades de cada linha)");
         Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
         // linha 1: 50 caixas, o ficheiro diz que são 500 unidades; as outras já vêm em unidades
-        assertEquals(500, result.getLinhas().get(0).getUnidades());
+        int expResult = 500;
+        assertEquals(expResult, result.getLinhas().get(0).getUnidades());
         assertEquals(200, result.getLinhas().get(1).getUnidades());
         assertEquals(50, result.getLinhas().get(2).getUnidades());
     }
@@ -133,7 +113,8 @@ public class LeitorXmlEntregaTest {
         instance.ler(ficheiro("entrega-caixas-sem-unidades.xml"), erros);
         List<String> expResult = List.of("Linha 1, campo InformationalQuantity: a quantidade vem em Caixa "
                 + "e o ficheiro não indica quantas unidades são.");
-        assertEquals(expResult, erros);
+        List<String> result = erros;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -141,7 +122,8 @@ public class LeitorXmlEntregaTest {
         System.out.println("ler (data que não existe)");
         instance.ler(ficheiro("entrega-data-invalida.xml"), erros);
         List<String> expResult = List.of("Cabeçalho, campo OrderDate: a data da encomenda não existe (5/13/2026).");
-        assertEquals(expResult, erros);
+        List<String> result = erros;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -150,40 +132,8 @@ public class LeitorXmlEntregaTest {
         instance.ler(ficheiro("entrega-duas-moedas.xml"), erros);
         List<String> expResult = List.of("Linha 3, campo PricePerUnit: o valor está em USD, "
                 + "mas a encomenda está em EUR.");
-        assertEquals(expResult, erros);
-    }
-
-    @Test
-    public void testLerMalFormado() {
-        System.out.println("ler (mal formado)");
-        List<String> result = errosAoLer("entrega-mal-formada.xml");
-        assertEquals(1, result.size());
-        assertEquals(true, result.get(0).contains("do ficheiro: o XML não está bem formado."));
-    }
-
-    @Test
-    public void testLerForaDoXsd() {
-        System.out.println("ler (não segue o XSD, diz a linha do ficheiro)");
-        List<String> result = errosAoLer("entrega-fora-do-xsd.xml");
-        assertEquals(true, result.get(0).startsWith("Linha 31 do ficheiro: "));
-    }
-
-    @Test
-    public void testLerForaDoXsdJuntaTodosOsErros() {
-        System.out.println("ler (dois erros no XSD aparecem os dois)");
-        List<String> result = errosAoLer("entrega-dois-erros-xsd.xml");
-        boolean temLinha31 = false;
-        boolean temLinha67 = false;
-        for (String erro : result) {
-            if (erro.startsWith("Linha 31 do ficheiro: ")) {
-                temLinha31 = true;
-            }
-            if (erro.startsWith("Linha 67 do ficheiro: ")) {
-                temLinha67 = true;
-            }
-        }
-        assertEquals(true, temLinha31);
-        assertEquals(true, temLinha67);
+        List<String> result = erros;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -204,35 +154,122 @@ public class LeitorXmlEntregaTest {
     }
 
     @Test
-    public void testImportarXsdPassaASerUsado() {
-        System.out.println("importarXsd (o XML passa a ser validado com o XSD importado)");
-        LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-outra-raiz.xsd"));
-        // o XSD importado só aceita <Encomenda>, por isso o XML do professor (<Order>) é recusado
-        List<String> result = errosAoLer("entrega-valida.xml");
-        assertEquals(true, result.get(0).startsWith("Linha 2 do ficheiro: "));
-    }
-
-    @Test
     public void testImportarXsdDoProjeto() {
         System.out.println("importarXsd (o XSD do projeto importado aceita o XML do professor)");
         LeitorXmlEntrega.importarXsd(ficheiroEmDisco("Hotel4You.xsd"));
         Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
-        assertEquals("OC56974", result.getNumeroEncomenda());
+        String expResult = "OC56974";
+        assertEquals(expResult, result.getNumeroEncomenda());
         assertEquals("Hotel4You.xsd", LeitorXmlEntrega.getNomeXsdImportado());
+    }
+
+    @Test
+    public void testUsarXsdDoProjeto() {
+        System.out.println("usarXsdDoProjeto (esquece o XSD importado)");
+        LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-outra-raiz.xsd"));
+        LeitorXmlEntrega.usarXsdDoProjeto();
+        Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
+        String expResult = "OC56974";
+        assertEquals(expResult, result.getNumeroEncomenda());
+        assertEquals(null, LeitorXmlEntrega.getNomeXsdImportado());
+    }
+
+    @Test
+    public void testLerMalFormado() {
+        System.out.println("ler (mal formado)");
+        List<String> result = null;
+        try {
+            instance.ler(ficheiro("entrega-mal-formada.xml"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        int expResult = 1;
+        assertEquals(expResult, result.size());
+        assertEquals(true, result.get(0).contains("do ficheiro: o XML não está bem formado."));
+    }
+
+    @Test
+    public void testLerForaDoXsd() {
+        System.out.println("ler (não segue o XSD, diz a linha do ficheiro)");
+        List<String> lidos = null;
+        try {
+            instance.ler(ficheiro("entrega-fora-do-xsd.xml"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            lidos = expected.getErros();
+        }
+        boolean expResult = true;
+        boolean result = lidos.get(0).startsWith("Linha 31 do ficheiro: ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerForaDoXsdJuntaTodosOsErros() {
+        System.out.println("ler (dois erros no XSD aparecem os dois)");
+        List<String> lidos = null;
+        try {
+            instance.ler(ficheiro("entrega-dois-erros-xsd.xml"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            lidos = expected.getErros();
+        }
+        boolean temLinha31 = false;
+        boolean temLinha67 = false;
+        for (String erro : lidos) {
+            if (erro.startsWith("Linha 31 do ficheiro: ")) {
+                temLinha31 = true;
+            }
+            if (erro.startsWith("Linha 67 do ficheiro: ")) {
+                temLinha67 = true;
+            }
+        }
+        boolean expResult = true;
+        boolean result = temLinha31 && temLinha67;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testImportarXsdPassaASerUsado() {
+        System.out.println("importarXsd (o XML passa a ser validado com o XSD importado)");
+        LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-outra-raiz.xsd"));
+        // o XSD importado só aceita <Encomenda>, por isso o XML do professor (<Order>) é recusado
+        List<String> lidos = null;
+        try {
+            instance.ler(ficheiro("entrega-valida.xml"), erros);
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            lidos = expected.getErros();
+        }
+        boolean expResult = true;
+        boolean result = lidos.get(0).startsWith("Linha 2 do ficheiro: ");
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testImportarXsdInvalido() {
         System.out.println("importarXsd (XSD inválido é recusado)");
-        List<String> result = errosAoImportar("xsd-invalido.xsd");
-        assertEquals(true, result.get(0).startsWith("O ficheiro não é um XSD válido. Linha 4 do ficheiro: "));
+        List<String> lidos = null;
+        try {
+            LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-invalido.xsd"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            lidos = expected.getErros();
+        }
+        boolean expResult = true;
+        boolean result = lidos.get(0).startsWith("O ficheiro não é um XSD válido. Linha 4 do ficheiro: ");
+        assertEquals(expResult, result);
     }
 
     @Test
     public void testImportarXsdInvalidoMantemOAnterior() {
         System.out.println("importarXsd (XSD inválido não substitui o que estava em uso)");
         LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-outra-raiz.xsd"));
-        errosAoImportar("xsd-invalido.xsd");
+        try {
+            LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-invalido.xsd"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+        }
         String expResult = "xsd-outra-raiz.xsd";
         String result = LeitorXmlEntrega.getNomeXsdImportado();
         assertEquals(expResult, result);
@@ -241,8 +278,15 @@ public class LeitorXmlEntregaTest {
     @Test
     public void testImportarXsdQueNaoEUmXsd() {
         System.out.println("importarXsd (um XML de entrega não é um XSD)");
-        List<String> result = errosAoImportar("entrega-valida.xml");
-        assertEquals(1, result.size());
+        List<String> result = null;
+        try {
+            LeitorXmlEntrega.importarXsd(ficheiroEmDisco("entrega-valida.xml"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        int expResult = 1;
+        assertEquals(expResult, result.size());
         assertEquals(null, LeitorXmlEntrega.getNomeXsdImportado());
     }
 
@@ -253,17 +297,9 @@ public class LeitorXmlEntregaTest {
             LeitorXmlEntrega.importarXsd(new File("nao-existe.xsd"));
             fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
         } catch (ErrosFicheiroException expected) {
-            assertEquals("Não foi possível abrir o ficheiro nao-existe.xsd.", expected.getMessage());
+            String expResult = "Não foi possível abrir o ficheiro nao-existe.xsd.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
         }
-    }
-
-    @Test
-    public void testUsarXsdDoProjeto() {
-        System.out.println("usarXsdDoProjeto (esquece o XSD importado)");
-        LeitorXmlEntrega.importarXsd(ficheiroEmDisco("xsd-outra-raiz.xsd"));
-        LeitorXmlEntrega.usarXsdDoProjeto();
-        Entrega result = instance.ler(ficheiro("entrega-valida.xml"), erros);
-        assertEquals("OC56974", result.getNumeroEncomenda());
-        assertEquals(null, LeitorXmlEntrega.getNomeXsdImportado());
     }
 }

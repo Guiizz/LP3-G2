@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class EntregaBLLTest {
@@ -196,17 +195,6 @@ public class EntregaBLLTest {
         assertEquals(expResult, result);
     }
 
-    // lê um ficheiro que devia ser recusado e devolve a lista de erros
-    private List<String> errosAoLer(String nome) {
-        try {
-            instance.lerFicheiro(ficheiro(nome));
-            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
-            return null;
-        } catch (ErrosFicheiroException expected) {
-            return expected.getErros();
-        }
-    }
-
     @Test
     public void testLerFicheiroDiferencaDeCentimos() {
         System.out.println("lerFicheiro (IVA com 3 cêntimos de diferença passa, com aviso)");
@@ -218,75 +206,11 @@ public class EntregaBLLTest {
     }
 
     @Test
-    public void testLerFicheiroTotalErrado() {
-        System.out.println("lerFicheiro (total errado é recusado)");
-        List<String> expResult = List.of("Linha 1, campo LineBaseAmount: o total devia ser 154,37 €, "
-                + "mas o ficheiro diz 999,99 €.");
-        List<String> result = errosAoLer("entrega-total-errado.xml");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testLerFicheiroVariosErros() {
-        System.out.println("lerFicheiro (vários erros aparecem todos juntos)");
-        List<String> expResult = List.of(
-                "Cabeçalho, campo OrderDate: a data da encomenda não existe (5/13/2026).",
-                "Linha 4, campo PricePerUnit: o valor está em USD, mas a encomenda está em EUR.",
-                "Linha 5, campo LineBaseAmount: o total devia ser 3431,70 €, mas o ficheiro diz 9999,99 €.");
-        List<String> result = errosAoLer("entrega-varios-erros.xml");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testLerFicheiroRecusadoNaoGuardaNada() {
-        System.out.println("lerFicheiro (ficheiro recusado: nada é guardado)");
-        errosAoLer("entrega-varios-erros.xml");
-        assertEquals(0, entregaDAL.registadas.size());
-    }
-
-    @Test
-    public void testImportarXsdSemFicheiro() {
-        System.out.println("importarXsd (sem ficheiro)");
-        try {
-            instance.importarXsd(null);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha um ficheiro XSD.", expected.getMessage());
-        }
-    }
-
-    @Test
     public void testNomeXsdEmUsoSemImportar() {
         System.out.println("nomeXsdEmUso (sem importar usa o do projeto)");
         String expResult = null;
         String result = instance.nomeXsdEmUso();
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testLerFicheiroNulo() {
-        System.out.println("lerFicheiro (sem ficheiro)");
-        try {
-            instance.lerFicheiro((java.io.File) null);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha um ficheiro XML ou JSON.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testLerFicheiroQuantidadeZero() {
-        System.out.println("lerFicheiro (quantidade zero)");
-        try {
-            instance.lerFicheiro(ficheiro("entrega-quantidade-zero.xml"));
-            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
-        } catch (ErrosFicheiroException expected) {
-            List<String> expResult = List.of(
-                    "Linha 1, campo Quantity: a quantidade tem de ser maior que zero.",
-                    "Linha 1, campo MonetaryAdjustmentStartAmount: a quantidade vezes o preço dá 0,00 €, "
-                            + "mas o ficheiro diz 125,50 €.");
-            assertEquals(expResult, expected.getErros());
-        }
     }
 
     @Test
@@ -300,53 +224,6 @@ public class EntregaBLLTest {
     }
 
     @Test
-    public void testRegistarRepetida() {
-        System.out.println("registar (repetida)");
-        instance.registar(RECECAO, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
-        try {
-            instance.registar(RECECAO, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("A entrega OC56974 do fornecedor ProductHero já foi registada.", expected.getMessage());
-            assertEquals(1, entregaDAL.registadas.size());
-        }
-    }
-
-    @Test
-    public void testRegistarSemSessao() {
-        System.out.println("registar (sem sessão)");
-        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        try {
-            instance.registar(null, entrega);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(0, entregaDAL.registadas.size());
-        }
-    }
-
-    @Test
-    public void testRegistarSemEntrega() {
-        System.out.println("registar (sem entrega)");
-        try {
-            instance.registar(RECECAO, null);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Carregue primeiro um ficheiro XML válido.", expected.getMessage());
-        }
-    }
-
-    private Fornecedor fornecedorDoFicheiro() {
-        return instance.lerFicheiro(ficheiro("entrega-valida.xml")).getFornecedor();
-    }
-
-    // cria uma entrega pendente do mesmo fornecedor do ficheiro, com outro número de encomenda
-    private Entrega entregaPendente(String numero) {
-        Entrega entrega = new Entrega(0, numero, java.time.LocalDate.of(2026, 11, 4), fornecedorDoFicheiro());
-        entregaDAL.carregar(entrega);
-        return entrega;
-    }
-
-    @Test
     public void testCarregar() {
         System.out.println("carregar");
         Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
@@ -354,35 +231,6 @@ public class EntregaBLLTest {
         int result = instance.carregar(fornecedorDoFicheiro(), entrega);
         assertEquals(expResult, result);
         assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
-    }
-
-    @Test
-    public void testCarregarDeOutroFornecedor() {
-        System.out.println("carregar (ficheiro de outro fornecedor)");
-        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
-        try {
-            instance.carregar(outro, entrega);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("O ficheiro é do fornecedor " + entrega.getFornecedor().getCodigo()
-                    + ". Só pode carregar entregas do seu fornecedor.", expected.getMessage());
-            assertEquals(0, entregaDAL.registadas.size());
-        }
-    }
-
-    @Test
-    public void testCarregarRepetida() {
-        System.out.println("carregar (repetida)");
-        Fornecedor fornecedor = fornecedorDoFicheiro();
-        instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
-        try {
-            instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("A entrega OC56974 já foi carregada.", expected.getMessage());
-            assertEquals(1, entregaDAL.registadas.size());
-        }
     }
 
     @Test
@@ -397,22 +245,6 @@ public class EntregaBLLTest {
     }
 
     @Test
-    public void testCarregarComCincoPendentes() {
-        System.out.println("carregar (já tem 5 pendentes)");
-        for (int i = 1; i <= EntregaBLL.MAX_PENDENTES; i++) {
-            entregaPendente("PENDENTE-" + i);
-        }
-        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        try {
-            instance.carregar(fornecedorDoFicheiro(), entrega);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Tem 5 entregas por aprovar. Aguarde a decisão do hotel.", expected.getMessage());
-            assertEquals(EntregaBLL.MAX_PENDENTES, entregaDAL.registadas.size());
-        }
-    }
-
-    @Test
     public void testCarregarComQuatroPendentes() {
         System.out.println("carregar (4 pendentes, ainda pode)");
         for (int i = 1; i < EntregaBLL.MAX_PENDENTES; i++) {
@@ -424,36 +256,14 @@ public class EntregaBLLTest {
     }
 
     @Test
-    public void testCarregarSemSessao() {
-        System.out.println("carregar (sem sessão)");
-        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
-        try {
-            instance.carregar(null, entrega);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals(0, entregaDAL.registadas.size());
-        }
-    }
-
-    @Test
-    public void testCarregarSemEntrega() {
-        System.out.println("carregar (sem entrega)");
-        try {
-            instance.carregar(fornecedorDoFicheiro(), null);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Carregue primeiro um ficheiro XML válido.", expected.getMessage());
-        }
-    }
-
-    @Test
     public void testHistoricoSoMostraAsEntregasDoFornecedor() {
         System.out.println("historico (só as do fornecedor)");
         entregaPendente("MINHA-1");
         Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
         entregaDAL.carregar(new Entrega(0, "DELE-1", java.time.LocalDate.of(2026, 11, 4), outro));
         List<ResumoEntrega> result = instance.historico(fornecedorDoFicheiro());
-        assertEquals(1, result.size());
+        int expResult = 1;
+        assertEquals(expResult, result.size());
         assertEquals("MINHA-1", result.get(0).getNumeroEncomenda());
     }
 
@@ -470,65 +280,15 @@ public class EntregaBLLTest {
         assertEquals(expResult, result);
     }
 
-    // tenta recusar e devolve a mensagem do erro; devolve null se não houve erro
-    private String mensagemAoRecusar(Utilizador quemAge, int entregaId, String motivo) {
-        try {
-            instance.recusar(quemAge, entregaId, motivo);
-        } catch (IllegalArgumentException e) {
-            return e.getMessage();
-        } catch (IllegalStateException e) {
-            return e.getMessage();
-        }
-        return null;
-    }
-
-    // tenta aceitar e devolve a mensagem do erro; devolve null se não houve erro
-    private String mensagemAoAceitar(Utilizador quemAge, int entregaId) {
-        try {
-            instance.aceitar(quemAge, entregaId);
-        } catch (IllegalArgumentException e) {
-            return e.getMessage();
-        } catch (IllegalStateException e) {
-            return e.getMessage();
-        }
-        return null;
-    }
-
     @Test
     public void testAceitar() {
         System.out.println("aceitar");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.aceitar(RECECAO, entrega.getId());
-        assertEquals(EstadoEntrega.ACEITE, entrega.getEstado());
+        EstadoEntrega expResult = EstadoEntrega.ACEITE;
+        EstadoEntrega result = entrega.getEstado();
+        assertEquals(expResult, result);
         assertEquals(7, entregaDAL.ultimoDecisor);
-    }
-
-    @Test
-    public void testAceitarSemSessao() {
-        System.out.println("aceitar (sem sessão)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = "Entre na aplicação para decidir entregas.";
-        String result = mensagemAoAceitar(null, entrega.getId());
-        assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
-    }
-
-    @Test
-    public void testAceitarQueNaoExiste() {
-        System.out.println("aceitar (não existe)");
-        String expResult = "A entrega não existe.";
-        String result = mensagemAoAceitar(RECECAO, 99);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testAceitarJaDecidida() {
-        System.out.println("aceitar (já foi decidida)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        instance.aceitar(RECECAO, entrega.getId());
-        String expResult = "Esta entrega já foi decidida.";
-        String result = mensagemAoAceitar(RECECAO, entrega.getId());
-        assertEquals(expResult, result);
     }
 
     @Test
@@ -536,7 +296,9 @@ public class EntregaBLLTest {
         System.out.println("recusar");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "Faltam toalhas");
-        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
+        EstadoEntrega expResult = EstadoEntrega.RECUSADA;
+        EstadoEntrega result = entrega.getEstado();
+        assertEquals(expResult, result);
         assertEquals("Faltam toalhas", entregaDAL.ultimoMotivo);
         assertEquals(7, entregaDAL.ultimoDecisor);
     }
@@ -546,8 +308,10 @@ public class EntregaBLLTest {
         System.out.println("recusar (sem motivo)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "   ");
-        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
-        assertNull(entregaDAL.ultimoMotivo);
+        EstadoEntrega expResult = EstadoEntrega.RECUSADA;
+        EstadoEntrega result = entrega.getEstado();
+        assertEquals(expResult, result);
+        assertEquals(null, entregaDAL.ultimoMotivo);
     }
 
     @Test
@@ -555,8 +319,21 @@ public class EntregaBLLTest {
         System.out.println("recusar (motivo só com símbolos)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "....................");
-        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
-        assertNull(entregaDAL.ultimoMotivo);
+        EstadoEntrega expResult = EstadoEntrega.RECUSADA;
+        EstadoEntrega result = entrega.getEstado();
+        assertEquals(expResult, result);
+        assertEquals(null, entregaDAL.ultimoMotivo);
+    }
+
+    private Fornecedor fornecedorDoFicheiro() {
+        return instance.lerFicheiro(ficheiro("entrega-valida.xml")).getFornecedor();
+    }
+
+    // cria uma entrega pendente do mesmo fornecedor do ficheiro, com outro número de encomenda
+    private Entrega entregaPendente(String numero) {
+        Entrega entrega = new Entrega(0, numero, java.time.LocalDate.of(2026, 11, 4), fornecedorDoFicheiro());
+        entregaDAL.carregar(entrega);
+        return entrega;
     }
 
     @Test
@@ -564,15 +341,9 @@ public class EntregaBLLTest {
         System.out.println("recusar (motivo com símbolos e uma palavra)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "... Atrasada!");
-        assertEquals("... Atrasada!", entregaDAL.ultimoMotivo);
-    }
-
-    @Test
-    public void testRecusarMotivoComMuitosSimbolos() {
-        System.out.println("recusar (201 pontos não dá erro, não há motivo)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        assertNull(mensagemAoRecusar(RECECAO, entrega.getId(), ".".repeat(201)));
-        assertNull(entregaDAL.ultimoMotivo);
+        String expResult = "... Atrasada!";
+        String result = entregaDAL.ultimoMotivo;
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -580,45 +351,9 @@ public class EntregaBLLTest {
         System.out.println("recusar (tira os espaços do motivo)");
         Entrega entrega = entregaPendente("PENDENTE-1");
         instance.recusar(RECECAO, entrega.getId(), "  Faltam toalhas  ");
-        assertEquals("Faltam toalhas", entregaDAL.ultimoMotivo);
-    }
-
-    @Test
-    public void testRecusarMotivoComMuitosCaracteres() {
-        System.out.println("recusar (motivo com 201 caracteres)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = "O motivo pode ter no máximo 200 caracteres.";
-        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(201));
+        String expResult = "Faltam toalhas";
+        String result = entregaDAL.ultimoMotivo;
         assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
-    }
-
-    @Test
-    public void testRecusarMotivoComOLimiteDeCaracteres() {
-        System.out.println("recusar (motivo com 200 caracteres)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        assertNull(mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(200)));
-        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
-    }
-
-    @Test
-    public void testRecusarSemSessao() {
-        System.out.println("recusar (sem sessão)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        String expResult = "Entre na aplicação para decidir entregas.";
-        String result = mensagemAoRecusar(null, entrega.getId(), "Motivo");
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testRecusarJaAceite() {
-        System.out.println("recusar (já foi aceite)");
-        Entrega entrega = entregaPendente("PENDENTE-1");
-        instance.aceitar(RECECAO, entrega.getId());
-        String expResult = "Esta entrega já foi decidida.";
-        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "Tarde de mais");
-        assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.ACEITE, entrega.getEstado());
     }
 
     @Test
@@ -626,39 +361,9 @@ public class EntregaBLLTest {
         System.out.println("listarParaHotel");
         entregaPendente("PENDENTE-1");
         List<ResumoEntregaHotel> result = instance.listarParaHotel(RECECAO);
-        assertEquals(1, result.size());
+        int expResult = 1;
+        assertEquals(expResult, result.size());
         assertEquals("PENDENTE-1", result.get(0).getNumeroEncomenda());
-    }
-
-    @Test
-    public void testListarParaHotelSemSessao() {
-        System.out.println("listarParaHotel (sem sessão)");
-        try {
-            instance.listarParaHotel(null);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals("Entre na aplicação para ver as entregas.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testHistoricoSemSessao() {
-        System.out.println("historico (sem sessão)");
-        try {
-            instance.historico(null);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals("Entre na aplicação para ver as suas entregas.", expected.getMessage());
-        }
-    }
-
-    // três entregas do fornecedor do ficheiro: uma aceite, uma recusada e uma pendente
-    private void entregasEmTresEstados() {
-        entregaPendente("OC-ACEITE");
-        entregaPendente("OC-RECUSADA");
-        entregaPendente("OC-PENDENTE");
-        instance.aceitar(RECECAO, 1);
-        instance.recusar(RECECAO, 2, "Faltam toalhas");
     }
 
     @Test
@@ -666,7 +371,8 @@ public class EntregaBLLTest {
         System.out.println("historico (só as aceites)");
         entregasEmTresEstados();
         List<ResumoEntrega> result = instance.historico(fornecedorDoFicheiro(), EstadoEntrega.ACEITE);
-        assertEquals(1, result.size());
+        int expResult = 1;
+        assertEquals(expResult, result.size());
         assertEquals("OC-ACEITE", result.get(0).getNumeroEncomenda());
     }
 
@@ -693,7 +399,8 @@ public class EntregaBLLTest {
         System.out.println("listarParaHotel (só as recusadas)");
         entregasEmTresEstados();
         List<ResumoEntregaHotel> result = instance.listarParaHotel(RECECAO, EstadoEntrega.RECUSADA);
-        assertEquals(1, result.size());
+        int expResult = 1;
+        assertEquals(expResult, result.size());
         assertEquals("OC-RECUSADA", result.get(0).getNumeroEncomenda());
     }
 
@@ -722,6 +429,30 @@ public class EntregaBLLTest {
         assertEquals(expResult, result);
     }
 
+    // tenta recusar e devolve a mensagem do erro; devolve null se não houve erro
+    private String mensagemAoRecusar(Utilizador quemAge, int entregaId, String motivo) {
+        try {
+            instance.recusar(quemAge, entregaId, motivo);
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        } catch (IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    // tenta aceitar e devolve a mensagem do erro; devolve null se não houve erro
+    private String mensagemAoAceitar(Utilizador quemAge, int entregaId) {
+        try {
+            instance.aceitar(quemAge, entregaId);
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        } catch (IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
     @Test
     public void testEstadoDoFiltro() {
         System.out.println("estadoDoFiltro (ACEITE)");
@@ -741,83 +472,12 @@ public class EntregaBLLTest {
     }
 
     @Test
-    public void testFaturaParaFornecedorDeOutroFornecedor() {
-        System.out.println("faturaParaFornecedor (entrega de outro fornecedor)");
-        int id = instance.carregar(fornecedorDoFicheiro(), instance.lerFicheiro(ficheiro("entrega-valida.xml")));
-        Fornecedor outro = new Fornecedor(2, "99PT000", "Outro", null, null, null, null, null, null);
-        try {
-            instance.faturaParaFornecedor(outro, id);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("Só pode ver as entregas do seu fornecedor.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testFaturaParaFornecedorQueNaoExiste() {
-        System.out.println("faturaParaFornecedor (entrega que não existe)");
-        try {
-            instance.faturaParaFornecedor(fornecedorDoFicheiro(), 99);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("A entrega não existe.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testFaturaParaFornecedorSemSessao() {
-        System.out.println("faturaParaFornecedor (sem sessão)");
-        try {
-            instance.faturaParaFornecedor(null, 1);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals("Entre na aplicação para ver as suas entregas.", expected.getMessage());
-        }
-    }
-
-    @Test
     public void testFaturaParaHotel() {
         System.out.println("faturaParaHotel");
         Entrega expResult = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
         int id = instance.carregar(fornecedorDoFicheiro(), expResult);
         Entrega result = instance.faturaParaHotel(RECECAO, id);
         assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testFaturaParaHotelQueNaoExiste() {
-        System.out.println("faturaParaHotel (entrega que não existe)");
-        try {
-            instance.faturaParaHotel(RECECAO, 99);
-            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
-        } catch (IllegalArgumentException expected) {
-            assertEquals("A entrega não existe.", expected.getMessage());
-        }
-    }
-
-    @Test
-    public void testFaturaParaHotelSemSessao() {
-        System.out.println("faturaParaHotel (sem sessão)");
-        try {
-            instance.faturaParaHotel(null, 1);
-            fail("Devia ter lançado IllegalStateException, mas não lançou");
-        } catch (IllegalStateException expected) {
-            assertEquals("Entre na aplicação para ver as entregas.", expected.getMessage());
-        }
-    }
-
-    private InputStream ficheiroJson(String nome) {
-        return EntregaBLLTest.class.getResourceAsStream("/pt/isep/lp3/g2/hotel4youg2/json/" + nome);
-    }
-
-    private List<String> errosAoLerJson(String nome) {
-        try {
-            instance.lerFicheiroJson(ficheiroJson(nome));
-            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
-            return null;
-        } catch (ErrosFicheiroException expected) {
-            return expected.getErros();
-        }
     }
 
     @Test
@@ -857,11 +517,408 @@ public class EntregaBLLTest {
     }
 
     @Test
+    public void testLerFicheiroTotalErrado() {
+        System.out.println("lerFicheiro (total errado é recusado)");
+        List<String> expResult = List.of("Linha 1, campo LineBaseAmount: o total devia ser 154,37 €, "
+                + "mas o ficheiro diz 999,99 €.");
+        List<String> result = null;
+        try {
+            instance.lerFicheiro(ficheiro("entrega-total-errado.xml"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroVariosErros() {
+        System.out.println("lerFicheiro (vários erros aparecem todos juntos)");
+        List<String> expResult = List.of(
+                "Cabeçalho, campo OrderDate: a data da encomenda não existe (5/13/2026).",
+                "Linha 4, campo PricePerUnit: o valor está em USD, mas a encomenda está em EUR.",
+                "Linha 5, campo LineBaseAmount: o total devia ser 3431,70 €, mas o ficheiro diz 9999,99 €.");
+        List<String> result = null;
+        try {
+            instance.lerFicheiro(ficheiro("entrega-varios-erros.xml"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroRecusadoNaoGuardaNada() {
+        System.out.println("lerFicheiro (ficheiro recusado: nada é guardado)");
+        try {
+            instance.lerFicheiro(ficheiro("entrega-varios-erros.xml"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+        }
+        int expResult = 0;
+        int result = entregaDAL.registadas.size();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testImportarXsdSemFicheiro() {
+        System.out.println("importarXsd (sem ficheiro)");
+        try {
+            instance.importarXsd(null);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Escolha um ficheiro XSD.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testLerFicheiroNulo() {
+        System.out.println("lerFicheiro (sem ficheiro)");
+        try {
+            instance.lerFicheiro((java.io.File) null);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Escolha um ficheiro XML ou JSON.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testLerFicheiroQuantidadeZero() {
+        System.out.println("lerFicheiro (quantidade zero)");
+        try {
+            instance.lerFicheiro(ficheiro("entrega-quantidade-zero.xml"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            List<String> expResult = List.of(
+                    "Linha 1, campo Quantity: a quantidade tem de ser maior que zero.",
+                    "Linha 1, campo MonetaryAdjustmentStartAmount: a quantidade vezes o preço dá 0,00 €, "
+                            + "mas o ficheiro diz 125,50 €.");
+            List<String> result = expected.getErros();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarRepetida() {
+        System.out.println("registar (repetida)");
+        instance.registar(RECECAO, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        try {
+            instance.registar(RECECAO, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "A entrega OC56974 do fornecedor ProductHero já foi registada.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(1, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testRegistarSemSessao() {
+        System.out.println("registar (sem sessão)");
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        try {
+            instance.registar(null, entrega);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            int expResult = 0;
+            int result = entregaDAL.registadas.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testRegistarSemEntrega() {
+        System.out.println("registar (sem entrega)");
+        try {
+            instance.registar(RECECAO, null);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Carregue primeiro um ficheiro XML válido.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCarregarDeOutroFornecedor() {
+        System.out.println("carregar (ficheiro de outro fornecedor)");
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        Fornecedor outro = new Fornecedor(9, "OUTRO", "Outro", "", "", "", "", "", "PT");
+        try {
+            instance.carregar(outro, entrega);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("O ficheiro é do fornecedor " + entrega.getFornecedor().getCodigo()
+                    + ". Só pode carregar entregas do seu fornecedor.", expected.getMessage());
+            int expResult = 0;
+            int result = entregaDAL.registadas.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    // três entregas do fornecedor do ficheiro: uma aceite, uma recusada e uma pendente
+    private void entregasEmTresEstados() {
+        entregaPendente("OC-ACEITE");
+        entregaPendente("OC-RECUSADA");
+        entregaPendente("OC-PENDENTE");
+        instance.aceitar(RECECAO, 1);
+        instance.recusar(RECECAO, 2, "Faltam toalhas");
+    }
+
+    @Test
+    public void testCarregarRepetida() {
+        System.out.println("carregar (repetida)");
+        Fornecedor fornecedor = fornecedorDoFicheiro();
+        instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        try {
+            instance.carregar(fornecedor, instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "A entrega OC56974 já foi carregada.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(1, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testCarregarComCincoPendentes() {
+        System.out.println("carregar (já tem 5 pendentes)");
+        for (int i = 1; i <= EntregaBLL.MAX_PENDENTES; i++) {
+            entregaPendente("PENDENTE-" + i);
+        }
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        try {
+            instance.carregar(fornecedorDoFicheiro(), entrega);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Tem 5 entregas por aprovar. Aguarde a decisão do hotel.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+            assertEquals(EntregaBLL.MAX_PENDENTES, entregaDAL.registadas.size());
+        }
+    }
+
+    @Test
+    public void testCarregarSemSessao() {
+        System.out.println("carregar (sem sessão)");
+        Entrega entrega = instance.lerFicheiro(ficheiro("entrega-valida.xml"));
+        try {
+            instance.carregar(null, entrega);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            int expResult = 0;
+            int result = entregaDAL.registadas.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testCarregarSemEntrega() {
+        System.out.println("carregar (sem entrega)");
+        try {
+            instance.carregar(fornecedorDoFicheiro(), null);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Carregue primeiro um ficheiro XML válido.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testAceitarSemSessao() {
+        System.out.println("aceitar (sem sessão)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = "Entre na aplicação para decidir entregas.";
+        String result = mensagemAoAceitar(null, entrega.getId());
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
+    }
+
+    @Test
+    public void testAceitarQueNaoExiste() {
+        System.out.println("aceitar (não existe)");
+        String expResult = "A entrega não existe.";
+        String result = mensagemAoAceitar(RECECAO, 99);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAceitarJaDecidida() {
+        System.out.println("aceitar (já foi decidida)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.aceitar(RECECAO, entrega.getId());
+        String expResult = "Esta entrega já foi decidida.";
+        String result = mensagemAoAceitar(RECECAO, entrega.getId());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRecusarMotivoComMuitosSimbolos() {
+        System.out.println("recusar (201 pontos não dá erro, não há motivo)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = null;
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), ".".repeat(201));
+        assertEquals(expResult, result);
+        assertEquals(null, entregaDAL.ultimoMotivo);
+    }
+
+    @Test
+    public void testRecusarMotivoComMuitosCaracteres() {
+        System.out.println("recusar (motivo com 201 caracteres)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = "O motivo pode ter no máximo 200 caracteres.";
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(201));
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, entrega.getEstado());
+    }
+
+    @Test
+    public void testRecusarMotivoComOLimiteDeCaracteres() {
+        System.out.println("recusar (motivo com 200 caracteres)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = null;
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "x".repeat(200));
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.RECUSADA, entrega.getEstado());
+    }
+
+    @Test
+    public void testRecusarSemSessao() {
+        System.out.println("recusar (sem sessão)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        String expResult = "Entre na aplicação para decidir entregas.";
+        String result = mensagemAoRecusar(null, entrega.getId(), "Motivo");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testRecusarJaAceite() {
+        System.out.println("recusar (já foi aceite)");
+        Entrega entrega = entregaPendente("PENDENTE-1");
+        instance.aceitar(RECECAO, entrega.getId());
+        String expResult = "Esta entrega já foi decidida.";
+        String result = mensagemAoRecusar(RECECAO, entrega.getId(), "Tarde de mais");
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.ACEITE, entrega.getEstado());
+    }
+
+    @Test
+    public void testListarParaHotelSemSessao() {
+        System.out.println("listarParaHotel (sem sessão)");
+        try {
+            instance.listarParaHotel(null);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            String expResult = "Entre na aplicação para ver as entregas.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testHistoricoSemSessao() {
+        System.out.println("historico (sem sessão)");
+        try {
+            instance.historico(null);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            String expResult = "Entre na aplicação para ver as suas entregas.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFaturaParaFornecedorDeOutroFornecedor() {
+        System.out.println("faturaParaFornecedor (entrega de outro fornecedor)");
+        int id = instance.carregar(fornecedorDoFicheiro(), instance.lerFicheiro(ficheiro("entrega-valida.xml")));
+        Fornecedor outro = new Fornecedor(2, "99PT000", "Outro", null, null, null, null, null, null);
+        try {
+            instance.faturaParaFornecedor(outro, id);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "Só pode ver as entregas do seu fornecedor.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    private InputStream ficheiroJson(String nome) {
+        return EntregaBLLTest.class.getResourceAsStream("/pt/isep/lp3/g2/hotel4youg2/json/" + nome);
+    }
+
+    @Test
+    public void testFaturaParaFornecedorQueNaoExiste() {
+        System.out.println("faturaParaFornecedor (entrega que não existe)");
+        try {
+            instance.faturaParaFornecedor(fornecedorDoFicheiro(), 99);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "A entrega não existe.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFaturaParaFornecedorSemSessao() {
+        System.out.println("faturaParaFornecedor (sem sessão)");
+        try {
+            instance.faturaParaFornecedor(null, 1);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            String expResult = "Entre na aplicação para ver as suas entregas.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFaturaParaHotelQueNaoExiste() {
+        System.out.println("faturaParaHotel (entrega que não existe)");
+        try {
+            instance.faturaParaHotel(RECECAO, 99);
+            fail("Devia ter lançado IllegalArgumentException, mas não lançou");
+        } catch (IllegalArgumentException expected) {
+            String expResult = "A entrega não existe.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testFaturaParaHotelSemSessao() {
+        System.out.println("faturaParaHotel (sem sessão)");
+        try {
+            instance.faturaParaHotel(null, 1);
+            fail("Devia ter lançado IllegalStateException, mas não lançou");
+        } catch (IllegalStateException expected) {
+            String expResult = "Entre na aplicação para ver as entregas.";
+            String result = expected.getMessage();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
     public void testLerFicheiroJsonTotalErrado() {
         System.out.println("lerFicheiroJson (total errado é recusado)");
         List<String> expResult = List.of("Linha 1, campo LineBaseAmount: o total devia ser 3000,00 €, "
                 + "mas o ficheiro diz 3100,00 €.");
-        List<String> result = errosAoLerJson("entrega-total-errado.json");
+        List<String> result = null;
+        try {
+            instance.lerFicheiroJson(ficheiroJson("entrega-total-errado.json"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
         assertEquals(expResult, result);
     }
 
@@ -871,7 +928,13 @@ public class EntregaBLLTest {
         List<String> expResult = List.of(
                 "Linha 3, campo TaxAmount: o IVA de 20% devia ser 42,40 €, mas o ficheiro diz 50,00 €.",
                 "Linha 3, campo LineBaseAmount: o total devia ser 262,00 €, mas o ficheiro diz 254,40 €.");
-        List<String> result = errosAoLerJson("entrega-iva-errado.json");
+        List<String> result = null;
+        try {
+            instance.lerFicheiroJson(ficheiroJson("entrega-iva-errado.json"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
         assertEquals(expResult, result);
     }
 
@@ -882,7 +945,13 @@ public class EntregaBLLTest {
                 "Linha 2, campo Quantity: a quantidade tem de ser maior que zero.",
                 "Linha 2, campo MonetaryAdjustmentStartAmount: a quantidade vezes o preço dá 0,00 €, "
                         + "mas o ficheiro diz 212,00 €.");
-        List<String> result = errosAoLerJson("entrega-quantidade-zero.json");
+        List<String> result = null;
+        try {
+            instance.lerFicheiroJson(ficheiroJson("entrega-quantidade-zero.json"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
         assertEquals(expResult, result);
     }
 
@@ -891,7 +960,13 @@ public class EntregaBLLTest {
         System.out.println("lerFicheiroJson (data que não existe é recusada)");
         List<String> expResult = List.of("Cabeçalho, campo OrderDate: a data da encomenda não existe ou não está "
                 + "no formato AAAA-MM-DD (2026-02-30).");
-        List<String> result = errosAoLerJson("entrega-data-invalida.json");
+        List<String> result = null;
+        try {
+            instance.lerFicheiroJson(ficheiroJson("entrega-data-invalida.json"));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+        } catch (ErrosFicheiroException expected) {
+            result = expected.getErros();
+        }
         assertEquals(expResult, result);
     }
 }

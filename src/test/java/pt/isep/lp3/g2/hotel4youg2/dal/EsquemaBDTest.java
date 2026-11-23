@@ -46,15 +46,6 @@ class EsquemaBDTest {
         }
     }
 
-    private void esperaErro(int codigo, String sql) {
-        try {
-            exec(sql);
-            fail("A base de dados devia ter recusado: " + sql);
-        } catch (SQLException expected) {
-            assertEquals(codigo, expected.getErrorCode());
-        }
-    }
-
     private void tarifa() throws SQLException {
         exec("IF NOT EXISTS (SELECT 1 FROM Tarifa WHERE tipo = 'DUPLO' AND vista = 'MAR') "
                 + "INSERT Tarifa VALUES ('DUPLO', 'MAR', 100)");
@@ -85,77 +76,130 @@ class EsquemaBDTest {
     }
 
     @Test
-    void quartoComNumeroRepetidoFalha() throws Exception {
-        quarto(9001);
-        esperaErro(DUPLICADO, "INSERT Quarto (numero, piso, tipo, vista, capacidade) "
-                + "VALUES (9001, 3, 'DUPLO', 'MAR', 2)");
-    }
-
-    @Test
-    void tarifaNegativaFalha() throws Exception {
-        tarifa();
-        esperaErro(RESTRICAO, "UPDATE Tarifa SET valorNoite = -5 WHERE tipo = 'DUPLO' AND vista = 'MAR'");
-    }
-
-    @Test
-    void tipoDeQuartoForaDoEnumFalha() throws Exception {
-        tarifa();
-        esperaErro(RESTRICAO, "INSERT Quarto (numero, piso, tipo, vista, capacidade) "
-                + "VALUES (9002, 2, 'SUITE', 'MAR', 2)");
-    }
-
-    @Test
-    void vistaForaDoEnumFalha() throws Exception {
-        tarifa();
-        esperaErro(RESTRICAO, "INSERT Quarto (numero, piso, tipo, vista, capacidade) "
-                + "VALUES (9003, 2, 'DUPLO', 'JARDIM', 2)");
-    }
-
-    @Test
-    void capacidadeZeroFalha() throws Exception {
-        tarifa();
-        esperaErro(RESTRICAO, "INSERT Quarto (numero, piso, tipo, vista, capacidade) "
-                + "VALUES (9004, 2, 'DUPLO', 'MAR', 0)");
-    }
-
-    @Test
-    void nifRepetidoFalha() throws Exception {
-        pessoa("999999991");
-        esperaErro(DUPLICADO, "INSERT Pessoa (nome, nif) VALUES ('Outro', '999999991')");
-    }
-
-    @Test
-    void nifComLetrasFalha() {
-        esperaErro(RESTRICAO, "INSERT Pessoa (nome, nif) VALUES ('Teste', '12AB56789')");
-    }
-
-    @Test
-    void nomeDeUtilizadorRepetidoFalha() throws Exception {
-        funcionarioComUtilizador("999999991", 9001, "teste_dup");
-        pessoa("999999992");
-        exec("INSERT Funcionario (pessoaId, numeroFuncionario) SELECT id, 9002 FROM Pessoa WHERE nif = '999999992'");
-        esperaErro(DUPLICADO, "INSERT Utilizador (funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil) "
-                + "SELECT id, 'teste_dup', REPLICATE('a', 64), REPLICATE('b', 32), 'GESTOR' "
-                + "FROM Pessoa WHERE nif = '999999992'");
-    }
-
-    @Test
-    void reservaComSaidaIgualOuAnteriorAEntradaFalha() throws Exception {
-        quarto(9001);
-        pessoa("999999993");
-        exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999993'");
-        esperaErro(RESTRICAO, reserva("2026-11-05", "2026-11-05"));
-        esperaErro(RESTRICAO, reserva("2026-11-05", "2026-11-04"));
-    }
-
-    @Test
     void reservaValidaFunciona() throws Exception {
+        System.out.println("reservaValidaFunciona");
         quarto(9001);
         pessoa("999999993");
         exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999993'");
         exec(reserva("2026-11-05", "2026-11-06"));
+        String expResult = "1";
+        String result = consulta("SELECT COUNT(*) FROM Reserva WHERE quartoNumero = 9001");
+        assertEquals(expResult, result);
     }
 
+    @Test
+    void todasAsTabelasExistem() throws Exception {
+        System.out.println("todasAsTabelasExistem");
+        String expResult = "7";
+        String result = consulta("SELECT COUNT(*) FROM sys.tables WHERE name IN "
+                + "('Pessoa', 'Cliente', 'Funcionario', 'Utilizador', 'Tarifa', 'Quarto', 'Reserva')");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void funcionarioPodeSerTambemCliente() throws Exception {
+        System.out.println("funcionarioPodeSerTambemCliente");
+        funcionario("999999991", 9001);
+        exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'");
+        String expResult = "1";
+        String result = consulta("SELECT COUNT(*) FROM Cliente c JOIN Funcionario f ON f.pessoaId = c.pessoaId "
+                + "JOIN Pessoa p ON p.id = c.pessoaId WHERE p.nif = '999999991'");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void utilizadorFicaAtivoPorOmissao() throws Exception {
+        System.out.println("utilizadorFicaAtivoPorOmissao");
+        funcionario("999999991", 9001);
+        exec(utilizador("999999991", "teste_ativo", "GESTOR"));
+        String expResult = "1";
+        String result = consulta("SELECT CAST(ativo AS INT) FROM Utilizador WHERE nomeUtilizador = 'teste_ativo'");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void reservaFicaConfirmadaPorOmissao() throws Exception {
+        System.out.println("reservaFicaConfirmadaPorOmissao");
+        clienteEQuarto();
+        exec(reservaCom(1, "50", "", ""));
+        String expResult = "CONFIRMADA";
+        String result = consulta("SELECT estado FROM Reserva WHERE quartoNumero = 9001");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    void quartoComNumeroRepetidoFalha() throws Exception {
+        System.out.println("quartoComNumeroRepetidoFalha");
+        quarto(9001);
+        int expResult = DUPLICADO;
+        try {
+            exec("INSERT Quarto (numero, piso, tipo, vista, capacidade) "
+                        + "VALUES (9001, 3, 'DUPLO', 'MAR', 2)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    void tarifaNegativaFalha() throws Exception {
+        System.out.println("tarifaNegativaFalha");
+        tarifa();
+        int expResult = RESTRICAO;
+        try {
+            exec("UPDATE Tarifa SET valorNoite = -5 WHERE tipo = 'DUPLO' AND vista = 'MAR'");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    void tipoDeQuartoForaDoEnumFalha() throws Exception {
+        System.out.println("tipoDeQuartoForaDoEnumFalha");
+        tarifa();
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Quarto (numero, piso, tipo, vista, capacidade) "
+                        + "VALUES (9002, 2, 'SUITE', 'MAR', 2)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    void vistaForaDoEnumFalha() throws Exception {
+        System.out.println("vistaForaDoEnumFalha");
+        tarifa();
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Quarto (numero, piso, tipo, vista, capacidade) "
+                        + "VALUES (9003, 2, 'DUPLO', 'JARDIM', 2)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    void capacidadeZeroFalha() throws Exception {
+        System.out.println("capacidadeZeroFalha");
+        tarifa();
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Quarto (numero, piso, tipo, vista, capacidade) "
+                        + "VALUES (9004, 2, 'DUPLO', 'MAR', 0)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
 
     private String consulta(String sql) throws SQLException {
         try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
@@ -188,126 +232,274 @@ class EsquemaBDTest {
                 + " FROM Pessoa WHERE nif = '999999993'";
     }
 
-
     @Test
-    void todasAsTabelasExistem() throws Exception {
-        assertEquals("7", consulta("SELECT COUNT(*) FROM sys.tables WHERE name IN "
-                + "('Pessoa', 'Cliente', 'Funcionario', 'Utilizador', 'Tarifa', 'Quarto', 'Reserva')"));
+    void nifRepetidoFalha() throws Exception {
+        System.out.println("nifRepetidoFalha");
+        pessoa("999999991");
+        int expResult = DUPLICADO;
+        try {
+            exec("INSERT Pessoa (nome, nif) VALUES ('Outro', '999999991')");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
+    @Test
+    void nifComLetrasFalha() {
+        System.out.println("nifComLetrasFalha");
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Pessoa (nome, nif) VALUES ('Teste', '12AB56789')");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    void nomeDeUtilizadorRepetidoFalha() throws Exception {
+        System.out.println("nomeDeUtilizadorRepetidoFalha");
+        funcionarioComUtilizador("999999991", 9001, "teste_dup");
+        pessoa("999999992");
+        exec("INSERT Funcionario (pessoaId, numeroFuncionario) SELECT id, 9002 FROM Pessoa WHERE nif = '999999992'");
+        int expResult = DUPLICADO;
+        try {
+            exec("INSERT Utilizador (funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil) "
+                        + "SELECT id, 'teste_dup', REPLICATE('a', 64), REPLICATE('b', 32), 'GESTOR' "
+                        + "FROM Pessoa WHERE nif = '999999992'");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    void reservaComSaidaIgualOuAnteriorAEntradaFalha() throws Exception {
+        System.out.println("reservaComSaidaIgualOuAnteriorAEntradaFalha");
+        quarto(9001);
+        pessoa("999999993");
+        exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999993'");
+        int expResult = RESTRICAO;
+        try {
+            exec(reserva("2026-11-05", "2026-11-05"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+        try {
+            exec(reserva("2026-11-05", "2026-11-04"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
+    }
 
     @Test
     void quartoComPisoNegativoFalha() throws Exception {
+        System.out.println("quartoComPisoNegativoFalha");
         tarifa();
-        esperaErro(RESTRICAO, "INSERT Quarto (numero, piso, tipo, vista, capacidade) "
-                + "VALUES (9005, -1, 'DUPLO', 'MAR', 2)");
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Quarto (numero, piso, tipo, vista, capacidade) "
+                        + "VALUES (9005, -1, 'DUPLO', 'MAR', 2)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
-
 
     @Test
     void clienteSemPessoaFalha() {
-        esperaErro(RESTRICAO, "INSERT Cliente VALUES (-1)");
+        System.out.println("clienteSemPessoaFalha");
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Cliente VALUES (-1)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void mesmaPessoaNaoPodeSerClienteDuasVezes() throws Exception {
+        System.out.println("mesmaPessoaNaoPodeSerClienteDuasVezes");
         pessoa("999999991");
         exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'");
-        esperaErro(DUPLICADO, "INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'");
-    }
-
-    @Test
-    void funcionarioPodeSerTambemCliente() throws Exception {
-        funcionario("999999991", 9001);
-        exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'");
+        int expResult = DUPLICADO;
+        try {
+            exec("INSERT Cliente SELECT id FROM Pessoa WHERE nif = '999999991'");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void numeroDeFuncionarioRepetidoFalha() throws Exception {
+        System.out.println("numeroDeFuncionarioRepetidoFalha");
         funcionario("999999991", 9001);
         pessoa("999999992");
-        esperaErro(DUPLICADO, "INSERT Funcionario (pessoaId, numeroFuncionario) "
-                + "SELECT id, 9001 FROM Pessoa WHERE nif = '999999992'");
+        int expResult = DUPLICADO;
+        try {
+            exec("INSERT Funcionario (pessoaId, numeroFuncionario) "
+                        + "SELECT id, 9001 FROM Pessoa WHERE nif = '999999992'");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
-
-
 
     @Test
     void perfilForaDoEnumFalha() throws Exception {
+        System.out.println("perfilForaDoEnumFalha");
         funcionario("999999991", 9001);
-        esperaErro(RESTRICAO, utilizador("999999991", "teste_perfil", "ADMIN"));
+        int expResult = RESTRICAO;
+        try {
+            exec(utilizador("999999991", "teste_perfil", "ADMIN"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void funcionarioSoTemUmUtilizador() throws Exception {
+        System.out.println("funcionarioSoTemUmUtilizador");
         funcionario("999999991", 9001);
         exec(utilizador("999999991", "teste_a", "GESTOR"));
-        esperaErro(DUPLICADO, utilizador("999999991", "teste_b", "RECECIONISTA"));
+        int expResult = DUPLICADO;
+        try {
+            exec(utilizador("999999991", "teste_b", "RECECIONISTA"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void utilizadorSemFuncionarioFalha() {
-        esperaErro(RESTRICAO, "INSERT Utilizador (funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil) "
-                + "VALUES (-1, 'teste_x', REPLICATE('a', 64), REPLICATE('b', 32), 'GESTOR')");
-    }
-
-    @Test
-    void utilizadorFicaAtivoPorOmissao() throws Exception {
-        funcionario("999999991", 9001);
-        exec(utilizador("999999991", "teste_ativo", "GESTOR"));
-        assertEquals("1", consulta("SELECT CAST(ativo AS INT) FROM Utilizador WHERE nomeUtilizador = 'teste_ativo'"));
-    }
-
-
-    @Test
-    void reservaFicaConfirmadaPorOmissao() throws Exception {
-        clienteEQuarto();
-        exec(reservaCom(1, "50", "", ""));
-        assertEquals("CONFIRMADA", consulta("SELECT estado FROM Reserva WHERE quartoNumero = 9001"));
+        System.out.println("utilizadorSemFuncionarioFalha");
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Utilizador (funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil) "
+                        + "VALUES (-1, 'teste_x', REPLICATE('a', 64), REPLICATE('b', 32), 'GESTOR')");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void estadoForaDoEnumFalha() throws Exception {
+        System.out.println("estadoForaDoEnumFalha");
         clienteEQuarto();
-        esperaErro(RESTRICAO, reservaCom(1, "50", ", estado", ", 'PERDIDA'"));
+        int expResult = RESTRICAO;
+        try {
+            exec(reservaCom(1, "50", ", estado", ", 'PERDIDA'"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void reservaSemHospedesFalha() throws Exception {
+        System.out.println("reservaSemHospedesFalha");
         clienteEQuarto();
-        esperaErro(RESTRICAO, reservaCom(0, "50", "", ""));
+        int expResult = RESTRICAO;
+        try {
+            exec(reservaCom(0, "50", "", ""));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void precoTotalNegativoFalha() throws Exception {
+        System.out.println("precoTotalNegativoFalha");
         clienteEQuarto();
-        esperaErro(RESTRICAO, reservaCom(1, "-1", "", ""));
+        int expResult = RESTRICAO;
+        try {
+            exec(reservaCom(1, "-1", "", ""));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void checkoutSemCheckinFalha() throws Exception {
+        System.out.println("checkoutSemCheckinFalha");
         clienteEQuarto();
-        esperaErro(RESTRICAO, reservaCom(1, "50", ", checkoutEm", ", SYSDATETIME()"));
+        int expResult = RESTRICAO;
+        try {
+            exec(reservaCom(1, "50", ", checkoutEm", ", SYSDATETIME()"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void checkoutAntesDoCheckinFalha() throws Exception {
+        System.out.println("checkoutAntesDoCheckinFalha");
         clienteEQuarto();
-        esperaErro(RESTRICAO, reservaCom(1, "50", ", checkinEm, checkoutEm",
-                ", '2026-11-05 15:00', '2026-11-05 10:00'"));
+        int expResult = RESTRICAO;
+        try {
+            exec(reservaCom(1, "50", ", checkinEm, checkoutEm",
+                        ", '2026-11-05 15:00', '2026-11-05 10:00'"));
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void reservaComClienteInexistenteFalha() throws Exception {
+        System.out.println("reservaComClienteInexistenteFalha");
         quarto(9001);
-        esperaErro(RESTRICAO, "INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, precoTotal) "
-                + "VALUES (-1, 9001, '2026-11-05', '2026-11-06', 1, 50)");
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, precoTotal) "
+                        + "VALUES (-1, 9001, '2026-11-05', '2026-11-06', 1, 50)");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 
     @Test
     void reservaComQuartoInexistenteFalha() throws Exception {
+        System.out.println("reservaComQuartoInexistenteFalha");
         clienteEQuarto();
-        esperaErro(RESTRICAO, "INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, precoTotal) "
-                + "SELECT id, 9998, '2026-11-05', '2026-11-06', 1, 50 FROM Pessoa WHERE nif = '999999993'");
+        int expResult = RESTRICAO;
+        try {
+            exec("INSERT Reserva (clienteId, quartoNumero, dataEntrada, dataSaida, numHospedes, precoTotal) "
+                        + "SELECT id, 9998, '2026-11-05', '2026-11-06', 1, 50 FROM Pessoa WHERE nif = '999999993'");
+            fail("A base de dados devia ter recusado a instrução.");
+        } catch (SQLException expected) {
+            int result = expected.getErrorCode();
+            assertEquals(expResult, result);
+        }
     }
 }

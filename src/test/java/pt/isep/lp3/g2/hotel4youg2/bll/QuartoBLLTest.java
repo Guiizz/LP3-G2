@@ -272,74 +272,10 @@ public class QuartoBLLTest {
     }
 
     @Test
-    public void testPesquisarDisponiveisEntradaHoje() {
-        System.out.println("pesquisarDisponiveis (entrada hoje é permitida)");
-        String expResult = null;
-        String result = mensagemAoPesquisar(HOJE, HOJE.plusDays(1), 1);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarDisponiveisEntradaNoPassado() {
-        System.out.println("pesquisarDisponiveis (entrada no passado)");
-        String expResult = "A data de entrada não pode ser no passado.";
-        String result = mensagemAoPesquisar(HOJE.minusDays(1), HOJE.plusDays(2), 1);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarDisponiveisSaidaIgualAEntrada() {
-        System.out.println("pesquisarDisponiveis (saída igual à entrada)");
-        String expResult = "A data de saída tem de ser posterior à de entrada.";
-        String result = mensagemAoPesquisar(HOJE.plusDays(5), HOJE.plusDays(5), 1);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarDisponiveisSaidaAntesDaEntrada() {
-        System.out.println("pesquisarDisponiveis (saída antes da entrada)");
-        String expResult = "A data de saída tem de ser posterior à de entrada.";
-        String result = mensagemAoPesquisar(HOJE.plusDays(5), HOJE.plusDays(3), 1);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarDisponiveisSemDatas() {
-        System.out.println("pesquisarDisponiveis (sem datas)");
-        String expResult = "Indique as datas de entrada e de saída.";
-        String result = mensagemAoPesquisar(null, null, 1);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testPesquisarDisponiveisZeroHospedes() {
-        System.out.println("pesquisarDisponiveis (zero hóspedes)");
-        String expResult = "O número de hóspedes tem de ser pelo menos 1.";
-        String result = mensagemAoPesquisar(HOJE, HOJE.plusDays(1), 0);
-        assertEquals(expResult, result);
-    }
-
-    @Test
     public void testListarTodos() {
         System.out.println("listarTodos");
         List<Quarto> expResult = dal.quartos;
         List<Quarto> result = instance.listarTodos(Perfil.GESTOR);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testListarTodosComoRececionista() {
-        System.out.println("listarTodos (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoListarTodos(Perfil.RECECIONISTA);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testListarTodosSemPerfil() {
-        System.out.println("listarTodos (sem perfil)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoListarTodos(null);
         assertEquals(expResult, result);
     }
 
@@ -355,34 +291,6 @@ public class QuartoBLLTest {
     }
 
     @Test
-    public void testDesativarComoRececionista() {
-        System.out.println("desativar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoDesativar(Perfil.RECECIONISTA, 201);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testDesativarComReservasFuturas() {
-        System.out.println("desativar (quarto com reservas futuras)");
-        dal.quartoComReservasFuturas = 201;
-        String expResult = "Não é possível desativar o quarto 201: tem reservas futuras";
-        String result = mensagemAoDesativar(Perfil.GESTOR, 201);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testDesativarQuartoInexistente() {
-        System.out.println("desativar (o quarto não existe)");
-        String expResult = "O quarto 999 não existe";
-        String result = mensagemAoDesativar(Perfil.GESTOR, 999);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
     public void testReativar() {
         System.out.println("reativar");
         dal.quartos.get(0).setAtivo(false);
@@ -391,24 +299,6 @@ public class QuartoBLLTest {
         Quarto result = dal.quartos.get(0);
         assertEquals(expResult, result);
         assertEquals(1, dal.alteracoes);
-    }
-
-    @Test
-    public void testReativarComoRececionista() {
-        System.out.println("reativar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir quartos";
-        String result = mensagemAoReativar(Perfil.RECECIONISTA, 201);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testReativarQuartoInexistente() {
-        System.out.println("reativar (o quarto não existe)");
-        String expResult = "O quarto 999 não existe";
-        String result = mensagemAoReativar(Perfil.GESTOR, 999);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
     }
 
     @Test
@@ -470,6 +360,147 @@ public class QuartoBLLTest {
         List<Integer> expResult = List.of(2, 3, 4);
         List<Integer> result = instance.listarPisos();
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminar() {
+        System.out.println("eliminar (quarto criado por engano, nunca usado)");
+        instance.criar(Perfil.GESTOR, "331", "3", TipoQuarto.DUPLO, Vista.MAR);
+        instance.eliminar(Perfil.GESTOR, 331);
+        List<Quarto> expResult = List.of(criarQuarto(301, 3, TipoQuarto.DUPLO, Vista.NENHUMA, 2, "80.00"));
+        List<Quarto> result = instance.listar(TipoQuarto.DUPLO, 3);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminarOsOutrosFicam() {
+        System.out.println("eliminar (os outros quartos ficam)");
+        instance.eliminar(Perfil.GESTOR, 208);
+        List<Integer> expResult = List.of(201, 301, 308);
+        List<Integer> result = new ArrayList<>();
+        for (Quarto quarto : dal.quartos) {
+            result.add(quarto.getNumero());
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testEliminarPermiteCriarONumeroOutraVez() {
+        System.out.println("eliminar (o número fica livre para criar o quarto certo)");
+        instance.eliminar(Perfil.GESTOR, 308);
+        Quarto expResult = new Quarto(308, 3, TipoQuarto.DUPLO, Vista.MAR, 2);
+        Quarto result = instance.criar(Perfil.GESTOR, "308", "3", TipoQuarto.DUPLO, Vista.MAR);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarDisponiveisEntradaHoje() {
+        System.out.println("pesquisarDisponiveis (entrada hoje é permitida)");
+        String expResult = null;
+        String result = mensagemAoPesquisar(HOJE, HOJE.plusDays(1), 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarDisponiveisEntradaNoPassado() {
+        System.out.println("pesquisarDisponiveis (entrada no passado)");
+        String expResult = "A data de entrada não pode ser no passado.";
+        String result = mensagemAoPesquisar(HOJE.minusDays(1), HOJE.plusDays(2), 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarDisponiveisSaidaIgualAEntrada() {
+        System.out.println("pesquisarDisponiveis (saída igual à entrada)");
+        String expResult = "A data de saída tem de ser posterior à de entrada.";
+        String result = mensagemAoPesquisar(HOJE.plusDays(5), HOJE.plusDays(5), 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarDisponiveisSaidaAntesDaEntrada() {
+        System.out.println("pesquisarDisponiveis (saída antes da entrada)");
+        String expResult = "A data de saída tem de ser posterior à de entrada.";
+        String result = mensagemAoPesquisar(HOJE.plusDays(5), HOJE.plusDays(3), 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarDisponiveisSemDatas() {
+        System.out.println("pesquisarDisponiveis (sem datas)");
+        String expResult = "Indique as datas de entrada e de saída.";
+        String result = mensagemAoPesquisar(null, null, 1);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPesquisarDisponiveisZeroHospedes() {
+        System.out.println("pesquisarDisponiveis (zero hóspedes)");
+        String expResult = "O número de hóspedes tem de ser pelo menos 1.";
+        String result = mensagemAoPesquisar(HOJE, HOJE.plusDays(1), 0);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarTodosComoRececionista() {
+        System.out.println("listarTodos (rececionista não pode)");
+        String expResult = "Só o gestor pode gerir quartos";
+        String result = mensagemAoListarTodos(Perfil.RECECIONISTA);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListarTodosSemPerfil() {
+        System.out.println("listarTodos (sem perfil)");
+        String expResult = "Só o gestor pode gerir quartos";
+        String result = mensagemAoListarTodos(null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDesativarComoRececionista() {
+        System.out.println("desativar (rececionista não pode)");
+        String expResult = "Só o gestor pode gerir quartos";
+        String result = mensagemAoDesativar(Perfil.RECECIONISTA, 201);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testDesativarComReservasFuturas() {
+        System.out.println("desativar (quarto com reservas futuras)");
+        dal.quartoComReservasFuturas = 201;
+        String expResult = "Não é possível desativar o quarto 201: tem reservas futuras";
+        String result = mensagemAoDesativar(Perfil.GESTOR, 201);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testDesativarQuartoInexistente() {
+        System.out.println("desativar (o quarto não existe)");
+        String expResult = "O quarto 999 não existe";
+        String result = mensagemAoDesativar(Perfil.GESTOR, 999);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testReativarComoRececionista() {
+        System.out.println("reativar (rececionista não pode)");
+        String expResult = "Só o gestor pode gerir quartos";
+        String result = mensagemAoReativar(Perfil.RECECIONISTA, 201);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testReativarQuartoInexistente() {
+        System.out.println("reativar (o quarto não existe)");
+        String expResult = "O quarto 999 não existe";
+        String result = mensagemAoReativar(Perfil.GESTOR, 999);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
     }
 
     @Test
@@ -567,37 +598,6 @@ public class QuartoBLLTest {
         System.out.println("criar (sem vista)");
         String expResult = "Escolha a vista do quarto.";
         String result = mensagemAoCriar(Perfil.GESTOR, "311", "3", TipoQuarto.DUPLO, null);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testEliminar() {
-        System.out.println("eliminar (quarto criado por engano, nunca usado)");
-        instance.criar(Perfil.GESTOR, "331", "3", TipoQuarto.DUPLO, Vista.MAR);
-        instance.eliminar(Perfil.GESTOR, 331);
-        List<Quarto> expResult = List.of(criarQuarto(301, 3, TipoQuarto.DUPLO, Vista.NENHUMA, 2, "80.00"));
-        List<Quarto> result = instance.listar(TipoQuarto.DUPLO, 3);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testEliminarOsOutrosFicam() {
-        System.out.println("eliminar (os outros quartos ficam)");
-        instance.eliminar(Perfil.GESTOR, 208);
-        List<Integer> expResult = List.of(201, 301, 308);
-        List<Integer> result = new ArrayList<>();
-        for (Quarto quarto : dal.quartos) {
-            result.add(quarto.getNumero());
-        }
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testEliminarPermiteCriarONumeroOutraVez() {
-        System.out.println("eliminar (o número fica livre para criar o quarto certo)");
-        instance.eliminar(Perfil.GESTOR, 308);
-        Quarto expResult = new Quarto(308, 3, TipoQuarto.DUPLO, Vista.MAR, 2);
-        Quarto result = instance.criar(Perfil.GESTOR, "308", "3", TipoQuarto.DUPLO, Vista.MAR);
         assertEquals(expResult, result);
     }
 

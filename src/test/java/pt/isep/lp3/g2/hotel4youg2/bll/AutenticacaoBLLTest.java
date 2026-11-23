@@ -114,6 +114,42 @@ public class AutenticacaoBLLTest {
     }
 
     @Test
+    public void testAutenticarComPasswordReposta() {
+        System.out.println("autenticar (a conta com a palavra-passe reposta tem de a mudar)");
+        comPasswordReposta();
+        boolean expResult = true;
+        boolean result = instance.autenticar("rita", "Temporaria1").isMudarPassword();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testMudarPassword() {
+        System.out.println("mudarPassword (depois entra com a nova e já não tem de mudar)");
+        Utilizador conta = comPasswordReposta();
+        instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
+        Utilizador expResult = conta;
+        Utilizador result = instance.autenticar("rita", "NovaPassword9");
+        assertEquals(expResult, result);
+        assertEquals(false, result.isMudarPassword());
+    }
+
+    @Test
+    public void testMudarPasswordATemporariaDeixaDeEntrar() {
+        System.out.println("mudarPassword (a temporária deixa de funcionar)");
+        Utilizador conta = comPasswordReposta();
+        instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
+        String expResult = "A password está errada.";
+        String result;
+        try {
+            instance.autenticar("rita", "Temporaria1");
+            result = null;
+        } catch (IllegalArgumentException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testAutenticarNomeVazio() {
         System.out.println("autenticar (nome de utilizador vazio)");
         String expResult = "Escreva o nome de utilizador.";
@@ -153,6 +189,22 @@ public class AutenticacaoBLLTest {
         assertEquals(expResult, result);
     }
 
+    private Utilizador comPasswordReposta() {
+        Utilizador conta = criarConta(3, "rita", "Temporaria1", Perfil.RECECIONISTA, true);
+        conta.setMudarPassword(true);
+        dal.contas.add(conta);
+        return conta;
+    }
+
+    private String erroAoMudar(Utilizador conta, String nova, String confirmacao) {
+        try {
+            instance.mudarPassword(conta, nova, confirmacao);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
     @Test
     public void testAutenticarPasswordErrada() {
         System.out.println("autenticar (password errada)");
@@ -174,58 +226,6 @@ public class AutenticacaoBLLTest {
         System.out.println("autenticar (password errada numa conta desativada)");
         String expResult = "A password está errada.";
         String result = mensagemAoAutenticar("antigo", "errada");
-        assertEquals(expResult, result);
-    }
-
-    private Utilizador comPasswordReposta() {
-        Utilizador conta = criarConta(3, "rita", "Temporaria1", Perfil.RECECIONISTA, true);
-        conta.setMudarPassword(true);
-        dal.contas.add(conta);
-        return conta;
-    }
-
-    private String erroAoMudar(Utilizador conta, String nova, String confirmacao) {
-        try {
-            instance.mudarPassword(conta, nova, confirmacao);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return e.getMessage();
-        }
-        return null;
-    }
-
-    @Test
-    public void testAutenticarComPasswordReposta() {
-        System.out.println("autenticar (a conta com a palavra-passe reposta tem de a mudar)");
-        comPasswordReposta();
-        boolean expResult = true;
-        boolean result = instance.autenticar("rita", "Temporaria1").isMudarPassword();
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testMudarPassword() {
-        System.out.println("mudarPassword (depois entra com a nova e já não tem de mudar)");
-        Utilizador conta = comPasswordReposta();
-        instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
-        Utilizador expResult = conta;
-        Utilizador result = instance.autenticar("rita", "NovaPassword9");
-        assertEquals(expResult, result);
-        assertEquals(false, result.isMudarPassword());
-    }
-
-    @Test
-    public void testMudarPasswordATemporariaDeixaDeEntrar() {
-        System.out.println("mudarPassword (a temporária deixa de funcionar)");
-        Utilizador conta = comPasswordReposta();
-        instance.mudarPassword(conta, "NovaPassword9", "NovaPassword9");
-        String expResult = "A password está errada.";
-        String result;
-        try {
-            instance.autenticar("rita", "Temporaria1");
-            result = null;
-        } catch (IllegalArgumentException e) {
-            result = e.getMessage();
-        }
         assertEquals(expResult, result);
     }
 

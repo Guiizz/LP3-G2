@@ -183,78 +183,6 @@ public class UtilizadorBLLTest {
     }
 
     @Test
-    public void testDesativarComoRececionista() {
-        System.out.println("desativar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir contas.";
-        String result = mensagemAoDesativar(rececionista, desativada);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testReativarComoRececionista() {
-        System.out.println("reativar (rececionista não pode)");
-        String expResult = "Só o gestor pode gerir contas.";
-        String result = mensagemAoReativar(rececionista, desativada);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testDesativarSemUtilizador() {
-        System.out.println("desativar (sem utilizador com sessão)");
-        String expResult = "Só o gestor pode gerir contas.";
-        String result = mensagemAoDesativar(null, rececionista);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testDesativarASiProprio() {
-        System.out.println("desativar (a própria conta)");
-        String expResult = "Não pode desativar a sua própria conta.";
-        String result = mensagemAoDesativar(gestor, gestor);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testDesativarContaInexistente() {
-        System.out.println("desativar (a conta não existe)");
-        Utilizador inexistente = new Utilizador(9, 9, "fantasma", "h", "s", Perfil.RECECIONISTA, true);
-        String expResult = "A conta não existe.";
-        String result = mensagemAoDesativar(gestor, inexistente);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testDesativarSemContaEscolhida() {
-        System.out.println("desativar (sem conta escolhida)");
-        String expResult = "Escolha uma conta.";
-        String result = mensagemAoDesativar(gestor, null);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    @Test
-    public void testReativarSemContaEscolhida() {
-        System.out.println("reativar (sem conta escolhida)");
-        String expResult = "Escolha uma conta.";
-        String result = mensagemAoReativar(gestor, null);
-        assertEquals(expResult, result);
-        assertEquals(0, dal.alteracoes);
-    }
-
-    private List<String> textos(List<Conta> contas) {
-        List<String> textos = new ArrayList<>();
-        for (Conta conta : contas) {
-            textos.add(conta.toString());
-        }
-        return textos;
-    }
-
-    @Test
     public void testListarContas() {
         System.out.println("listarContas (funcionários e fornecedores, com o tipo e o estado)");
         List<String> expResult = List.of("gestor (Gestor, Ativa)", "rece (Rececionista, Ativa)",
@@ -321,15 +249,6 @@ public class UtilizadorBLLTest {
         assertEquals(expResult, result);
     }
 
-    private String erroAoRepor(Utilizador quemAge, Conta conta) {
-        try {
-            instance.reporPassword(quemAge, conta);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return e.getMessage();
-        }
-        return null;
-    }
-
     @Test
     public void testReporPassword() {
         System.out.println("reporPassword (a temporária entra e a conta fica a pedir uma nova)");
@@ -339,6 +258,14 @@ public class UtilizadorBLLTest {
                 rececionista.getPasswordHash());
         assertEquals(expResult, result);
         assertEquals(true, rececionista.isMudarPassword());
+    }
+
+    private List<String> textos(List<Conta> contas) {
+        List<String> textos = new ArrayList<>();
+        for (Conta conta : contas) {
+            textos.add(conta.toString());
+        }
+        return textos;
     }
 
     @Test
@@ -357,6 +284,79 @@ public class UtilizadorBLLTest {
         int expResult = 10;
         int result = instance.reporPassword(gestor, new Conta(rececionista)).length();
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDesativarComoRececionista() {
+        System.out.println("desativar (rececionista não pode)");
+        String expResult = "Só o gestor pode gerir contas.";
+        String result = mensagemAoDesativar(rececionista, desativada);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testReativarComoRececionista() {
+        System.out.println("reativar (rececionista não pode)");
+        String expResult = "Só o gestor pode gerir contas.";
+        String result = mensagemAoReativar(rececionista, desativada);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testDesativarSemUtilizador() {
+        System.out.println("desativar (sem utilizador com sessão)");
+        String expResult = "Só o gestor pode gerir contas.";
+        String result = mensagemAoDesativar(null, rececionista);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testDesativarASiProprio() {
+        System.out.println("desativar (a própria conta)");
+        String expResult = "Não pode desativar a sua própria conta.";
+        String result = mensagemAoDesativar(gestor, gestor);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    private String erroAoRepor(Utilizador quemAge, Conta conta) {
+        try {
+            instance.reporPassword(quemAge, conta);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    @Test
+    public void testDesativarContaInexistente() {
+        System.out.println("desativar (a conta não existe)");
+        Utilizador inexistente = new Utilizador(9, 9, "fantasma", "h", "s", Perfil.RECECIONISTA, true);
+        String expResult = "A conta não existe.";
+        String result = mensagemAoDesativar(gestor, inexistente);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testDesativarSemContaEscolhida() {
+        System.out.println("desativar (sem conta escolhida)");
+        String expResult = "Escolha uma conta.";
+        String result = mensagemAoDesativar(gestor, null);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
+    }
+
+    @Test
+    public void testReativarSemContaEscolhida() {
+        System.out.println("reativar (sem conta escolhida)");
+        String expResult = "Escolha uma conta.";
+        String result = mensagemAoReativar(gestor, null);
+        assertEquals(expResult, result);
+        assertEquals(0, dal.alteracoes);
     }
 
     @Test

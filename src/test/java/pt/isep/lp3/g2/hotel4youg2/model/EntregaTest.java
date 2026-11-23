@@ -96,7 +96,9 @@ public class EntregaTest {
     public void testGetTotaisSemLinhas() {
         System.out.println("getTotalSemIva e getTotalIva (sem linhas dão zero)");
         Entrega semLinhas = new Entrega(0, "OC-1", LocalDate.of(2026, 10, 5), null);
-        assertEquals(0, BigDecimal.ZERO.compareTo(semLinhas.getTotalSemIva()));
+        int expResult = 0;
+        int result = BigDecimal.ZERO.compareTo(semLinhas.getTotalSemIva());
+        assertEquals(expResult, result);
         assertEquals(0, BigDecimal.ZERO.compareTo(semLinhas.getTotalIva()));
     }
 
