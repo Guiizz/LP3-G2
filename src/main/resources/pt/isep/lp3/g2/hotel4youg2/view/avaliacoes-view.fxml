@@ -23,6 +23,7 @@
         <Button text="▶" onAction="#aoMesSeguinte"/>
         <Button text="Este mês" onAction="#aoEsteMes"/>
     </HBox>
+    <Label text="Cada avaliação aparece no mês em que o cliente a fez, não no mês da estadia."/>
 
     <HBox spacing="12.0" alignment="CENTER_LEFT" styleClass="cartao">
         <Label fx:id="mediaLabel" styleClass="total"/>
@@ -32,7 +33,7 @@
 
     <TableView fx:id="tabela" VBox.vgrow="ALWAYS">
         <placeholder>
-            <Label text="Ainda não há avaliações neste mês."/>
+            <Label text="Não houve avaliações feitas neste mês."/>
         </placeholder>
         <columns>
             <TableColumn text="Data" prefWidth="90.0">

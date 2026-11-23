@@ -14,8 +14,8 @@ public class AvaliacaoDAL implements IAvaliacaoDAL {
 
     private static final String INSERIR =
             "INSERT INTO AvaliacaoEstadia (reservaId, estrelas, comentario) OUTPUT INSERTED.id "
-            + "SELECT ?, ?, ? WHERE NOT EXISTS "
-            + "(SELECT 1 FROM AvaliacaoEstadia WITH (UPDLOCK, HOLDLOCK) WHERE reservaId = ?)";
+            + "SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM Reserva WHERE id = ? AND estado = 'CONCLUIDA') "
+            + "AND NOT EXISTS (SELECT 1 FROM AvaliacaoEstadia WITH (UPDLOCK, HOLDLOCK) WHERE reservaId = ?)";
     private static final String COLUNAS =
             "SELECT a.id, a.reservaId, a.estrelas, a.comentario, a.avaliadaEm, p.nome, r.quartoNumero "
             + "FROM AvaliacaoEstadia a JOIN Reserva r ON r.id = a.reservaId JOIN Pessoa p ON p.id = r.clienteId ";
@@ -26,7 +26,8 @@ public class AvaliacaoDAL implements IAvaliacaoDAL {
     @Override
     public boolean inserir(Avaliacao avaliacao) {
         List<Integer> ids = ConexaoBD.select(INSERIR, new InteiroMapper(), avaliacao.getReservaId(),
-                avaliacao.getEstrelas(), avaliacao.getComentario(), avaliacao.getReservaId());
+                avaliacao.getEstrelas(), avaliacao.getComentario(), avaliacao.getReservaId(),
+                avaliacao.getReservaId());
         if (ids.isEmpty()) {
             return false;
         }
