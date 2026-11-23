@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
@@ -25,6 +26,11 @@ public class ConfiguracaoQuartoDALTest {
     private int fornecedorId;
     private Material toalha;
     private Material champo;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -92,9 +98,10 @@ public class ConfiguracaoQuartoDALTest {
     @Test
     public void testAlterarConsumivel() {
         System.out.println("alterarConsumivel (a toalha passa a não consumível)");
-        boolean alterado = instance.alterarConsumivel(toalha.getId(), false);
+        boolean expResult = true;
+        boolean result = instance.alterarConsumivel(toalha.getId(), false);
         toalha.setConsumivel(false);
-        assertEquals(true, alterado);
+        assertEquals(expResult, result);
         assertEquals(List.of(champo, toalha), osMateriaisDoTeste());
     }
 
@@ -123,7 +130,9 @@ public class ConfiguracaoQuartoDALTest {
         instance.guardar(TipoQuarto.DUPLO, toalha.getId(), 2);
         instance.guardar(TipoQuarto.FAMILIA, toalha.getId(), 4);
         instance.guardar(TipoQuarto.FAMILIA, champo.getId(), 4);
-        assertEquals(List.of(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2)), configuracaoDoTeste(TipoQuarto.DUPLO));
+        List<MaterialQuarto> expResult = List.of(new MaterialQuarto(TipoQuarto.DUPLO, toalha, 2));
+        List<MaterialQuarto> result = configuracaoDoTeste(TipoQuarto.DUPLO);
+        assertEquals(expResult, result);
         assertEquals(List.of(new MaterialQuarto(TipoQuarto.FAMILIA, champo, 4),
                 new MaterialQuarto(TipoQuarto.FAMILIA, toalha, 4)), configuracaoDoTeste(TipoQuarto.FAMILIA));
     }
@@ -132,8 +141,9 @@ public class ConfiguracaoQuartoDALTest {
     public void testRemover() {
         System.out.println("remover (tira as toalhas do quarto duplo)");
         instance.guardar(TipoQuarto.DUPLO, toalha.getId(), 2);
-        boolean removido = instance.remover(TipoQuarto.DUPLO, toalha.getId());
-        assertEquals(true, removido);
+        boolean expResult = true;
+        boolean result = instance.remover(TipoQuarto.DUPLO, toalha.getId());
+        assertEquals(expResult, result);
         assertEquals(new ArrayList<MaterialQuarto>(), configuracaoDoTeste(TipoQuarto.DUPLO));
     }
 

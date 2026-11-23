@@ -2,14 +2,13 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
+import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
 import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,8 +22,14 @@ public class ContaClienteDALTest {
 
     private ContaClienteDAL instance;
     private ContaCliente conta;
+    private Cliente cliente;
     private String nif;
     private String nome;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -33,13 +38,12 @@ public class ContaClienteDALTest {
             List<Integer> tabela = ConexaoBD.select("SELECT CASE WHEN OBJECT_ID('ContaCliente') IS NOT NULL "
                     + "THEN 1 ELSE 0 END", new InteiroMapper());
             Assumptions.assumeTrue(tabela.get(0) == 1, "Falta correr o 21_contas_clientes.sql");
-            List<Integer> clientes = ConexaoBD.select("SELECT TOP 1 c.pessoaId FROM Cliente c WHERE NOT EXISTS "
-                    + "(SELECT 1 FROM ContaCliente k WHERE k.clienteId = c.pessoaId) ORDER BY c.pessoaId",
-                    new InteiroMapper());
-            Assumptions.assumeTrue(!clientes.isEmpty(), "Faltam clientes sem conta na BD");
-            clienteId = clientes.get(0);
-            nif = ConexaoBD.select("SELECT nif FROM Pessoa WHERE id = ?", new TextoMapper(), clienteId).get(0);
-            nome = ConexaoBD.select("SELECT nome FROM Pessoa WHERE id = ?", new TextoMapper(), clienteId).get(0);
+            long marca = System.nanoTime();
+            nome = "Teste " + marca;
+            nif = String.valueOf(900000000L + marca % 100000000L);
+            cliente = new Cliente(0, nome, null, nif, null, null, null, null);
+            new ClienteDAL().inserirCliente(cliente);
+            clienteId = cliente.getId();
         } catch (DataAccessException e) {
             Assumptions.abort("Sem acesso à BD neste computador: " + e.getMessage());
             return;
@@ -55,13 +59,11 @@ public class ContaClienteDALTest {
             instance.apagar(conta.getId());
         }
         conta = null;
-    }
-
-    private static class TextoMapper implements RowMapper<String> {
-        @Override
-        public String map(ResultSet rs) throws SQLException {
-            return rs.getString(1).trim();
+        if (cliente != null && cliente.getId() > 0) {
+            ConexaoBD.executar("DELETE FROM Cliente WHERE pessoaId = ?", cliente.getId());
+            ConexaoBD.executar("DELETE FROM Pessoa WHERE id = ?", cliente.getId());
         }
+        cliente = null;
     }
 
     @Test

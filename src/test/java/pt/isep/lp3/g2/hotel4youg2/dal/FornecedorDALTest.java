@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
@@ -19,6 +20,11 @@ public class FornecedorDALTest {
     private String codigoCriado;
 
     // Prepara o contexto: um fornecedor de teste com conta (hash e salt) criado só para o teste
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
+
     @BeforeEach
     public void setUp() {
         try {
@@ -51,7 +57,8 @@ public class FornecedorDALTest {
     public void testProcurarPorCodigo() {
         System.out.println("procurarPorCodigo");
         Fornecedor result = instance.procurarPorCodigo(codigo).orElseThrow();
-        assertEquals("Fornecedor de teste", result.getNome());
+        String expResult = "Fornecedor de teste";
+        assertEquals(expResult, result.getNome());
         assertEquals("a".repeat(64), result.getPasswordHash());
         assertEquals("b".repeat(32), result.getPasswordSalt());
     }
@@ -85,7 +92,8 @@ public class FornecedorDALTest {
         fornecedor.definirPassword("c".repeat(64), "d".repeat(32));
         int id = instance.criar(fornecedor);
         Fornecedor result = instance.procurarPorCodigo(codigoCriado).orElseThrow();
-        assertEquals(id, result.getId());
+        int expResult = id;
+        assertEquals(expResult, result.getId());
         assertEquals("Fornecedor novo", result.getNome());
         assertEquals("c".repeat(64), result.getPasswordHash());
     }

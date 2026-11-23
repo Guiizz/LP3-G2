@@ -27,6 +27,7 @@ public class ServicoDALTest {
     @BeforeAll
     @AfterAll
     public static void limparRestosDeTestes() {
+        RestosDosTestes.limpar();
         try {
             ConexaoBD.executar("IF OBJECT_ID('ReservaServico') IS NOT NULL DELETE FROM ReservaServico "
                     + "WHERE servicoId IN (SELECT id FROM Servico WHERE designacao LIKE 'Teste %')");
@@ -151,7 +152,9 @@ public class ServicoDALTest {
 
         instance.inserir(novo);
         assertEquals(true, instance.listar().contains(novo));
-        assertEquals(novo, instance.procurarPorId(novo.getId()).orElseThrow());
+        Servico expResult = novo;
+        Servico result = instance.procurarPorId(novo.getId()).orElseThrow();
+        assertEquals(expResult, result);
 
         novo.setPreco(new BigDecimal("1000.00"));
         instance.atualizar(novo);

@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
@@ -22,6 +23,11 @@ public class QuartoDALTest {
 
     private QuartoDAL instance;
     private int numero;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -145,7 +151,8 @@ public class QuartoDALTest {
         Quarto expResult = procurar(numero);
         boolean apagado = instance.apagarSeNuncaUsado(numero);
         assertEquals(false, apagado);
-        assertEquals(expResult, procurar(numero));
+        Quarto result = procurar(numero);
+        assertEquals(expResult, result);
     }
 
     @Test

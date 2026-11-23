@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
@@ -23,6 +24,11 @@ public class AvaliacaoDALTest {
     private ReservaDAL reservaDAL;
     private Cliente cliente;
     private Reserva reserva;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {

@@ -28,6 +28,7 @@ public class ReservaDALTest {
 
     @BeforeAll
     public static void limparRestosDosTestesDoCancelamento() {
+        RestosDosTestes.limpar();
         try {
             ConexaoBD.executar("DELETE FROM Reserva WHERE dataEntrada < '1990-01-05' AND clienteId IN "
                     + "(SELECT id FROM Pessoa WHERE nome LIKE 'Teste [0-9]%')");

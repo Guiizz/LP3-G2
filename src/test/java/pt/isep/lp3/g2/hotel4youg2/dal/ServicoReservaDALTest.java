@@ -35,6 +35,7 @@ public class ServicoReservaDALTest {
 
     @BeforeAll
     public static void limparRestosDeTestes() {
+        RestosDosTestes.limpar();
         try {
             ConexaoBD.executar("DELETE FROM Reserva WHERE clienteId IN " + PESSOAS_TESTE);
             ConexaoBD.executar("DELETE FROM Cliente WHERE pessoaId IN " + PESSOAS_TESTE);
@@ -247,7 +248,9 @@ public class ServicoReservaDALTest {
         System.out.println("CRUD completo");
         ServicoReserva junto = novoServico(3);
 
-        assertEquals(true, instance.inserirSeAberta(junto));
+        boolean expResult = true;
+        boolean result = instance.inserirSeAberta(junto);
+        assertEquals(expResult, result);
         assertEquals(List.of(junto), instance.listarPorReserva(reserva.getId()));
 
         assertEquals(true, instance.apagarSeAberta(junto.getId(), reserva.getId()));

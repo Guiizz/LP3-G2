@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.SugestaoQueixa;
@@ -22,6 +23,11 @@ public class SugestaoQueixaDALTest {
     private SugestaoQueixa doCliente;
 
     // Prepara o contexto: uma queixa de teste de um cliente e de um funcionário que já existam na BD
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
+
     @BeforeEach
     public void setUp() {
         int clienteId = 0;

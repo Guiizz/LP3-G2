@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
@@ -27,6 +28,11 @@ public class StockDALTest {
     private int fornecedorId;
     private int materialId;
     private int funcionarioId;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -290,7 +296,9 @@ public class StockDALTest {
     public void testRegistarSaidaGuardaOTipoEOMotivo() {
         System.out.println("registarSaida (guarda o tipo, o motivo e o texto)");
         instance.registarSaida(materialId, 3, funcionarioId, TipoSaida.DEFINITIVA, MotivoSaida.OUTRO, "caiu ao chão");
-        assertEquals("DEFINITIVA", textoGuardado("tipo"));
+        String expResult = "DEFINITIVA";
+        String result = textoGuardado("tipo");
+        assertEquals(expResult, result);
         assertEquals("OUTRO", textoGuardado("motivo"));
         assertEquals("caiu ao chão", textoGuardado("descricaoMotivo"));
     }
@@ -299,7 +307,9 @@ public class StockDALTest {
     public void testRegistarSaidaTemporariaSemMotivo() {
         System.out.println("registarSaida (temporária, sem motivo da lista)");
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
-        assertEquals("TEMPORARIA", textoGuardado("tipo"));
+        String expResult = "TEMPORARIA";
+        String result = textoGuardado("tipo");
+        assertEquals(expResult, result);
         assertEquals(null, textoGuardado("motivo"));
         assertEquals(8, quantidadeEmStock());
     }
@@ -309,7 +319,8 @@ public class StockDALTest {
         System.out.println("listarPorDevolver (a temporária aparece com o motivo e o funcionário)");
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
         SaidaStock result = aSaidaPorDevolver();
-        assertEquals(2, result.getQuantidade());
+        int expResult = 2;
+        assertEquals(expResult, result.getQuantidade());
         assertEquals("M-1", result.getCodigo());
         assertEquals("Reparação", result.getMotivo());
         assertEquals(nomeDoFuncionario(), result.getFuncionario());
@@ -330,7 +341,9 @@ public class StockDALTest {
         instance.registarSaida(materialId, 2, funcionarioId, TipoSaida.TEMPORARIA, null, "Reparação");
         boolean devolvida = instance.devolver(aSaidaPorDevolver().getId(), funcionarioId);
         assertEquals(true, devolvida);
-        assertEquals(10, quantidadeEmStock());
+        int expResult = 10;
+        int result = quantidadeEmStock();
+        assertEquals(expResult, result);
         assertEquals(null, aSaidaPorDevolver());
     }
 
@@ -341,7 +354,8 @@ public class StockDALTest {
         int saidaId = aSaidaPorDevolver().getId();
         instance.devolver(saidaId, funcionarioId);
         boolean result = instance.devolver(saidaId, funcionarioId);
-        assertEquals(false, result);
+        boolean expResult = false;
+        assertEquals(expResult, result);
         assertEquals(10, quantidadeEmStock());
     }
 
@@ -352,7 +366,8 @@ public class StockDALTest {
         int saidaId = ConexaoBD.select("SELECT id FROM MovimentoStock WHERE materialId = ?", new InteiroMapper(),
                 materialId).get(0);
         boolean result = instance.devolver(saidaId, funcionarioId);
-        assertEquals(false, result);
+        boolean expResult = false;
+        assertEquals(expResult, result);
         assertEquals(8, quantidadeEmStock());
     }
 
@@ -377,7 +392,8 @@ public class StockDALTest {
         for (MovimentoStock movimento : instance.listarMovimentos(materialId)) {
             result.add(movimento.getTipo());
         }
-        assertEquals(3, result.size());
+        int expResult = 3;
+        assertEquals(expResult, result.size());
         assertEquals(true, result.contains(TipoMovimento.SAIDA_TEMPORARIA));
         assertEquals(true, result.contains(TipoMovimento.DEVOLUCAO));
         assertEquals(true, result.contains(TipoMovimento.SAIDA_DEFINITIVA));

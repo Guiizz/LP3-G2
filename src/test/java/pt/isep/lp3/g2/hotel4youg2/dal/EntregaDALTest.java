@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.model.Entrega;
@@ -19,9 +20,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class EntregaDALTest {
@@ -33,6 +31,11 @@ public class EntregaDALTest {
     private int funcionarioId;
 
     // Prepara o contexto: um funcionário que já exista e uma entrega de teste com um fornecedor só para o teste
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
+
     @BeforeEach
     public void setUp() {
         try {
@@ -141,7 +144,8 @@ public class EntregaDALTest {
         System.out.println("carregar");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
         Entrega result = instance.procurarPorId(entregaPendente.getId()).orElseThrow();
-        assertEquals(entregaPendente, result);
+        Entrega expResult = entregaPendente;
+        assertEquals(expResult, result);
         assertEquals(EstadoEntrega.PENDENTE, result.getEstado());
     }
 
@@ -186,7 +190,8 @@ public class EntregaDALTest {
         System.out.println("listarResumosDoFornecedor");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
         List<ResumoEntrega> result = instance.listarResumosDoFornecedor(codigoFornecedor);
-        assertEquals(2, result.size());
+        int expResult = 2;
+        assertEquals(expResult, result.size());
         ResumoEntrega maisRecente = result.get(0);
         assertEquals("TESTE-PENDENTE", maisRecente.getNumeroEncomenda());
         assertEquals(1, maisRecente.getTiposDeMaterial());
@@ -231,7 +236,9 @@ public class EntregaDALTest {
     @Test
     public void testRegistarSomaAoStock() {
         System.out.println("registar (soma ao stock)");
-        assertEquals(500, quantidadeEmStock("M-1"));
+        int expResult = 500;
+        int result = quantidadeEmStock("M-1");
+        assertEquals(expResult, result);
         assertEquals(200, quantidadeEmStock("M-2"));
     }
 
@@ -269,25 +276,6 @@ public class EntregaDALTest {
     }
 
     @Test
-    public void testAceitarEntregaSemUnidades() {
-        System.out.println("aceitar (linha sem o total em unidades)");
-        entregaPendente = carregarPendente("TESTE-PENDENTE");
-        ConexaoBD.executar("UPDATE LinhaEntrega SET unidades = NULL WHERE entregaId = ? AND numeroLinha = 1",
-                entregaPendente.getId());
-        String expResult = "A entrega tem linhas sem o total em unidades. Peça ao fornecedor para a voltar a enviar.";
-        String result = null;
-        try {
-            instance.aceitar(entregaPendente.getId(), funcionarioId);
-            fail("Devia ter recusado a entrega");
-        } catch (IllegalStateException e) {
-            result = e.getMessage();
-        }
-        assertEquals(expResult, result);
-        assertEquals(EstadoEntrega.PENDENTE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
-        assertEquals(500, quantidadeEmStock("M-1"));
-    }
-
-    @Test
     public void testRecusar() {
         System.out.println("recusar");
         entregaPendente = carregarPendente("TESTE-PENDENTE");
@@ -306,7 +294,9 @@ public class EntregaDALTest {
         entregaPendente = carregarPendente("TESTE-PENDENTE");
         instance.recusar(entregaPendente.getId(), funcionarioId, null);
         ResumoEntrega maisRecente = instance.listarResumosDoFornecedor(codigoFornecedor).get(0);
-        assertNull(maisRecente.getMotivoRecusa());
+        String expResult = null;
+        String result = maisRecente.getMotivoRecusa();
+        assertEquals(expResult, result);
     }
 
     @Test
@@ -325,15 +315,16 @@ public class EntregaDALTest {
         List<ResumoEntregaHotel> lista = instance.listarParaHotel();
         int posicaoPendente = posicao(lista, "TESTE-PENDENTE");
         int posicaoAceite = posicao(lista, entrega.getNumeroEncomenda());
-        assertTrue(posicaoPendente >= 0 && posicaoAceite >= 0);
-        assertTrue(posicaoPendente < posicaoAceite);
+        boolean expResult = true;
+        boolean result = posicaoPendente >= 0 && posicaoAceite >= 0 && posicaoPendente < posicaoAceite;
+        assertEquals(expResult, result);
         ResumoEntregaHotel pendente = lista.get(posicaoPendente);
         assertEquals(EstadoEntrega.PENDENTE, pendente.getEstado());
-        assertNull(pendente.getDecididaPor());
+        assertEquals(null, pendente.getDecididaPor());
         assertEquals("", pendente.getDecididaEmTexto());
         ResumoEntregaHotel aceite = lista.get(posicaoAceite);
         assertEquals(EstadoEntrega.ACEITE, aceite.getEstado());
-        assertNotNull(aceite.getDecididaPor());
+        assertEquals(true, aceite.getDecididaPor() != null);
         assertEquals("Fornecedor de teste", aceite.getFornecedor());
         assertEquals(100, pendente.getTotalUnidades());
         assertEquals(700, aceite.getTotalUnidades());
@@ -343,7 +334,8 @@ public class EntregaDALTest {
     public void testProcurarPorIdTrazMoedaETotal() {
         System.out.println("procurarPorId (moeda e total guardado, US54)");
         Entrega result = instance.procurarPorId(entrega.getId()).orElseThrow();
-        assertEquals("EUR", result.getMoeda());
+        String expResult = "EUR";
+        assertEquals(expResult, result.getMoeda());
         assertEquals(0, new BigDecimal("1012.91").compareTo(result.getTotalRegistado()));
         assertEquals(true, result.isTotalCerto());
     }
@@ -354,5 +346,24 @@ public class EntregaDALTest {
         int expResult = entrega.getId();
         int result = instance.listarResumosDoFornecedor(codigoFornecedor).get(0).getEntregaId();
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testAceitarEntregaSemUnidades() {
+        System.out.println("aceitar (linha sem o total em unidades)");
+        entregaPendente = carregarPendente("TESTE-PENDENTE");
+        ConexaoBD.executar("UPDATE LinhaEntrega SET unidades = NULL WHERE entregaId = ? AND numeroLinha = 1",
+                entregaPendente.getId());
+        String expResult = "A entrega tem linhas sem o total em unidades. Peça ao fornecedor para a voltar a enviar.";
+        String result = null;
+        try {
+            instance.aceitar(entregaPendente.getId(), funcionarioId);
+            fail("Devia ter recusado a entrega");
+        } catch (IllegalStateException e) {
+            result = e.getMessage();
+        }
+        assertEquals(expResult, result);
+        assertEquals(EstadoEntrega.PENDENTE, instance.procurarPorId(entregaPendente.getId()).orElseThrow().getEstado());
+        assertEquals(500, quantidadeEmStock("M-1"));
     }
 }

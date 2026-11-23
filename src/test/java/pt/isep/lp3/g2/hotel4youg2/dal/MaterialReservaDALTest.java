@@ -2,6 +2,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.RowMapper;
@@ -41,6 +42,11 @@ public class MaterialReservaDALTest {
     private Material toalha;
     private Material champo;
     private int funcionarioId;
+
+    @BeforeAll
+    public static void limparRestosDosTestes() {
+        RestosDosTestes.limpar();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -162,7 +168,9 @@ public class MaterialReservaDALTest {
         System.out.println("ajustar (uma só toalha nesta reserva; o padrão do quarto não muda)");
         configurar(toalha, 2);
         instance.ajustar(reserva.getId(), toalha.getId(), 1);
-        assertEquals(List.of(new MaterialQuarto(tipoDoQuarto, toalha, 1)), osDoTeste());
+        List<MaterialQuarto> expResult = List.of(new MaterialQuarto(tipoDoQuarto, toalha, 1));
+        List<MaterialQuarto> result = osDoTeste();
+        assertEquals(expResult, result);
         int padrao = ConexaoBD.select("SELECT quantidade FROM ConfiguracaoQuarto WHERE tipoQuarto = ? "
                 + "AND materialId = ?", new InteiroMapper(), tipoDoQuarto.name(), toalha.getId()).get(0);
         assertEquals(2, padrao);
@@ -175,7 +183,9 @@ public class MaterialReservaDALTest {
         darAReserva(champo, 3);
         boolean feito = fazerCheckin();
         assertEquals(true, feito);
-        assertEquals(8, emStock(toalha));
+        int expResult = 8;
+        int result = emStock(toalha);
+        assertEquals(expResult, result);
         assertEquals(7, emStock(champo));
     }
 
@@ -185,7 +195,9 @@ public class MaterialReservaDALTest {
         darAReserva(toalha, 2);
         darAReserva(champo, 3);
         fazerCheckin();
-        assertEquals("TEMPORARIA/-/fora", saidaDaReserva(toalha));
+        String expResult = "TEMPORARIA/-/fora";
+        String result = saidaDaReserva(toalha);
+        assertEquals(expResult, result);
         assertEquals("DEFINITIVA/CONSUMO_RESERVA/fora", saidaDaReserva(champo));
     }
 
@@ -195,7 +207,9 @@ public class MaterialReservaDALTest {
         darAReserva(toalha, 0);
         darAReserva(champo, 1);
         fazerCheckin();
-        assertEquals(10, emStock(toalha));
+        int expResult = 10;
+        int result = emStock(toalha);
+        assertEquals(expResult, result);
         assertEquals(9, emStock(champo));
     }
 
@@ -208,9 +222,22 @@ public class MaterialReservaDALTest {
         reserva.fazerCheckout(reserva.getDataSaida().atTime(11, 0));
         boolean feito = reservaDAL.registarCheckout(reserva, funcionarioId);
         assertEquals(true, feito);
-        assertEquals(10, emStock(toalha));
+        int expResult = 10;
+        int result = emStock(toalha);
+        assertEquals(expResult, result);
         assertEquals(7, emStock(champo));
         assertEquals("TEMPORARIA/-/devolvida", saidaDaReserva(toalha));
+    }
+
+    @Test
+    public void testCheckinRepetidoNaoTiraDuasVezes() {
+        System.out.println("registarCheckin (segundo check-in da mesma reserva não tira outra vez)");
+        darAReserva(toalha, 2);
+        fazerCheckin();
+        boolean result = reservaDAL.registarCheckin(reserva, funcionarioId);
+        boolean expResult = false;
+        assertEquals(expResult, result);
+        assertEquals(8, emStock(toalha));
     }
 
     @Test
@@ -224,18 +251,10 @@ public class MaterialReservaDALTest {
         } catch (IllegalStateException expected) {
             assertEquals(true, expected.getMessage().contains("Teste champô (precisa de 11, há 10)"));
         }
-        assertEquals(10, emStock(toalha));
+        int expResult = 10;
+        int result = emStock(toalha);
+        assertEquals(expResult, result);
         assertEquals(10, emStock(champo));
         assertEquals(EstadoReserva.CONFIRMADA, reservaDAL.procurarPorId(reserva.getId()).getEstado());
-    }
-
-    @Test
-    public void testCheckinRepetidoNaoTiraDuasVezes() {
-        System.out.println("registarCheckin (segundo check-in da mesma reserva não tira outra vez)");
-        darAReserva(toalha, 2);
-        fazerCheckin();
-        boolean result = reservaDAL.registarCheckin(reserva, funcionarioId);
-        assertEquals(false, result);
-        assertEquals(8, emStock(toalha));
     }
 }

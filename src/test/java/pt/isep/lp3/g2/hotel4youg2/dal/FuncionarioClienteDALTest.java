@@ -38,6 +38,7 @@ public class FuncionarioClienteDALTest {
 
     @BeforeAll
     public static void limparRestosDeTestes() {
+        RestosDosTestes.limpar();
         try {
             limpar();
         } catch (DataAccessException e) {
