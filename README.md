@@ -28,10 +28,11 @@ DB_USER=
 DB_PASSWORD=
 ```
 
-Os valores pedem-se a um elemento da equipa.
+Os valores pedem-se a um elemento da equipa. Se o servidor não usar a porta normal, o `DB_SERVER` escreve-se `servidor:porta` (ex.: `localhost:14333`).
 
 ## Testes
 Corre `mvn test`. O teste `ConexaoBDTest` é ignorado (não falha) quando não há acesso à base de dados.
+Os testes da DAL gravam e apagam dados na base de dados do `.env`. Com o `.env` normal, isso acontece na base de dados da equipa.
 
 ## Problemas conhecidos
 - **Erro de SSL ao testar a ligação** ("The driver could not establish a secure connection to SQL Server by using SSL encryption"): acontece com versões recentes do JDK 17, que recusam o TLS antigo do servidor. Se acontecer, avisa a equipa e indica a tua versão de Java (`java -version`, ou **File → Project Structure → SDK** no IntelliJ).
@@ -62,6 +63,49 @@ Os recursos estão em `src/main/resources/pt/isep/lp3/g2/hotel4youg2`:
 | `xml` | XSD das entregas (`Hotel4You.xsd`) |
 
 Os scripts da base de dados estão em `Scrum/Base de Dados`, numerados pela ordem em que se correm (`NN_descricao.sql`).
+
+## Scripts da base de dados
+
+**Base de dados nova** (por exemplo, para a demonstração). Corre no SSMS, por esta ordem:
+
+1. `00_criar_base_de_dados.sql`: cria todas as tabelas e os dados base (tarifas, 20 quartos, serviços, horário do check-in e do check-out e a conta do gestor). É o mesmo que correr do `01` ao `30`.
+2. `99_dados_demonstracao.sql` (opcional): enche a base de dados com dados para mostrar todos os ecrãs.
+
+Os dois podem correr várias vezes sem erros: o `00` só cria o que falta e o `99` não volta a pôr os dados se já lá estiverem. O `99` recusa correr numa base de dados que já tenha outros dados, para não se misturar com eles.
+
+**Base de dados que já existe** (a da equipa). Não se corre o `00` nem o `99`: corre-se só o script novo de cada sprint, do `01` ao `30` e os seguintes.
+
+### Dados de demonstração
+
+As datas do `99` contam a partir do dia em que se corre, por isso corre-se no próprio dia da demonstração.
+
+| Para mostrar | O que o `99` põe |
+|---|---|
+| Cartão e planta do hotel | A Ana Martins tem uma reserva em curso no quarto 201 (cartão `C201`), com piscina e refeições, e já picou o quarto, a piscina e o restaurante. No quarto 205 o acesso é recusado |
+| Área do cliente | A Ana tem uma reserva por fazer, uma em curso, uma concluída já avaliada e outra concluída por avaliar |
+| Check-in com baixa de stock | O Bruno Costa tem uma reserva confirmada para hoje no quarto 208, com as toalhas ajustadas para 6. O check-in só se faz a partir das 15:00 (ou da hora escolhida em **Horas e taxas**) |
+| Cancelar reservas sem check-in | O Diogo Ferreira tem uma reserva confirmada que começava ontem: é cancelada no primeiro login do dia |
+| Pedidos extra | A Carla Sousa (quarto 302, em curso) tem dois pedidos por decidir; a Ana tem um aceite e um recusado |
+| Entregas | Do fornecedor ProductHero (`11PT920`): uma aceite, uma recusada com motivo e uma por decidir. O fornecedor L'industrie Alimentaire (`964070328`) não tem entregas, para carregar o JSON na demonstração |
+| Stock | Toalhas e secadores (voltam ao stock no check-out), champô (consumível), uma saída por estrago e um secador emprestado por devolver |
+| Estatísticas e avaliações | Cerca de 20 reservas nos últimos 2 meses, com serviços, e 8 avaliações de 2 a 5 estrelas |
+| Acessos dos funcionários | Picagens da rececionista (`F2`), da restauração (`R3`) e do cartão mestre (`C000`) |
+
+Ficheiros para carregar nas entregas: `src/test/resources/pt/isep/lp3/g2/hotel4youg2/xml/entrega-valida.xml` (ProductHero), `json/entrega-valida.json` (L'industrie Alimentaire) e `xml/entrega-varios-erros.xml` (entrega com erros).
+
+### Contas de demonstração
+
+A palavra-passe de todas é `Hotel4You`. A do gestor é pedida de novo no primeiro login.
+
+| Conta | Entra com |
+|---|---|
+| Gestor | `gestor` |
+| Rececionista (Rita Almeida) | `rececao` |
+| Restauração (Hugo Pinto) | `restauracao` |
+| Cliente Ana Martins | NIF `246789123` |
+| Cliente Carla Sousa | NIF `257891234` |
+| Fornecedor ProductHero | `11PT920` |
+| Fornecedor L'industrie Alimentaire | `964070328` |
 
 ## Regras de nomes
 Seguir sempre estas regras nas classes e nos ficheiros novos:

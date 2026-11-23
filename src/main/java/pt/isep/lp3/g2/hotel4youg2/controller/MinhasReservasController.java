@@ -1,7 +1,10 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableView;
@@ -37,6 +40,8 @@ public class MinhasReservasController {
     @FXML
     private TableView<Reserva> tabelaHistorico;
     @FXML
+    private Button avaliarButton;
+    @FXML
     private Label mensagemLabel;
 
     @FXML
@@ -45,7 +50,15 @@ public class MinhasReservasController {
         tabelaPorFazer.setOnMouseClicked(duploClique);
         tabelaEmCurso.setOnMouseClicked(duploClique);
         tabelaHistorico.setOnMouseClicked(duploClique);
+        separadores.getSelectionModel().selectedIndexProperty().addListener(new AoMudarDeSeparador());
+        mostrarAvaliar();
         carregar();
+    }
+
+    private void mostrarAvaliar() {
+        boolean noHistorico = separadores.getSelectionModel().getSelectedIndex() == 2;
+        avaliarButton.setVisible(noHistorico);
+        avaliarButton.setManaged(noHistorico);
     }
 
     private void carregar() {
@@ -103,10 +116,32 @@ public class MinhasReservasController {
         }
     }
 
+    @FXML
+    private void aoAvaliar() {
+        Reserva escolhida = escolhida();
+        if (escolhida == null || escolhida.getEstado() != EstadoReserva.CONCLUIDA) {
+            Mensagens.erro(mensagemLabel, "Escolha uma estadia concluída no separador Histórico para a avaliar.");
+            return;
+        }
+        try {
+            mensagemLabel.setText("");
+            AvaliarEstadiaController.abrir(escolhida, ecra);
+        } catch (IOException e) {
+            Mensagens.erro(mensagemLabel, "Não foi possível abrir a avaliação da estadia.");
+        }
+    }
+
     private Reserva escolhida() {
         int separador = separadores.getSelectionModel().getSelectedIndex();
         TableView<Reserva> tabela = separador == 0 ? tabelaPorFazer : separador == 1 ? tabelaEmCurso : tabelaHistorico;
         return tabela.getSelectionModel().getSelectedItem();
+    }
+
+    private class AoMudarDeSeparador implements ChangeListener<Number> {
+        @Override
+        public void changed(ObservableValue<? extends Number> valor, Number antes, Number agora) {
+            mostrarAvaliar();
+        }
     }
 
     private class AoClicarDuasVezes implements EventHandler<MouseEvent> {

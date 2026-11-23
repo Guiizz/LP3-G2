@@ -114,6 +114,7 @@ public class InicialController {
     private void aoAbrirQuartos() throws IOException {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Consultar quartos", "quartos-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Planta do hotel", "planta-view.fxml", false));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
         opcoes.add(new OpcaoMenu("Materiais dos quartos", "materiais-quartos-view.fxml", false));
         if (Permissoes.eGestor(Sessao.getUtilizador())) {
@@ -148,6 +149,7 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Criar conta", "criar-conta-view.fxml", true));
         opcoes.add(new OpcaoMenu("Criar fornecedor", "criar-fornecedor-view.fxml", true));
         opcoes.add(new OpcaoMenu("Sugestões e queixas", "consultar-sugestoes-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Avaliações das estadias", "avaliacoes-view.fxml", false));
         opcoes.add(new OpcaoMenu("Registos de acesso", "consultar-acessos-view.fxml", false));
         opcoes.add(new OpcaoMenu("Horas e taxas", "horario-reserva-view.fxml", false));
         Navegador.mostrarArea("Administração", opcoes);

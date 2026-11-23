@@ -16,6 +16,7 @@ import pt.isep.lp3.g2.hotel4youg2.model.CartaoAtivo;
 import pt.isep.lp3.g2.hotel4youg2.model.ContaCliente;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.LocalPicagem;
+import pt.isep.lp3.g2.hotel4youg2.model.PlantaHotel;
 import pt.isep.lp3.g2.hotel4youg2.model.Quarto;
 import pt.isep.lp3.g2.hotel4youg2.model.Reserva;
 import pt.isep.lp3.g2.hotel4youg2.model.Servico;
@@ -350,6 +351,38 @@ public class AcessoCartaoBLL {
             if (local != LocalHotel.QUARTO) {
                 locais.add(new LocalPicagem(local, 0));
             }
+        }
+        return locais;
+    }
+
+    /**
+     * @return a planta do hotel, com todos os quartos
+     */
+    public PlantaHotel planta() {
+        return new PlantaHotel(quartoDAL.listarTodos());
+    }
+
+    /**
+     * Diz que locais o cartão da reserva em curso abre: o quarto e, se a reserva os tiver, o restaurante e a piscina.
+     *
+     * @param conta     a conta do cliente
+     * @param escolhida a reserva escolhida, quando o cliente tem mais do que uma em curso
+     * @return os locais que o cartão abre; vazia se o cliente não tem nenhuma reserva em curso
+     * @throws IllegalArgumentException se o cliente tem mais do que uma reserva em curso e não escolheu nenhuma
+     */
+    public List<LocalPicagem> locaisQueAbre(ContaCliente conta, Reserva escolhida) {
+        List<LocalPicagem> locais = new ArrayList<>();
+        List<Reserva> reservas = reservasComCartao(conta);
+        if (reservas.isEmpty()) {
+            return locais;
+        }
+        Reserva reserva = reservaEscolhida(reservas, escolhida);
+        locais.add(LocalPicagem.quarto(reserva.getQuartoNumero()));
+        if (reservaIncluiLocal(reserva, LocalHotel.RESTAURANTE)) {
+            locais.add(new LocalPicagem(LocalHotel.RESTAURANTE, 0));
+        }
+        if (reservaIncluiLocal(reserva, LocalHotel.PISCINA)) {
+            locais.add(new LocalPicagem(LocalHotel.PISCINA, 0));
         }
         return locais;
     }
