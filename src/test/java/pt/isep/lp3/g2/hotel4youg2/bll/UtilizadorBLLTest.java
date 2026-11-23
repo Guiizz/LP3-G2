@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IFornecedorDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IUtilizadorDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Conta;
+import pt.isep.lp3.g2.hotel4youg2.util.PasswordUtils;
 import pt.isep.lp3.g2.hotel4youg2.model.Fornecedor;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
@@ -47,6 +48,18 @@ public class UtilizadorBLLTest {
                 if (conta.getId() == utilizadorId) {
                     conta.setAtivo(ativo);
                     alteracoes++;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean definirPassword(int utilizadorId, String passwordHash, String passwordSalt,
+                                       boolean mudarPassword) {
+            for (Utilizador conta : contas) {
+                if (conta.getId() == utilizadorId) {
+                    conta.definirPassword(passwordHash, passwordSalt, mudarPassword);
                     return true;
                 }
             }
@@ -306,5 +319,69 @@ public class UtilizadorBLLTest {
             result = e.getMessage();
         }
         assertEquals(expResult, result);
+    }
+
+    private String erroAoRepor(Utilizador quemAge, Conta conta) {
+        try {
+            instance.reporPassword(quemAge, conta);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    @Test
+    public void testReporPassword() {
+        System.out.println("reporPassword (a temporária entra e a conta fica a pedir uma nova)");
+        String temporaria = instance.reporPassword(gestor, new Conta(rececionista));
+        boolean expResult = true;
+        boolean result = new PasswordUtils().verificarPassword(temporaria, rececionista.getPasswordSalt(),
+                rececionista.getPasswordHash());
+        assertEquals(expResult, result);
+        assertEquals(true, rececionista.isMudarPassword());
+    }
+
+    @Test
+    public void testReporPasswordGuardaNaBaseDeDados() {
+        System.out.println("reporPassword (fica gravada com hash e salt, não em texto)");
+        String temporaria = instance.reporPassword(gestor, new Conta(rececionista));
+        Utilizador guardada = dal.contas.get(1);
+        boolean expResult = false;
+        boolean result = temporaria.equals(guardada.getPasswordHash()) || "h".equals(guardada.getPasswordHash());
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReporPasswordTemporariaComDezCaracteres() {
+        System.out.println("reporPassword (a temporária tem 10 caracteres)");
+        int expResult = 10;
+        int result = instance.reporPassword(gestor, new Conta(rececionista)).length();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReporPasswordDeFornecedor() {
+        System.out.println("reporPassword (só contas de funcionários)");
+        Conta fornecedor = new Conta(fornecedorDAL.fornecedores.get(0));
+        String expResult = "Só se repõe a palavra-passe das contas dos funcionários.";
+        String result = erroAoRepor(gestor, fornecedor);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReporPasswordSemConta() {
+        System.out.println("reporPassword (sem conta escolhida)");
+        String expResult = "Escolha uma conta.";
+        String result = erroAoRepor(gestor, null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testReporPasswordComoRececionista() {
+        System.out.println("reporPassword (só o gestor)");
+        String expResult = "Só o gestor pode gerir contas.";
+        String result = erroAoRepor(rececionista, new Conta(desativada));
+        assertEquals(expResult, result);
+        assertEquals(false, desativada.isMudarPassword());
     }
 }

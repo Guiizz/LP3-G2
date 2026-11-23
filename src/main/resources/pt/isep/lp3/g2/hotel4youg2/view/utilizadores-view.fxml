@@ -32,6 +32,8 @@
     </TableView>
 
     <HBox spacing="10.0">
+        <Button text="Editar" onAction="#aoEditar"/>
+        <Button text="Repor palavra-passe" onAction="#aoReporPassword"/>
         <Button text="Desativar" onAction="#aoDesativar"/>
         <Button text="Reativar" onAction="#aoReativar"/>
     </HBox>
