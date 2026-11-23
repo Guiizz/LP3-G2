@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controlador do menu principal (US34 e US44): mostra as áreas no menu lateral e as opções de cada uma. As áreas Serviços e Administração só aparecem ao gestor.
+ * Controlador do menu principal (US34 e US44): mostra as áreas no menu lateral e as opções de cada uma. As áreas Serviços, Estatísticas e Administração só aparecem ao gestor.
  */
 public class InicialController {
 
@@ -49,6 +49,9 @@ public class InicialController {
     private Button administracaoButton;
 
     @FXML
+    private Button estatisticasButton;
+
+    @FXML
     private void initialize() {
         Navegador.iniciar(raiz);
         Utilizador utilizador = Sessao.getUtilizador();
@@ -58,6 +61,7 @@ public class InicialController {
         boolean gestor = Permissoes.eGestor(utilizador);
         mostrar(servicosButton, gestor);
         mostrar(administracaoButton, gestor);
+        mostrar(estatisticasButton, gestor);
         if (utilizador != null && utilizador.getPerfil() == Perfil.RESTAURACAO) {
             mostrarSoOCartao();
         }
@@ -110,6 +114,7 @@ public class InicialController {
     private void aoAbrirQuartos() throws IOException {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Consultar quartos", "quartos-view.fxml", false));
+        opcoes.add(new OpcaoMenu("Planta do hotel", "planta-view.fxml", false));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
         opcoes.add(new OpcaoMenu("Materiais dos quartos", "materiais-quartos-view.fxml", false));
         if (Permissoes.eGestor(Sessao.getUtilizador())) {
@@ -148,6 +153,12 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Registos de acesso", "consultar-acessos-view.fxml", false));
         opcoes.add(new OpcaoMenu("Horas e taxas", "horario-reserva-view.fxml", false));
         Navegador.mostrarArea("Administração", opcoes);
+    }
+
+    @FXML
+    private void aoAbrirEstatisticas() throws IOException {
+        Permissoes.exigirGestor(Sessao.getUtilizador());
+        Navegador.mostrar("estatisticas-view.fxml");
     }
 
     @FXML
