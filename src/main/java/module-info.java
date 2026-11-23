@@ -7,6 +7,7 @@ module pt.isep.lp3.g2.hotel4youg2 {
     requires java.sql;
     requires java.xml;
     requires io.github.cdimascio.dotenv.java;
+    requires com.google.gson;
 
     opens pt.isep.lp3.g2.hotel4youg2 to javafx.fxml;
     opens pt.isep.lp3.g2.hotel4youg2.controller to javafx.fxml;

@@ -1,0 +1,4 @@
+IF COL_LENGTH('Reserva', 'criadaEm') IS NULL
+ALTER TABLE Reserva ADD criadaEm DATETIME2 NULL
+    CONSTRAINT DF_Reserva_criadaEm DEFAULT SYSDATETIME();
+GO

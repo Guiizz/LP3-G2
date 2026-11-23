@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  */
 public class FuncionarioBLL {
 
-    private static final int TAMANHO_MINIMO_PASSWORD = 8;
+    public static final int TAMANHO_MINIMO_PASSWORD = 8;
     private static final Pattern NIF = Pattern.compile("\\d{9}");
     private static final Pattern EMAIL = Pattern.compile("[^@\\s]+@[^@\\s]+\\.[^@\\s]+");
 
@@ -70,24 +70,14 @@ public class FuncionarioBLL {
         LocalDate dataNascimento = dados.getDataNascimento();
         String utilizador = limpar(nomeUtilizador);
 
-        if (nome == null || nome.length() > 100) {
-            throw new IllegalArgumentException("O nome é obrigatório (até 100 caracteres).");
-        }
+        validarNome(nome);
         if (nif == null || !NIF.matcher(nif).matches()) {
             throw new IllegalArgumentException("O NIF tem de ter 9 algarismos.");
         }
         if (cc != null && cc.length() > 12) {
             throw new IllegalArgumentException("O CC tem no máximo 12 caracteres.");
         }
-        if (morada != null && morada.length() > 200) {
-            throw new IllegalArgumentException("A morada tem no máximo 200 caracteres.");
-        }
-        if (telemovel != null && telemovel.length() > 15) {
-            throw new IllegalArgumentException("O telemóvel tem no máximo 15 caracteres.");
-        }
-        if (email != null && (email.length() > 100 || !EMAIL.matcher(email).matches())) {
-            throw new IllegalArgumentException("O email não é válido.");
-        }
+        validarContactos(morada, telemovel, email);
         if (dataNascimento != null && dataNascimento.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("A data de nascimento não pode ser no futuro.");
         }
@@ -101,6 +91,7 @@ public class FuncionarioBLL {
         if (perfil == null) {
             throw new IllegalArgumentException("Escolha o perfil.");
         }
+        String empresa = empresaValidada(perfil, dados.getEmpresa());
         if (funcionarioDAL.existeNif(nif)) {
             throw new IllegalArgumentException("Já existe uma pessoa com esse NIF.");
         }
@@ -113,8 +104,89 @@ public class FuncionarioBLL {
 
         Funcionario funcionario = new Funcionario(0, nome, cc, nif, morada, telemovel,
                 dataNascimento, email, 0, LocalDate.now());
+        funcionario.setEmpresa(empresa);
+        funcionario.setPerfil(perfil);
         Utilizador conta = new Utilizador(0, 0, utilizador, hash, salt, perfil, true);
         funcionarioDAL.criarConta(funcionario, conta);
+    }
+
+    public Funcionario procurarDaConta(Utilizador quemAge, Utilizador conta) {
+        exigirGestor(quemAge);
+        if (conta == null) {
+            throw new IllegalArgumentException("Escolha uma conta.");
+        }
+        Funcionario funcionario = funcionarioDAL.procurarPorId(conta.getFuncionarioId());
+        if (funcionario == null) {
+            throw new IllegalArgumentException("O funcionário desta conta já não existe.");
+        }
+        return funcionario;
+    }
+
+    public void editar(Utilizador quemAge, Utilizador conta, Funcionario dados, Perfil perfil) {
+        exigirGestor(quemAge);
+        if (conta == null) {
+            throw new IllegalArgumentException("Escolha uma conta.");
+        }
+        if (dados == null) {
+            throw new IllegalArgumentException("Faltam os dados do funcionário.");
+        }
+        String nome = limpar(dados.getNome());
+        String morada = limpar(dados.getMorada());
+        String telemovel = limpar(dados.getTelemovel());
+        String email = limpar(dados.getEmail());
+        validarNome(nome);
+        validarContactos(morada, telemovel, email);
+        if (perfil == null) {
+            throw new IllegalArgumentException("Escolha o perfil.");
+        }
+        String empresa = empresaValidada(perfil, dados.getEmpresa());
+        if (quemAge.getId() == conta.getId() && perfil != Perfil.GESTOR) {
+            throw new IllegalArgumentException("Não pode retirar o perfil de gestor à sua própria conta.");
+        }
+        Funcionario funcionario = new Funcionario(conta.getFuncionarioId(), nome, dados.getCc(), dados.getNif(),
+                morada, telemovel, dados.getDataNascimento(), email, dados.getNumeroFuncionario(),
+                dados.getDataAdmissao());
+        funcionario.setEmpresa(empresa);
+        funcionario.setPerfil(perfil);
+        if (!funcionarioDAL.editar(funcionario, conta.getId(), perfil)) {
+            throw new IllegalArgumentException("A conta já não existe.");
+        }
+        conta.setPerfil(perfil);
+    }
+
+    private static void exigirGestor(Utilizador quemAge) {
+        if (quemAge == null || quemAge.getPerfil() != Perfil.GESTOR) {
+            throw new IllegalStateException("Só o gestor pode editar contas.");
+        }
+    }
+
+    private static void validarNome(String nome) {
+        if (nome == null || nome.length() > 100) {
+            throw new IllegalArgumentException("O nome é obrigatório (até 100 caracteres).");
+        }
+    }
+
+    private static void validarContactos(String morada, String telemovel, String email) {
+        if (morada != null && morada.length() > 200) {
+            throw new IllegalArgumentException("A morada tem no máximo 200 caracteres.");
+        }
+        if (telemovel != null && telemovel.length() > 15) {
+            throw new IllegalArgumentException("O telemóvel tem no máximo 15 caracteres.");
+        }
+        if (email != null && (email.length() > 100 || !EMAIL.matcher(email).matches())) {
+            throw new IllegalArgumentException("O email não é válido.");
+        }
+    }
+
+    private static String empresaValidada(Perfil perfil, String empresa) {
+        if (perfil != Perfil.RESTAURACAO) {
+            return null;
+        }
+        String texto = limpar(empresa);
+        if (texto == null || texto.length() > 100) {
+            throw new IllegalArgumentException("Escreva o nome da empresa de restauração (até 100 caracteres).");
+        }
+        return texto;
     }
 
     private static String limpar(String texto) {

@@ -3,6 +3,7 @@ package pt.isep.lp3.g2.hotel4youg2.dal.interfaces;
 import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Funcionario;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 
 import java.util.List;
 
@@ -61,4 +62,6 @@ public interface IFuncionarioDAL {
      * @throws DataAccessException se não for possível ler a base de dados
      */
     List<Funcionario> listarComContaAtiva();
+
+    boolean editar(Funcionario funcionario, int utilizadorId, Perfil perfil);
 }

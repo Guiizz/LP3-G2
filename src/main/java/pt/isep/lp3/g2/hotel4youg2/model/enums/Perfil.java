@@ -8,5 +8,6 @@ public enum Perfil {
     /** Gere o hotel: tarifas, contas de funcionários, etc. */
     GESTOR,
     /** Trata dos clientes e das reservas na receção. */
-    RECECIONISTA
+    RECECIONISTA,
+    RESTAURACAO
 }

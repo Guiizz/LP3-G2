@@ -16,12 +16,15 @@ import java.util.Optional;
 public class UtilizadorDAL implements IUtilizadorDAL {
 
     private static final String SELECT_POR_NOME =
-            "SELECT id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo "
+            "SELECT id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo, mudarPassword "
             + "FROM Utilizador WHERE nomeUtilizador = ?";
     private static final String SELECT_TODOS =
-            "SELECT id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo "
+            "SELECT id, funcionarioId, nomeUtilizador, passwordHash, passwordSalt, perfil, ativo, mudarPassword "
             + "FROM Utilizador ORDER BY nomeUtilizador";
     private static final String UPDATE_ATIVO = "UPDATE Utilizador SET ativo = ? WHERE id = ?";
+    private static final String UPDATE_PASSWORD =
+            "UPDATE Utilizador SET passwordHash = ?, passwordSalt = ?, mudarPassword = ? WHERE id = ?";
+
     /**
      * {@inheritDoc}
      */
@@ -41,10 +44,16 @@ public class UtilizadorDAL implements IUtilizadorDAL {
         return ConexaoBD.executar(UPDATE_ATIVO, ativo, utilizadorId) > 0;
     }
 
+    @Override
+    public boolean definirPassword(int utilizadorId, String passwordHash, String passwordSalt,
+                                   boolean mudarPassword) {
+        return ConexaoBD.executar(UPDATE_PASSWORD, passwordHash, passwordSalt, mudarPassword, utilizadorId) > 0;
+    }
+
     private static class UtilizadorMapper implements RowMapper<Utilizador> {
         @Override
         public Utilizador map(ResultSet rs) throws SQLException {
-            return new Utilizador(
+            Utilizador utilizador = new Utilizador(
                     rs.getInt("id"),
                     rs.getInt("funcionarioId"),
                     rs.getString("nomeUtilizador"),
@@ -52,6 +61,8 @@ public class UtilizadorDAL implements IUtilizadorDAL {
                     rs.getString("passwordSalt").trim(),
                     Perfil.valueOf(rs.getString("perfil")),
                     rs.getBoolean("ativo"));
+            utilizador.setMudarPassword(rs.getBoolean("mudarPassword"));
+            return utilizador;
         }
     }
 }

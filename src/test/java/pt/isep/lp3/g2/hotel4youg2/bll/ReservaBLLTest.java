@@ -39,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class ReservaBLLTest {
 
     /** Repositório de teste: guarda a reserva em memória em vez de ir à base de dados. */
+    private static final String SEM_STOCK = "Não há stock suficiente para o check-in: Toalha (precisa de 2, há 1).";
+
     private static class ReservaDALFalsa implements IReservaDAL {
         private boolean quartoLivre = true;
         private Reserva gravada;
@@ -184,6 +186,25 @@ public class ReservaBLLTest {
             }
             comCheckout = reserva;
             return true;
+        }
+
+        private boolean semStock;
+        private int funcionarioDoCheckin;
+        private int funcionarioDoCheckout;
+
+        @Override
+        public boolean registarCheckin(Reserva reserva, int funcionarioId) {
+            if (semStock) {
+                throw new IllegalStateException(SEM_STOCK);
+            }
+            funcionarioDoCheckin = funcionarioId;
+            return registarCheckin(reserva);
+        }
+
+        @Override
+        public boolean registarCheckout(Reserva reserva, int funcionarioId) {
+            funcionarioDoCheckout = funcionarioId;
+            return registarCheckout(reserva);
         }
     }
 
@@ -1771,5 +1792,39 @@ public class ReservaBLLTest {
                 + "Total: 230.00 €";
         String result = instance.resumoDoTotal(duplo, entrada, entrada.plusDays(2), true, false, new ArrayList<>(), lido);
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinGuardaQuemFez() {
+        System.out.println("fazerCheckin (a baixa de stock fica com o funcionário que fez o check-in, US76)");
+        Reserva reserva = reservaConfirmada();
+        instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+        int expResult = RECECAO.getFuncionarioId();
+        int result = repositorio.funcionarioDoCheckin;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckoutGuardaQuemFez() {
+        System.out.println("fazerCheckout (a devolução ao stock fica com o funcionário que fez o check-out, US76)");
+        Reserva reserva = reservaEmCurso();
+        instance.fazerCheckout(GESTOR, reserva, reserva.getDataSaida().atTime(11, 0));
+        int expResult = GESTOR.getFuncionarioId();
+        int result = repositorio.funcionarioDoCheckout;
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFazerCheckinSemStock() {
+        System.out.println("fazerCheckin (sem stock dos materiais: diz o que falta e não grava, US76)");
+        repositorio.semStock = true;
+        Reserva reserva = reservaConfirmada();
+        try {
+            instance.fazerCheckin(RECECAO, reserva, reserva.getDataEntrada().atTime(16, 0));
+            fail("Devia ter recusado o check-in");
+        } catch (IllegalStateException expected) {
+            assertEquals(SEM_STOCK, expected.getMessage());
+            assertEquals(null, repositorio.comCheckin);
+        }
     }
 }

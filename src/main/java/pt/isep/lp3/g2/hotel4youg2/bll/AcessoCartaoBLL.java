@@ -48,7 +48,8 @@ public class AcessoCartaoBLL {
     public static final String SEM_RESERVA_EM_CURSO =
             "Não tem nenhuma reserva em curso, por isso não tem cartão. O cartão é entregue no check-in.";
 
-    private static final String CARTAO_DE_FUNCIONARIO = Funcionario.PREFIXO_CARTAO + "[1-9]\\d{0,8}";
+    private static final String CARTAO_DE_FUNCIONARIO = "[" + Funcionario.PREFIXO_CARTAO
+            + Funcionario.PREFIXO_CARTAO_RESTAURACAO + "][1-9]\\d{0,8}";
 
     private final IAcessoCartaoDAL acessoCartaoDAL;
     private final IReservaDAL reservaDAL;
@@ -159,10 +160,12 @@ public class AcessoCartaoBLL {
     }
 
     public List<LocalHotel> locaisDoCartao(Utilizador quemAge) {
-        boolean mestre = AcessoCartao.CARTAO_MESTRE.equals(cartaoDoUtilizador(quemAge));
+        String cartao = cartaoDoUtilizador(quemAge);
+        boolean todos = AcessoCartao.CARTAO_MESTRE.equals(cartao)
+                || cartao.startsWith(Funcionario.PREFIXO_CARTAO_RESTAURACAO);
         List<LocalHotel> locais = new ArrayList<>();
         for (LocalHotel local : LocalHotel.values()) {
-            if (mestre || local.getPiso() == 0 || local.getPiso() == 1) {
+            if (todos || local.getPiso() == 0 || local.getPiso() == 1) {
                 locais.add(local);
             }
         }
@@ -303,16 +306,21 @@ public class AcessoCartaoBLL {
     }
 
     private AcessoCartao registarPicagem(String cartao, LocalHotel local) {
-        int numeroFuncionario = Integer.parseInt(cartao.substring(Funcionario.PREFIXO_CARTAO.length()));
+        int numeroFuncionario = Integer.parseInt(cartao.substring(1));
         Funcionario funcionario = funcionarioDAL.procurarPorNumero(numeroFuncionario);
-        if (funcionario == null) {
+        if (funcionario == null || !funcionario.getCartao().equals(cartao)) {
             throw new ValidacaoException("Acesso recusado: o cartão " + cartao + " não é de nenhum funcionário.");
         }
         if (!funcionarioDAL.temContaAtiva(funcionario.getId())) {
             throw new ValidacaoException("Acesso recusado: o cartão " + cartao
                     + " é de um funcionário com a conta desativada.");
         }
-        if (local.getPiso() != 0 && local.getPiso() != 1) {
+        if (funcionario.isRestauracao()) {
+            if (local != LocalHotel.COZINHA && local != LocalHotel.RESTAURANTE) {
+                throw new ValidacaoException("Acesso recusado: o cartão " + cartao
+                        + " é da restauração e só abre a cozinha e o restaurante.");
+            }
+        } else if (local.getPiso() != 0 && local.getPiso() != 1) {
             throw new ValidacaoException("Acesso recusado: o cartão " + cartao
                     + " é de um funcionário e só abre os locais dos pisos 0 e 1.");
         }

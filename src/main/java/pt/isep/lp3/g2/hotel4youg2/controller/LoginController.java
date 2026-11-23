@@ -33,6 +33,12 @@ public class LoginController {
     private final ReservaBLL reservaBLL = new ReservaBLL();
     private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
     private ContaCliente contaPorAtivar;
+    private Utilizador utilizadorPorMudar;
+
+    private static final String TEXTO_PRIMEIRO_ACESSO =
+            "Primeiro acesso: escolha a sua palavra-passe, com pelo menos 6 caracteres.";
+    private static final String TEXTO_PASSWORD_REPOSTA =
+            "A sua palavra-passe foi reposta pelo gestor: escolha uma nova, com pelo menos 8 caracteres.";
 
     @FXML
     private TextField nomeUtilizadorField;
@@ -42,6 +48,9 @@ public class LoginController {
 
     @FXML
     private VBox primeiroAcessoBox;
+
+    @FXML
+    private Label primeiroAcessoLabel;
 
     @FXML
     private PasswordField novaPasswordField;
@@ -63,10 +72,15 @@ public class LoginController {
         esconderPrimeiroAcesso();
         try {
             Utilizador utilizador = autenticacaoBLL.autenticar(nomeUtilizadorField.getText(), passwordField.getText());
-            Sessao.iniciar(utilizador);
-            cancelarReservasSemCheckin();
-            abrirJanela("inicial-view.fxml", "Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador()
-                    + " (" + utilizador.getPerfil() + ")");
+            passwordField.clear();
+            if (utilizador.isMudarPassword()) {
+                utilizadorPorMudar = utilizador;
+                primeiroAcessoLabel.setText(TEXTO_PASSWORD_REPOSTA);
+                mostrarPrimeiroAcesso(true);
+                novaPasswordField.requestFocus();
+                return;
+            }
+            entrarComoFuncionario(utilizador);
         } catch (IllegalArgumentException e) {
             erroLabel.setText(e.getMessage());
             passwordField.clear();
@@ -86,6 +100,7 @@ public class LoginController {
             passwordField.clear();
             if (conta.isPrimeiroAcesso()) {
                 contaPorAtivar = conta;
+                primeiroAcessoLabel.setText(TEXTO_PRIMEIRO_ACESSO);
                 mostrarPrimeiroAcesso(true);
                 novaPasswordField.requestFocus();
                 return;
@@ -105,12 +120,20 @@ public class LoginController {
     private void aoGuardarPalavraPasse() {
         erroLabel.setText("");
         try {
+            if (utilizadorPorMudar != null) {
+                autenticacaoBLL.mudarPassword(utilizadorPorMudar, novaPasswordField.getText(),
+                        confirmarPasswordField.getText());
+                Utilizador utilizador = utilizadorPorMudar;
+                esconderPrimeiroAcesso();
+                entrarComoFuncionario(utilizador);
+                return;
+            }
             contaClienteBLL.definirPalavraPasse(contaPorAtivar, novaPasswordField.getText(),
                     confirmarPasswordField.getText());
             ContaCliente conta = contaPorAtivar;
             esconderPrimeiroAcesso();
             entrarComoCliente(conta);
-        } catch (ValidacaoException | IllegalStateException e) {
+        } catch (ValidacaoException | IllegalArgumentException | IllegalStateException e) {
             erroLabel.setText(e.getMessage());
             novaPasswordField.clear();
             confirmarPasswordField.clear();
@@ -141,6 +164,13 @@ public class LoginController {
         }
     }
 
+    private void entrarComoFuncionario(Utilizador utilizador) throws IOException {
+        Sessao.iniciar(utilizador);
+        cancelarReservasSemCheckin();
+        abrirJanela("inicial-view.fxml", "Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador()
+                + " (" + utilizador.getPerfil() + ")");
+    }
+
     private void entrarComoCliente(ContaCliente conta) throws IOException {
         Sessao.iniciarCliente(conta);
         cancelarReservasSemCheckin();
@@ -165,6 +195,7 @@ public class LoginController {
 
     private void esconderPrimeiroAcesso() {
         contaPorAtivar = null;
+        utilizadorPorMudar = null;
         mostrarPrimeiroAcesso(false);
         novaPasswordField.clear();
         confirmarPasswordField.clear();

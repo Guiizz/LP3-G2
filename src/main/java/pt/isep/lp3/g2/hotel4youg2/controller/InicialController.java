@@ -7,6 +7,7 @@ import javafx.scene.layout.BorderPane;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controlador do menu principal (US34 e US44): mostra as áreas no menu lateral e as opções de cada uma. As áreas Serviços e Administração só aparecem ao gestor.
+ * Controlador do menu principal (US34 e US44): mostra as áreas no menu lateral e as opções de cada uma. As áreas Serviços, Estatísticas e Administração só aparecem ao gestor.
  */
 public class InicialController {
 
@@ -30,10 +31,25 @@ public class InicialController {
     private Label utilizadorLabel;
 
     @FXML
+    private Button clientesButton;
+
+    @FXML
+    private Button reservasButton;
+
+    @FXML
+    private Button quartosButton;
+
+    @FXML
+    private Button stockButton;
+
+    @FXML
     private Button servicosButton;
 
     @FXML
     private Button administracaoButton;
+
+    @FXML
+    private Button estatisticasButton;
 
     @FXML
     private void initialize() {
@@ -45,6 +61,22 @@ public class InicialController {
         boolean gestor = Permissoes.eGestor(utilizador);
         mostrar(servicosButton, gestor);
         mostrar(administracaoButton, gestor);
+        mostrar(estatisticasButton, gestor);
+        if (utilizador != null && utilizador.getPerfil() == Perfil.RESTAURACAO) {
+            mostrarSoOCartao();
+        }
+    }
+
+    private void mostrarSoOCartao() {
+        mostrar(clientesButton, false);
+        mostrar(reservasButton, false);
+        mostrar(quartosButton, false);
+        mostrar(stockButton, false);
+        try {
+            Navegador.mostrar("acesso-cartao-view.fxml");
+        } catch (IOException e) {
+            estadoLabel.setText("Não foi possível abrir o seu cartão. Use o botão \"O meu cartão\".");
+        }
     }
 
     @FXML
@@ -120,6 +152,12 @@ public class InicialController {
         opcoes.add(new OpcaoMenu("Registos de acesso", "consultar-acessos-view.fxml", false));
         opcoes.add(new OpcaoMenu("Horas e taxas", "horario-reserva-view.fxml", false));
         Navegador.mostrarArea("Administração", opcoes);
+    }
+
+    @FXML
+    private void aoAbrirEstatisticas() throws IOException {
+        Permissoes.exigirGestor(Sessao.getUtilizador());
+        Navegador.mostrar("estatisticas-view.fxml");
     }
 
     @FXML

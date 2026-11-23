@@ -52,8 +52,8 @@ public class EntregasController {
     @FXML
     private void aoEscolherFicheiro() {
         FileChooser escolha = new FileChooser();
-        escolha.setTitle("Escolher o XML da entrega");
-        escolha.getExtensionFilters().add(new FileChooser.ExtensionFilter("Ficheiros XML", "*.xml"));
+        escolha.setTitle("Escolher o XML ou o JSON da entrega");
+        escolha.getExtensionFilters().add(new FileChooser.ExtensionFilter("Ficheiros XML ou JSON", "*.xml", "*.json"));
         File ficheiro = escolha.showOpenDialog(tabela.getScene().getWindow());
         if (ficheiro == null) {
             return;

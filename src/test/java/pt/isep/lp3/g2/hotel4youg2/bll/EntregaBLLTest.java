@@ -270,7 +270,7 @@ public class EntregaBLLTest {
             instance.lerFicheiro((java.io.File) null);
             fail("Devia ter lançado IllegalArgumentException, mas não lançou");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Escolha um ficheiro XML.", expected.getMessage());
+            assertEquals("Escolha um ficheiro XML ou JSON.", expected.getMessage());
         }
     }
 
@@ -804,5 +804,94 @@ public class EntregaBLLTest {
         } catch (IllegalStateException expected) {
             assertEquals("Entre na aplicação para ver as entregas.", expected.getMessage());
         }
+    }
+
+    private InputStream ficheiroJson(String nome) {
+        return EntregaBLLTest.class.getResourceAsStream("/pt/isep/lp3/g2/hotel4youg2/json/" + nome);
+    }
+
+    private List<String> errosAoLerJson(String nome) {
+        try {
+            instance.lerFicheiroJson(ficheiroJson(nome));
+            fail("Devia ter lançado ErrosFicheiroException, mas não lançou");
+            return null;
+        } catch (ErrosFicheiroException expected) {
+            return expected.getErros();
+        }
+    }
+
+    @Test
+    public void testLerFicheiroJson() {
+        System.out.println("lerFicheiroJson (o JSON de exemplo do enunciado passa em todas as validações)");
+        String expResult = "X012X";
+        Entrega result = instance.lerFicheiroJson(ficheiroJson("entrega-valida.json"));
+        assertEquals(expResult, result.getNumeroEncomenda());
+    }
+
+    @Test
+    public void testLerFicheiroJsonContasCertas() {
+        System.out.println("lerFicheiroJson (as contas do JSON de exemplo estão certas)");
+        List<String> expResult = new ArrayList<>();
+        List<String> result = instance.verificarContas(instance.lerFicheiroJson(ficheiroJson("entrega-valida.json")));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroJsonPeloNome() throws Exception {
+        System.out.println("lerFicheiro (um ficheiro .json é lido como JSON)");
+        java.io.File ficheiro = new java.io.File(EntregaBLLTest.class
+                .getResource("/pt/isep/lp3/g2/hotel4youg2/json/entrega-valida.json").toURI());
+        String expResult = "X012X";
+        Entrega result = instance.lerFicheiro(ficheiro);
+        assertEquals(expResult, result.getNumeroEncomenda());
+    }
+
+    @Test
+    public void testCarregarJson() {
+        System.out.println("carregar (uma entrega em JSON fica pendente, como uma em XML)");
+        Entrega entrega = instance.lerFicheiroJson(ficheiroJson("entrega-valida.json"));
+        instance.carregar(entrega.getFornecedor(), entrega);
+        EstadoEntrega expResult = EstadoEntrega.PENDENTE;
+        EstadoEntrega result = entrega.getEstado();
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroJsonTotalErrado() {
+        System.out.println("lerFicheiroJson (total errado é recusado)");
+        List<String> expResult = List.of("Linha 1, campo LineBaseAmount: o total devia ser 3000,00 €, "
+                + "mas o ficheiro diz 3100,00 €.");
+        List<String> result = errosAoLerJson("entrega-total-errado.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroJsonIvaErrado() {
+        System.out.println("lerFicheiroJson (IVA errado é recusado)");
+        List<String> expResult = List.of(
+                "Linha 3, campo TaxAmount: o IVA de 20% devia ser 42,40 €, mas o ficheiro diz 50,00 €.",
+                "Linha 3, campo LineBaseAmount: o total devia ser 262,00 €, mas o ficheiro diz 254,40 €.");
+        List<String> result = errosAoLerJson("entrega-iva-errado.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroJsonQuantidadeZero() {
+        System.out.println("lerFicheiroJson (quantidade zero é recusada)");
+        List<String> expResult = List.of(
+                "Linha 2, campo Quantity: a quantidade tem de ser maior que zero.",
+                "Linha 2, campo MonetaryAdjustmentStartAmount: a quantidade vezes o preço dá 0,00 €, "
+                        + "mas o ficheiro diz 212,00 €.");
+        List<String> result = errosAoLerJson("entrega-quantidade-zero.json");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLerFicheiroJsonDataInvalida() {
+        System.out.println("lerFicheiroJson (data que não existe é recusada)");
+        List<String> expResult = List.of("Cabeçalho, campo OrderDate: a data da encomenda não existe ou não está "
+                + "no formato AAAA-MM-DD (2026-02-30).");
+        List<String> result = errosAoLerJson("entrega-data-invalida.json");
+        assertEquals(expResult, result);
     }
 }
