@@ -15,6 +15,45 @@ Tecnologias: Java 17, JavaFX, SQL Server (JDBC), Maven e JUnit 5.
 4. Corre a classe `Launcher`.
 5. Abre a janela **Hotel4You**. O botão **Testar ligação** diz se a ligação à base de dados funciona.
 
+## Executável (sem IntelliJ)
+**Gerar** (na raiz do projeto):
+
+```
+.\mvnw.cmd clean package -Pexecutavel -DskipTests
+```
+
+Fica tudo na pasta `target/executavel`:
+
+| Ficheiro | Para quê |
+|---|---|
+| `Hotel4You.jar` | A aplicação com todas as bibliotecas, para Windows, Linux e Mac com processador Intel |
+| `Hotel4You-mac-arm.jar` | A mesma aplicação, para Mac com processador Apple (M1, M2, M3...) |
+| `Hotel4You.bat` | Abrir no Windows, com duplo clique |
+| `Hotel4You.command` | Abrir no Mac, com duplo clique (escolhe sozinho o `.jar` certo) |
+| `Hotel4You.sh` | Abrir no Linux |
+| `.env.example` | Modelo do ficheiro de configuração da base de dados |
+
+**Correr noutro computador:**
+1. É preciso ter o Java 17 ou superior instalado (não é preciso o IntelliJ).
+2. Copia a pasta `executavel` para o computador.
+3. Na mesma pasta, copia o `.env.example` para um ficheiro `.env` e preenche-o (ver a secção seguinte).
+4. Abre a aplicação:
+   - **Windows:** duplo clique no `Hotel4You.bat`.
+   - **Mac:** na primeira vez, no Terminal, dentro da pasta, corre `chmod +x Hotel4You.command`; depois é duplo clique no `Hotel4You.command`. Se o Mac disser que não pode abrir o ficheiro, clica com o botão direito em cima dele e escolhe **Abrir**.
+   - **Linux:** no terminal, dentro da pasta, corre `sh Hotel4You.sh`.
+   - Em qualquer sistema, também se pode abrir com `java -jar Hotel4You.jar` (no Mac com processador Apple, `java -jar Hotel4You-mac-arm.jar`), dentro da pasta.
+
+A aplicação lê o `.env` da pasta onde está o `.jar`.
+
+## Javadoc
+**Gerar** (na raiz do projeto):
+
+```
+.\mvnw.cmd exec:exec@javadoc
+```
+
+A documentação fica em `target/javadoc` (abre o `index.html`). Inclui todos os pacotes. O comando falha se houver algum aviso de documentação; só não avisa dos getters e setters simples sem Javadoc.
+
 ## Configurar a base de dados (`.env`)
 As credenciais **nunca** vão para o Git: o `.env` está no `.gitignore`.
 
@@ -137,6 +176,14 @@ Os controladores só falam com a BLL, e a BLL só fala com a base de dados atrav
 | `gson` | Ler o ficheiro JSON da entrega (US64) | Biblioteca da Google, leve e sem outras dependências; o modo estrito recusa JSON mal formado e indica a linha |
 | JUnit 5 | Testes unitários | Exigidos no enunciado |
 | `java.xml` (já vem com o Java) | Ler o XML das entregas e validá-lo com o XSD | É a usada nas aulas (DOM e `Validator`) e não obriga a juntar mais nenhuma biblioteca ao projeto |
+
+Plugins do Maven (só servem para construir o projeto, não vão dentro da aplicação):
+
+| Plugin | Para que serve | Porquê |
+|---|---|---|
+| `maven-shade-plugin` | Juntar a aplicação e as bibliotecas num só `.jar`, com o JavaFX de Windows, Linux e Mac | Assim o executável corre com `java -jar` em qualquer sistema, sem o IntelliJ nem o Maven. O Mac com processador Apple tem um `.jar` à parte, porque as bibliotecas do JavaFX para Mac Intel e para Mac Apple têm os mesmos nomes |
+| `maven-resources-plugin` | Copiar os lançadores (`.bat`, `.command` e `.sh`) e o `.env.example` para a pasta do executável | É o plugin do próprio Maven para copiar ficheiros |
+| `exec-maven-plugin` | Correr a ferramenta `javadoc` do Java com todos os pacotes | O projeto é um módulo e só exporta o pacote principal; desta forma o Javadoc inclui o `model`, a `bll`, a `dal` e o resto |
 
 ## Regras de Git
 - Uma branch por story: `feat-0XX-descricao` ou `fix-0XX-descricao`, em minúsculas.
