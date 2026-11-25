@@ -1,168 +1,304 @@
+@font-face {
+    font-family: "Cormorant Garamond";
+    src: url("../fonts/CormorantGaramond-Bold.ttf");
+}
+
 .root {
+    -cafe: #5C3D2E;
+    -cafe-hover: #6B4A3A;
+    -cafe-pressionado: #4A3026;
+    -cafe-ativo: #74503E;
+    -marfim: #F3E8D7;
+    -marfim-fundo: #FAF6EF;
+    -caramelo: #A97855;
+    -caramelo-escuro: #8A5D3E;
+    -taupe: #C6B4A1;
+    -texto-secundario: #6E5B4E;
+    -linha: #E6DACB;
+    -linha-clara: #F0E8DC;
+    -erro: #B3261E;
+    -sucesso: #2E7D32;
+    -aviso: #8A5A00;
+
+    -fx-base: #F3E8D7;
+    -fx-background: #FAF6EF;
+    -fx-accent: #5C3D2E;
+    -fx-focus-color: #A97855;
+    -fx-faint-focus-color: transparent;
+    -fx-selection-bar: #5C3D2E;
+    -fx-selection-bar-non-focused: #C6B4A1;
+    -fx-control-inner-background: white;
+    -fx-control-inner-background-alt: white;
+
     -fx-font-size: 13px;
-    -fx-background-color: #F7F7F5;
+    -fx-background-color: -marfim-fundo;
 }
 
 .menu-lateral {
-    -fx-background-color: #1B3461;
+    -fx-background-color: -cafe;
 }
 .menu-lateral .label {
-    -fx-text-fill: white;
+    -fx-text-fill: -marfim;
 }
 .menu-lateral .button {
     -fx-background-color: transparent;
-    -fx-text-fill: white;
+    -fx-text-fill: -taupe;
+    -fx-font-weight: normal;
     -fx-alignment: CENTER_LEFT;
-    -fx-padding: 8 12;
-    -fx-background-radius: 6;
+    -fx-padding: 9 12;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
     -fx-cursor: hand;
 }
 .menu-lateral .button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-color: rgba(243, 232, 215, 0.10);
+    -fx-text-fill: -marfim;
+}
+.menu-lateral .button.menu-ativo,
+.menu-lateral .button.menu-ativo:hover {
+    -fx-background-color: -cafe-ativo;
+    -fx-text-fill: -marfim;
+    -fx-font-weight: bold;
 }
 
 .titulo {
-    -fx-font-size: 18px;
+    -fx-font-family: "Cormorant Garamond";
     -fx-font-weight: bold;
-    -fx-text-fill: #1B3461;
+    -fx-font-size: 34px;
+    -fx-text-fill: -cafe;
 }
 
 .button {
-    -fx-background-color: #1B3461;
-    -fx-text-fill: white;
+    -fx-background-color: -cafe;
+    -fx-text-fill: -marfim;
+    -fx-font-weight: bold;
     -fx-background-radius: 6;
-    -fx-padding: 6 14;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 6;
+    -fx-padding: 7 16;
     -fx-cursor: hand;
 }
 .button:hover {
-    -fx-background-color: #24457F;
+    -fx-background-color: -cafe-hover;
+}
+.button:pressed {
+    -fx-background-color: -cafe-pressionado;
+}
+.button:focused {
+    -fx-border-color: -caramelo;
 }
 .button:disabled {
-    -fx-opacity: 0.5;
+    -fx-opacity: 0.45;
+}
+.date-picker-popup .spinner .button {
+    -fx-background-color: transparent;
+}
+
+.text-field {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-border-color: -linha;
+    -fx-border-radius: 6;
+    -fx-padding: 6 10;
+}
+.text-field:focused {
+    -fx-border-color: -caramelo;
+}
+.combo-box-base {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-border-color: -linha;
+    -fx-border-radius: 6;
+}
+.combo-box-base:hover {
+    -fx-background-color: -marfim-fundo;
+}
+.combo-box-base:focused {
+    -fx-border-color: -caramelo;
+}
+.combo-box-base > .arrow-button,
+.date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .cabecalho-area {
-    -fx-background-color: white;
-    -fx-border-color: transparent transparent #E3E3DF transparent;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 .botao-submenu {
     -fx-background-color: transparent;
-    -fx-text-fill: #1B3461;
-    -fx-border-color: #1B3461;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
+    -fx-text-fill: -texto-secundario;
+    -fx-font-weight: normal;
+    -fx-border-color: transparent;
+    -fx-padding: 6 14;
 }
 .botao-submenu:hover {
-    -fx-background-color: #E8EDF5;
+    -fx-background-color: -linha-clara;
+    -fx-text-fill: -cafe;
+}
+.botao-submenu.botao-submenu-ativo,
+.botao-submenu.botao-submenu-ativo:hover {
+    -fx-background-color: white;
+    -fx-text-fill: -cafe;
+    -fx-font-weight: bold;
+    -fx-border-color: -linha;
+    -fx-border-width: 1;
 }
 
-.botao-submenu-ativo {
-    -fx-background-color: #1B3461;
-    -fx-text-fill: white;
+.table-view {
+    -fx-background-color: -linha, white;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 10;
+    -fx-padding: 4 10;
 }
-
-.table-view .column-header {
-    -fx-background-color: #1B3461;
+.table-view .column-header-background {
+    -fx-background-color: transparent;
+}
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -linha transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 0;
 }
 .table-view .column-header .label {
-    -fx-text-fill: white;
+    -fx-text-fill: -texto-secundario;
+    -fx-font-size: 11px;
     -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+}
+.table-view .table-cell {
+    -fx-border-color: transparent;
+    -fx-padding: 10 8;
+    -fx-text-fill: -cafe;
+}
+.table-row-cell {
+    -fx-background-color: -linha-clara, white;
+    -fx-background-insets: 0, 0 0 1 0;
+}
+.table-row-cell:filled:hover {
+    -fx-background-color: -linha-clara, -marfim-fundo;
+}
+.table-row-cell:filled:selected {
+    -fx-background-color: -linha-clara, -marfim;
+}
+.table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: -cafe;
+    -fx-font-weight: bold;
+}
+.table-row-cell.linha-com-erro {
+    -fx-background-color: -linha-clara, #F8D7DA;
+}
+.table-row-cell.linha-com-erro .table-cell {
+    -fx-text-fill: -erro;
+}
+.table-row-cell.linha-com-erro:selected {
+    -fx-background-color: -linha-clara, -erro;
+}
+.table-row-cell.linha-com-erro:selected .table-cell {
+    -fx-text-fill: white;
 }
 
 .mensagem-erro {
-    -fx-text-fill: #C0392B;
+    -fx-text-fill: -erro;
 }
 .mensagem-sucesso {
-    -fx-text-fill: #2E7D32;
-}
-/* linhas da fatura da entrega com contas que não batem certo (US54) */
-.table-row-cell.linha-com-erro {
-    -fx-background-color: #F8D7DA;
-}
-.table-row-cell.linha-com-erro .table-cell {
-    -fx-text-fill: #C0392B;
+    -fx-text-fill: -sucesso;
 }
 .mensagem-aviso {
-    -fx-text-fill: #B9770E;
+    -fx-text-fill: -aviso;
 }
 
+.tab-pane > .tab-header-area {
+    -fx-padding: 4 0 10 0;
+}
 .tab-pane .tab-header-background {
     -fx-background-color: transparent;
 }
 .tab-pane .tab {
-    -fx-background-color: white;
-    -fx-background-radius: 6 6 0 0;
-    -fx-padding: 4 14;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 5 14;
     -fx-cursor: hand;
 }
-.tab-pane .tab .tab-label {
-    -fx-text-fill: #1B3461;
+.tab-pane .tab:hover {
+    -fx-background-color: -linha-clara;
 }
-.tab-pane .tab:selected {
-    -fx-background-color: #1B3461;
-    -fx-border-color: transparent transparent #C9A24A transparent;
-    -fx-border-width: 0 0 3 0;
+.tab-pane .tab .tab-label {
+    -fx-text-fill: -texto-secundario;
+}
+.tab-pane .tab:selected,
+.tab-pane .tab:selected:hover {
+    -fx-background-color: -linha, white;
+    -fx-background-insets: 0, 1;
 }
 .tab-pane .tab:selected .tab-label {
-    -fx-text-fill: white;
+    -fx-text-fill: -cafe;
     -fx-font-weight: bold;
 }
 .tab-pane .tab:selected .focus-indicator {
     -fx-border-color: transparent;
 }
+
 .cartao {
     -fx-background-color: white;
-    -fx-border-color: #E3E3DF;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 10 12;
+    -fx-border-color: -linha;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 14 16;
 }
 .cartao-resumo {
-    -fx-border-color: #1B3461;
+    -fx-border-color: -cafe;
     -fx-border-width: 1.5;
 }
 .passo {
     -fx-font-weight: bold;
-    -fx-text-fill: #1B3461;
+    -fx-text-fill: -cafe;
 }
 .total {
-    -fx-font-size: 18px;
+    -fx-font-family: "Cormorant Garamond";
     -fx-font-weight: bold;
-    -fx-text-fill: #1B3461;
+    -fx-font-size: 24px;
+    -fx-text-fill: -cafe;
 }
 .button.estrela {
     -fx-background-color: transparent;
-    -fx-text-fill: #C9A24A;
+    -fx-border-color: transparent;
+    -fx-text-fill: -caramelo;
     -fx-font-size: 28px;
     -fx-padding: 0 4;
 }
 .button.estrela:hover {
-    -fx-background-color: #F1E8D2;
+    -fx-background-color: -linha-clara;
 }
 .estrelas-avaliacao {
-    -fx-text-fill: #C9A24A;
+    -fx-text-fill: -caramelo;
     -fx-font-size: 26px;
 }
+
 .cartao-planta {
-    -fx-font-size: 15px;
+    -fx-font-family: "Cormorant Garamond";
     -fx-font-weight: bold;
-    -fx-text-fill: #1B3461;
+    -fx-font-size: 20px;
+    -fx-text-fill: -cafe;
 }
 .subtitulo-planta {
     -fx-font-weight: bold;
-    -fx-text-fill: #444444;
+    -fx-text-fill: -texto-secundario;
 }
 .fachada {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-text-fill: #6B6B6B;
+    -fx-text-fill: -texto-secundario;
 }
 .legenda-planta {
     -fx-font-size: 11px;
-    -fx-text-fill: #6B6B6B;
+    -fx-text-fill: -texto-secundario;
 }
 .planta {
-    -fx-border-color: #1B3461;
+    -fx-border-color: -cafe;
     -fx-border-width: 4;
     -fx-background-color: white;
 }
@@ -171,38 +307,40 @@
     -fx-pref-height: 110;
     -fx-background-color: white;
     -fx-background-radius: 0;
-    -fx-border-color: #1B3461;
+    -fx-border-color: -cafe;
     -fx-border-width: 1;
-    -fx-text-fill: #555555;
+    -fx-border-radius: 0;
+    -fx-text-fill: -texto-secundario;
+    -fx-font-weight: normal;
     -fx-text-alignment: center;
     -fx-wrap-text: true;
     -fx-font-size: 13px;
 }
 .button.quadrado-planta.quadrado-abre {
     -fx-background-color: #E6F2E8;
-    -fx-text-fill: #2E7D32;
+    -fx-text-fill: -sucesso;
     -fx-font-weight: bold;
 }
 .planta-corredor {
-    -fx-background-color: #EFEFEA;
-    -fx-text-fill: #555555;
+    -fx-background-color: -linha-clara;
+    -fx-text-fill: -texto-secundario;
     -fx-pref-height: 60;
 }
 .planta-escadas {
-    -fx-background-color: linear-gradient(from 0px 0px to 12px 12px, repeat, #E6E6E1 50%, #F4F4F0 50%);
-    -fx-text-fill: #555555;
+    -fx-background-color: linear-gradient(from 0px 0px to 12px 12px, repeat, #EDE3D3 50%, #FBF6EE 50%);
+    -fx-text-fill: -texto-secundario;
     -fx-text-alignment: center;
     -fx-pref-width: 120;
-    -fx-border-color: #1B3461;
+    -fx-border-color: -cafe;
     -fx-border-width: 0 0 0 1;
 }
 .button.atalho-planta {
     -fx-background-color: #E6F2E8;
-    -fx-border-color: #2E7D32;
+    -fx-border-color: -sucesso;
     -fx-border-width: 2;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-text-fill: #2E7D32;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: -sucesso;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
     -fx-padding: 10 20;
@@ -211,36 +349,37 @@
     -fx-pref-width: 60;
     -fx-pref-height: 50;
     -fx-background-color: white;
-    -fx-border-color: #D0D0CC;
+    -fx-border-color: -linha;
+    -fx-border-width: 1;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
-    -fx-text-fill: #1B3461;
+    -fx-text-fill: -cafe;
     -fx-font-size: 18px;
     -fx-font-weight: bold;
 }
 .button.piso-planta.piso-com-acesso {
-    -fx-border-color: #2E7D32;
+    -fx-border-color: -sucesso;
     -fx-border-width: 2;
 }
 .button.piso-planta.piso-ativo {
-    -fx-background-color: #1B3461;
-    -fx-text-fill: white;
+    -fx-background-color: -cafe;
+    -fx-text-fill: -marfim;
 }
 .button.quadrado-planta.picagem-aceite,
 .button.atalho-planta.picagem-aceite {
-    -fx-background-color: #2E7D32;
-    -fx-border-color: #2E7D32;
+    -fx-background-color: -sucesso;
+    -fx-border-color: -sucesso;
     -fx-text-fill: white;
 }
 .button.quadrado-planta.picagem-recusada,
 .button.atalho-planta.picagem-recusada {
-    -fx-background-color: #C62828;
-    -fx-border-color: #C62828;
+    -fx-background-color: -erro;
+    -fx-border-color: -erro;
     -fx-text-fill: white;
 }
 .planta-vazio {
-    -fx-background-color: #F4F4F0;
-    -fx-border-color: #1B3461;
+    -fx-background-color: -marfim-fundo;
+    -fx-border-color: -cafe;
     -fx-border-width: 1;
 }
 .planta-scroll,
