@@ -75,23 +75,19 @@ public class PlantaController {
     private void initialize() {
         cliente = Sessao.getContaCliente() != null;
         cartaoCombo.setConverter(new CartaoDaReserva());
-        mostrar(cartaoLabel, cliente);
         mostrar(atalhosTitulo, cliente);
         mostrar(atalhosBox, cliente);
-        mostrar(passagensBox, cliente);
         mostrar(detalhesLabel, !cliente);
-        if (cliente) {
-            instrucaoLabel.setText("Os locais a verde são os que o seu cartão abre. Clique num local para picar o cartão.");
-            legendaLabel.setText("Verde = o seu cartão abre · cinzento = não abre");
-        } else {
-            instrucaoLabel.setText("Clique num quarto para ver os seus detalhes.");
-        }
+        instrucaoLabel.setText("Os locais a verde são os que o seu cartão abre. Clique num local para picar o cartão.");
+        legendaLabel.setText("Verde = o seu cartão abre · cinzento = não abre");
         try {
             planta = acessoCartaoBLL.planta();
             if (cliente) {
                 carregarCartoes();
-                atualizarPassagens();
+            } else {
+                carregarCartaoDoFuncionario();
             }
+            atualizarPassagens();
             criarBotoesDosPisos();
             if (!planta.getPisos().isEmpty()) {
                 mostrarPiso(pisoInicial());
@@ -114,6 +110,18 @@ public class PlantaController {
         }
         cartaoCombo.setValue(reservas.get(0));
         carregarAtalhos();
+    }
+
+    private void carregarCartaoDoFuncionario() {
+        try {
+            String cartao = acessoCartaoBLL.cartaoDoUtilizador(Sessao.getUtilizador());
+            cartaoLabel.setText(AcessoCartao.CARTAO_MESTRE.equals(cartao)
+                    ? "Cartão " + cartao + " · cartão mestre" : "Cartão " + cartao);
+            abre = acessoCartaoBLL.locaisQueOCartaoAbre(Sessao.getUtilizador());
+        } catch (IllegalStateException e) {
+            cartaoLabel.setText("Sem cartão");
+            Mensagens.aviso(mensagemLabel, e.getMessage());
+        }
     }
 
     @FXML
@@ -231,13 +239,7 @@ public class PlantaController {
         if (abre.contains(local)) {
             quadrado.getStyleClass().add("quadrado-abre");
         }
-        if (cliente) {
-            quadrado.setOnAction(new AoPicar(local, quadrado));
-        } else if (local.getLocal() == LocalHotel.QUARTO) {
-            quadrado.setOnAction(new AoVerQuarto(local.getQuartoNumero()));
-        } else {
-            quadrado.setDisable(true);
-        }
+        quadrado.setOnAction(new AoPicar(local, quadrado));
         return quadrado;
     }
 
@@ -254,9 +256,13 @@ public class PlantaController {
     private void picar(LocalPicagem local, Button botao) {
         limparUltimoBotao();
         ultimoBotao = botao;
+        if (!cliente && local.getLocal() == LocalHotel.QUARTO) {
+            verQuarto(local.getQuartoNumero());
+        }
         try {
-            AcessoCartao acesso = acessoCartaoBLL.picarComoCliente(Sessao.getContaCliente(),
-                    cartaoCombo.getValue(), local);
+            AcessoCartao acesso = cliente
+                    ? acessoCartaoBLL.picarComoCliente(Sessao.getContaCliente(), cartaoCombo.getValue(), local)
+                    : acessoCartaoBLL.picar(Sessao.getUtilizador(), local);
             botao.getStyleClass().add("picagem-aceite");
             Mensagens.sucesso(mensagemLabel, "Acesso permitido: cartão " + acesso.getCartao() + " em "
                     + acesso.getLocalTexto() + " às " + acesso.getRegistadoEmTexto() + ".");
@@ -271,7 +277,9 @@ public class PlantaController {
 
     private void atualizarPassagens() {
         try {
-            tabela.getItems().setAll(acessoCartaoBLL.listarPicagensDoCliente(Sessao.getContaCliente()));
+            tabela.getItems().setAll(cliente
+                    ? acessoCartaoBLL.listarPicagensDoCliente(Sessao.getContaCliente())
+                    : acessoCartaoBLL.listarAsMinhasPassagens(Sessao.getUtilizador()));
         } catch (DataAccessException | IllegalStateException e) {
             tabela.getItems().clear();
         }
@@ -307,19 +315,6 @@ public class PlantaController {
         @Override
         public void handle(ActionEvent evento) {
             picar(local, botao);
-        }
-    }
-
-    private class AoVerQuarto implements EventHandler<ActionEvent> {
-        private final int numero;
-
-        AoVerQuarto(int numero) {
-            this.numero = numero;
-        }
-
-        @Override
-        public void handle(ActionEvent evento) {
-            verQuarto(numero);
         }
     }
 

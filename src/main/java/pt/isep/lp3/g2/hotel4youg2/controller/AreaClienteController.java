@@ -33,18 +33,13 @@ public class AreaClienteController {
     }
 
     @FXML
-    private void aoAbrirPlanta() throws IOException {
+    private void aoAbrirOMeuCartao() throws IOException {
         Navegador.mostrar("planta-view.fxml");
     }
 
     @FXML
     private void aoAbrirReservas() throws IOException {
         Navegador.mostrar("minhas-reservas-view.fxml");
-    }
-
-    @FXML
-    private void aoAbrirCartao() throws IOException {
-        Navegador.mostrar("meu-cartao-view.fxml");
     }
 
     @FXML

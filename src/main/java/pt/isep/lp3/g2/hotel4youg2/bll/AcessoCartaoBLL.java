@@ -161,24 +161,6 @@ public class AcessoCartaoBLL {
     }
 
     /**
-     * @param quemAge o utilizador com a sessão iniciada
-     * @return os locais que o cartão abre: todos para o gestor, os dos pisos 0 e 1 para os funcionários
-     * @throws IllegalStateException se não houver sessão iniciada ou a conta não tiver cartão
-     */
-    public List<LocalHotel> locaisDoCartao(Utilizador quemAge) {
-        String cartao = cartaoDoUtilizador(quemAge);
-        boolean todos = AcessoCartao.CARTAO_MESTRE.equals(cartao)
-                || cartao.startsWith(Funcionario.PREFIXO_CARTAO_RESTAURACAO);
-        List<LocalHotel> locais = new ArrayList<>();
-        for (LocalHotel local : LocalHotel.values()) {
-            if (todos || local.getPiso() == 0 || local.getPiso() == 1) {
-                locais.add(local);
-            }
-        }
-        return locais;
-    }
-
-    /**
      * Pica o cartão de quem tem a sessão iniciada num local do hotel.
      *
      * @param quemAge      o utilizador com a sessão iniciada
@@ -191,6 +173,31 @@ public class AcessoCartaoBLL {
      */
     public AcessoCartao picar(Utilizador quemAge, LocalHotel local, int quartoNumero) {
         return registarPassagem(quemAge, cartaoDoUtilizador(quemAge), local, quartoNumero);
+    }
+
+    public List<LocalPicagem> locaisQueOCartaoAbre(Utilizador quemAge) {
+        String cartao = cartaoDoUtilizador(quemAge);
+        if (AcessoCartao.CARTAO_MESTRE.equals(cartao)) {
+            return listarLocais();
+        }
+        List<LocalPicagem> locais = new ArrayList<>();
+        boolean restauracao = cartao.startsWith(Funcionario.PREFIXO_CARTAO_RESTAURACAO);
+        for (LocalHotel local : LocalHotel.values()) {
+            boolean abre = restauracao
+                    ? local == LocalHotel.COZINHA || local == LocalHotel.RESTAURANTE
+                    : local.getPiso() == 0 || local.getPiso() == 1;
+            if (local != LocalHotel.QUARTO && abre) {
+                locais.add(new LocalPicagem(local, 0));
+            }
+        }
+        return locais;
+    }
+
+    public AcessoCartao picar(Utilizador quemAge, LocalPicagem local) {
+        if (local == null) {
+            throw new IllegalArgumentException("Escolha o local.");
+        }
+        return picar(quemAge, local.getLocal(), local.getQuartoNumero());
     }
 
     /**
