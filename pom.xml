@@ -12,6 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.12.1</junit.version>
+        <javafx.version>17.0.14</javafx.version>
     </properties>
 
     <dependencies>
@@ -35,12 +36,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>17.0.14</version>
+            <version>${javafx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>17.0.14</version>
+            <version>${javafx.version}</version>
         </dependency>
 
         <dependency>
@@ -95,6 +96,169 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>javadoc</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/javadoc</executable>
+                            <arguments>
+                                <argument>-d</argument>
+                                <argument>${project.build.directory}/javadoc</argument>
+                                <argument>-Xdoclint:all,-missing</argument>
+                                <argument>-Werror</argument>
+                                <argument>-quiet</argument>
+                                <argument>-encoding</argument>
+                                <argument>UTF-8</argument>
+                                <argument>-docencoding</argument>
+                                <argument>UTF-8</argument>
+                                <argument>-charset</argument>
+                                <argument>UTF-8</argument>
+                                <argument>-windowtitle</argument>
+                                <argument>Hotel4You (Grupo 2)</argument>
+                                <argument>-doctitle</argument>
+                                <argument>Hotel4You (Grupo 2)</argument>
+                                <argument>--module-path</argument>
+                                <modulepath/>
+                                <argument>-sourcepath</argument>
+                                <argument>${project.basedir}/src/main/java</argument>
+                                <argument>-subpackages</argument>
+                                <argument>pt.isep.lp3.g2.hotel4youg2</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>executavel</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-graphics</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>win</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-graphics</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>mac</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-graphics</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>mac-aarch64</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-graphics</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>linux</classifier>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.5.1</version>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>pt.isep.lp3.g2.hotel4youg2.Launcher</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>jar-windows-linux-mac-intel</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <outputFile>${project.build.directory}/executavel/Hotel4You.jar</outputFile>
+                                    <artifactSet>
+                                        <excludes>
+                                            <exclude>org.openjfx:javafx-graphics:jar:mac-aarch64</exclude>
+                                        </excludes>
+                                    </artifactSet>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jar-mac-arm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <outputFile>${project.build.directory}/executavel/Hotel4You-mac-arm.jar</outputFile>
+                                    <artifactSet>
+                                        <excludes>
+                                            <exclude>org.openjfx:javafx-graphics:jar:mac</exclude>
+                                            <exclude>org.openjfx:javafx-graphics:jar:win</exclude>
+                                            <exclude>org.openjfx:javafx-graphics:jar:linux</exclude>
+                                        </excludes>
+                                    </artifactSet>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.3.1</version>
+                        <executions>
+                            <execution>
+                                <id>copiar-lancador</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/executavel</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/src/main/executavel</directory>
+                                        </resource>
+                                        <resource>
+                                            <directory>${project.basedir}</directory>
+                                            <includes>
+                                                <include>.env.example</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
