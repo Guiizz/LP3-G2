@@ -76,7 +76,7 @@ public class NavegadorTest {
                 "criar-reserva-view.fxml", "disponibilidade-view.fxml", "consultar-reservas-view.fxml",
                 "quartos-view.fxml", "gestao-quartos-view.fxml", "criar-fornecedor-view.fxml",
                 "fornecedor-view.fxml", "decidir-entregas-view.fxml", "horario-reserva-view.fxml",
-                "acesso-cartao-view.fxml", "sugestao-cliente-view.fxml", "servicos-reserva-view.fxml",
+                "planta-view.fxml", "sugestao-cliente-view.fxml", "servicos-reserva-view.fxml",
                 "consultar-acessos-view.fxml", "saida-stock-view.fxml", "stock-view.fxml", "detalhes-reserva-view.fxml"};
         int expResult = ecras.length;
         int result = 0;

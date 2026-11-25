@@ -73,7 +73,7 @@ public class InicialController {
         mostrar(quartosButton, false);
         mostrar(stockButton, false);
         try {
-            Navegador.mostrar("acesso-cartao-view.fxml");
+            Navegador.mostrar("planta-view.fxml");
         } catch (IOException e) {
             estadoLabel.setText("Não foi possível abrir o seu cartão. Use o botão \"O meu cartão\".");
         }
@@ -107,14 +107,13 @@ public class InicialController {
 
     @FXML
     private void aoAbrirOMeuCartao() throws IOException {
-        Navegador.mostrar("acesso-cartao-view.fxml");
+        Navegador.mostrar("planta-view.fxml");
     }
 
     @FXML
     private void aoAbrirQuartos() throws IOException {
         List<OpcaoMenu> opcoes = new ArrayList<>();
         opcoes.add(new OpcaoMenu("Consultar quartos", "quartos-view.fxml", false));
-        opcoes.add(new OpcaoMenu("Planta do hotel", "planta-view.fxml", false));
         opcoes.add(new OpcaoMenu("Disponibilidade", "disponibilidade-view.fxml", false));
         opcoes.add(new OpcaoMenu("Materiais dos quartos", "materiais-quartos-view.fxml", false));
         if (Permissoes.eGestor(Sessao.getUtilizador())) {

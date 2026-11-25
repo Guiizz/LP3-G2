@@ -692,27 +692,10 @@ public class AcessoCartaoBLLTest {
         assertEquals(expResult, result);
     }
 
-    @Test
-    public void testLocaisDoCartaoFuncionario() {
-        System.out.println("locaisDoCartao (o funcionário só vê os locais dos pisos 0 e 1)");
-        List<LocalHotel> expResult = List.of(LocalHotel.BAR, LocalHotel.SALA_CONFERENCIAS, LocalHotel.RESTAURANTE,
-                LocalHotel.PISCINA, LocalHotel.COZINHA);
-        List<LocalHotel> result = instance.locaisDoCartao(RECECAO);
-        assertEquals(expResult, result);
-    }
-
     private AcessoCartao picagemDaAna(LocalHotel local) {
         AcessoCartao picagem = new AcessoCartao(1, "F12", local, 0, 0, acessoDAL.agora);
         picagem.setFuncionario(7, "Ana Silva");
         return picagem;
-    }
-
-    @Test
-    public void testLocaisDoCartaoGestor() {
-        System.out.println("locaisDoCartao (o cartão mestre abre todos os locais)");
-        List<LocalHotel> expResult = List.of(LocalHotel.values());
-        List<LocalHotel> result = instance.locaisDoCartao(GESTOR);
-        assertEquals(expResult, result);
     }
 
     @Test
@@ -730,6 +713,70 @@ public class AcessoCartaoBLLTest {
         AcessoCartao expResult = new AcessoCartao(1, "C000", LocalHotel.QUARTO, 305, 0, acessoDAL.agora);
         AcessoCartao result = instance.picar(GESTOR, LocalHotel.QUARTO, 305);
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLocaisQueOCartaoAbreGestor() {
+        System.out.println("locaisQueOCartaoAbre (o cartão mestre abre todos os locais, quartos incluídos)");
+        List<LocalPicagem> expResult = List.of(LocalPicagem.quarto(201), LocalPicagem.quarto(202),
+                LocalPicagem.quarto(305), new LocalPicagem(LocalHotel.BAR, 0),
+                new LocalPicagem(LocalHotel.SALA_CONFERENCIAS, 0), new LocalPicagem(LocalHotel.RESTAURANTE, 0),
+                new LocalPicagem(LocalHotel.PISCINA, 0), new LocalPicagem(LocalHotel.COZINHA, 0),
+                new LocalPicagem(LocalHotel.GARAGEM, 0), new LocalPicagem(LocalHotel.ARMAZEM, 0));
+        List<LocalPicagem> result = instance.locaisQueOCartaoAbre(GESTOR);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLocaisQueOCartaoAbreFuncionario() {
+        System.out.println("locaisQueOCartaoAbre (o funcionário abre os locais dos pisos 0 e 1)");
+        List<LocalPicagem> expResult = List.of(new LocalPicagem(LocalHotel.BAR, 0),
+                new LocalPicagem(LocalHotel.SALA_CONFERENCIAS, 0), new LocalPicagem(LocalHotel.RESTAURANTE, 0),
+                new LocalPicagem(LocalHotel.PISCINA, 0), new LocalPicagem(LocalHotel.COZINHA, 0));
+        List<LocalPicagem> result = instance.locaisQueOCartaoAbre(RECECAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testLocaisQueOCartaoAbreRestauracao() {
+        System.out.println("locaisQueOCartaoAbre (a restauração só abre o restaurante e a cozinha)");
+        List<LocalPicagem> expResult = List.of(new LocalPicagem(LocalHotel.RESTAURANTE, 0),
+                new LocalPicagem(LocalHotel.COZINHA, 0));
+        List<LocalPicagem> result = instance.locaisQueOCartaoAbre(RESTAURACAO);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarNaPlantaGestorNoQuarto() {
+        System.out.println("picar na planta (o cartão mestre abre o quarto 305)");
+        AcessoCartao expResult = new AcessoCartao(1, "C000", LocalHotel.QUARTO, 305, 0, acessoDAL.agora);
+        AcessoCartao result = instance.picar(GESTOR, LocalPicagem.quarto(305));
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testPicarNaPlantaFuncionarioNoQuarto() {
+        System.out.println("picar na planta (o funcionário não abre os quartos)");
+        String expResult = SO_PISOS_0_E_1 + " / 0";
+        try {
+            instance.picar(RECECAO, LocalPicagem.quarto(201));
+            fail("Devia ter recusado o acesso");
+        } catch (ValidacaoException expected) {
+            String result = expected.getMessage() + " / " + acessoDAL.registados.size();
+            assertEquals(expResult, result);
+        }
+    }
+
+    @Test
+    public void testPicarNaPlantaSemLocal() {
+        System.out.println("picar na planta (sem local)");
+        String expResult = "Escolha o local.";
+        try {
+            instance.picar(RECECAO, (LocalPicagem) null);
+            fail("Devia ter pedido o local");
+        } catch (IllegalArgumentException expected) {
+            assertEquals(expResult, expected.getMessage());
+        }
     }
 
     @Test
@@ -874,14 +921,6 @@ public class AcessoCartaoBLLTest {
         System.out.println("picar (o cartão da restauração abre o restaurante)");
         AcessoCartao expResult = picagemDaRita(LocalHotel.RESTAURANTE);
         AcessoCartao result = instance.picar(RESTAURACAO, LocalHotel.RESTAURANTE, 0);
-        assertEquals(expResult, result);
-    }
-
-    @Test
-    public void testLocaisDoCartaoRestauracao() {
-        System.out.println("locaisDoCartao (a restauração vê todos os locais, para ver o motivo da recusa)");
-        List<LocalHotel> expResult = List.of(LocalHotel.values());
-        List<LocalHotel> result = instance.locaisDoCartao(RESTAURACAO);
         assertEquals(expResult, result);
     }
 
