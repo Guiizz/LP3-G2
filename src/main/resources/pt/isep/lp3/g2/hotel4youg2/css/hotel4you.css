@@ -387,3 +387,108 @@
     -fx-background-color: transparent;
     -fx-background: transparent;
 }
+.painel-marca {
+    -fx-background-color: -cafe;
+}
+.painel-formulario {
+    -fx-background-color: -marfim-fundo;
+}
+.traco-caramelo {
+    -fx-background-color: -caramelo;
+    -fx-min-width: 56; -fx-pref-width: 56; -fx-max-width: 56;
+    -fx-min-height: 3; -fx-pref-height: 3; -fx-max-height: 3;
+}
+.frase-marca {
+    -fx-font-family: "Cormorant Garamond";
+    -fx-font-weight: bold;
+    -fx-font-size: 40px;
+    -fx-text-fill: -marfim;
+}
+.texto-marca {
+    -fx-font-size: 15px;
+    -fx-text-fill: -taupe;
+}
+.rodape-marca {
+    -fx-font-size: 12px;
+    -fx-text-fill: -taupe;
+}
+.saudacao-login {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -caramelo-escuro;
+}
+.titulo-login {
+    -fx-font-family: "Cormorant Garamond";
+    -fx-font-weight: bold;
+    -fx-font-size: 38px;
+    -fx-text-fill: -cafe;
+}
+.subtitulo-login,
+.separador-login {
+    -fx-text-fill: -texto-secundario;
+}
+.rotulo-login {
+    -fx-font-weight: bold;
+    -fx-text-fill: -cafe;
+}
+.formulario-login .text-field {
+    -fx-padding: 10 12;
+    -fx-font-size: 14px;
+}
+.formulario-login .campo-password {
+    -fx-padding: 10 76 10 12;
+}
+.formulario-login .separator:horizontal .line {
+    -fx-border-color: -linha transparent transparent transparent;
+}
+.button.botao-entrar {
+    -fx-padding: 11 16;
+    -fx-font-size: 14px;
+}
+.caixa-erro {
+    -fx-background-color: #FBEAEA;
+    -fx-background-radius: 0 6 6 0;
+    -fx-border-color: -erro;
+    -fx-border-width: 0 0 0 3;
+    -fx-padding: 8 12;
+    -fx-text-fill: -erro;
+}
+.button.botao-secundario {
+    -fx-background-color: white;
+    -fx-text-fill: -cafe;
+    -fx-border-color: -linha;
+    -fx-padding: 10 16;
+}
+.button.botao-secundario:hover {
+    -fx-background-color: -marfim;
+    -fx-border-color: -taupe;
+}
+.button.botao-secundario:pressed {
+    -fx-background-color: -taupe;
+}
+.button.botao-secundario:focused {
+    -fx-border-color: -caramelo;
+}
+.button.botao-olho,
+.button.botao-olho:hover,
+.button.botao-olho:pressed,
+.button.botao-link,
+.button.botao-link:hover,
+.button.botao-link:pressed {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -texto-secundario;
+    -fx-font-weight: normal;
+    -fx-padding: 4 6;
+}
+.button.botao-link {
+    -fx-underline: true;
+    -fx-text-fill: -cafe;
+}
+.button.botao-olho:hover,
+.button.botao-link:hover {
+    -fx-text-fill: -cafe-pressionado;
+}
+.button.botao-link:focused {
+    -fx-border-color: -caramelo;
+}

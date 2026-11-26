@@ -4,47 +4,115 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<StackPane xmlns="http://javafx.com/javafx/17"
-           xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.LoginController">
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.LoginController"
+      styleClass="ecra-login">
 
-    <VBox alignment="CENTER" spacing="10.0" maxWidth="300.0">
-
-        <padding>
-            <Insets top="20" right="0" bottom="20" left="0"/>
-        </padding>
-
-        <ImageView fitWidth="160" preserveRatio="true" smooth="true">
-            <image><Image url="@../images/logo.png"/></image>
+    <!-- painel da marca -->
+    <StackPane styleClass="painel-marca" prefWidth="460.0" minWidth="380.0">
+        <ImageView fitWidth="300" preserveRatio="true" smooth="true" opacity="0.06"
+                   StackPane.alignment="BOTTOM_RIGHT">
+            <image><Image url="@../images/simbolo_branco.png"/></image>
         </ImageView>
 
-        <Label text="Nome de utilizador (ou NIF, se for cliente)" maxWidth="Infinity"/>
-        <TextField fx:id="nomeUtilizadorField" promptText="ex.: gestor"/>
+        <VBox>
+            <padding>
+                <Insets top="48" right="48" bottom="40" left="56"/>
+            </padding>
 
-        <Label text="Password" maxWidth="Infinity"/>
-        <PasswordField fx:id="passwordField" onAction="#aoEntrar"/>
+            <ImageView fitWidth="170" preserveRatio="true" smooth="true">
+                <image><Image url="@../images/logo_branco.png"/></image>
+            </ImageView>
 
-        <Button text="Entrar" defaultButton="true" maxWidth="Infinity" onAction="#aoEntrar"/>
-        <Button text="Entrar como cliente" maxWidth="Infinity" onAction="#aoEntrarComoCliente"/>
-        <Button text="Entrar como fornecedor" maxWidth="Infinity" onAction="#aoEntrarComoFornecedor"/>
+            <Region VBox.vgrow="ALWAYS"/>
 
-        <VBox fx:id="primeiroAcessoBox" spacing="10.0" visible="false" managed="false">
-            <Label fx:id="primeiroAcessoLabel"
-                   text="Primeiro acesso: escolha a sua palavra-passe, com pelo menos 6 caracteres."
-                   wrapText="true" maxWidth="300"/>
-            <PasswordField fx:id="novaPasswordField" promptText="Nova palavra-passe"/>
-            <PasswordField fx:id="confirmarPasswordField" promptText="Repita a palavra-passe"
-                           onAction="#aoGuardarPalavraPasse"/>
-            <Button text="Guardar e entrar" maxWidth="Infinity" onAction="#aoGuardarPalavraPasse"/>
+            <Region styleClass="traco-caramelo"/>
+            <Label text="Cada hóspede, cada quarto, cada serviço — num só lugar."
+                   wrapText="true" styleClass="frase-marca">
+                <VBox.margin><Insets top="18"/></VBox.margin>
+            </Label>
+            <Label text="Aplicação de gestão do Hotel4You." styleClass="texto-marca">
+                <VBox.margin><Insets top="12"/></VBox.margin>
+            </Label>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <Label text="ISEP · Laboratório de Projeto III · Grupo 2" styleClass="rodape-marca"/>
         </VBox>
+    </StackPane>
 
-        <Label fx:id="erroLabel" wrapText="true" maxWidth="300" styleClass="mensagem-erro"/>
-        <Button text="Sugestão ou queixa (cliente)" maxWidth="Infinity" onAction="#aoSugestaoCliente"/>
-    </VBox>
-</StackPane>
+    <!-- formulário -->
+    <StackPane HBox.hgrow="ALWAYS" styleClass="painel-formulario">
+        <VBox styleClass="formulario-login" spacing="8.0" maxWidth="380.0" maxHeight="-Infinity">
+
+            <Label fx:id="saudacaoLabel" styleClass="saudacao-login"/>
+            <Label fx:id="tituloLabel" text="Iniciar sessão" styleClass="titulo-login"/>
+            <Label fx:id="subtituloLabel" wrapText="true" styleClass="subtitulo-login"
+                   text="Funcionários entram com o nome de utilizador; clientes com o NIF.">
+                <VBox.margin><Insets bottom="16"/></VBox.margin>
+            </Label>
+
+            <Label fx:id="utilizadorLabel" text="Nome de utilizador ou NIF" styleClass="rotulo-login"/>
+            <TextField fx:id="nomeUtilizadorField" promptText="ex.: gestor ou 123456789"/>
+
+            <Label text="Palavra-passe" styleClass="rotulo-login">
+                <VBox.margin><Insets top="8"/></VBox.margin>
+            </Label>
+            <StackPane alignment="CENTER_RIGHT">
+                <PasswordField fx:id="passwordField" maxWidth="Infinity" styleClass="campo-password"
+                               onAction="#aoEntrar"/>
+                <TextField fx:id="passwordVisivelField" maxWidth="Infinity" styleClass="campo-password"
+                           visible="false" onAction="#aoEntrar"/>
+                <Button fx:id="mostrarPasswordButton" text="Mostrar" styleClass="botao-olho"
+                        focusTraversable="false" onAction="#aoMostrarPassword">
+                    <StackPane.margin><Insets right="6"/></StackPane.margin>
+                </Button>
+            </StackPane>
+
+            <VBox fx:id="primeiroAcessoBox" spacing="8.0" visible="false" managed="false">
+                <VBox.margin><Insets top="8"/></VBox.margin>
+                <Label fx:id="primeiroAcessoLabel" wrapText="true" maxWidth="Infinity"
+                       text="Primeiro acesso: escolha a sua palavra-passe, com pelo menos 6 caracteres."/>
+                <PasswordField fx:id="novaPasswordField" promptText="Nova palavra-passe"
+                               onAction="#aoPassarParaConfirmar"/>
+                <PasswordField fx:id="confirmarPasswordField" promptText="Repita a palavra-passe"
+                               onAction="#aoGuardarPalavraPasse"/>
+                <Button text="Guardar e entrar" maxWidth="Infinity" onAction="#aoGuardarPalavraPasse"/>
+            </VBox>
+
+            <Button text="Entrar" defaultButton="true" maxWidth="Infinity" styleClass="botao-entrar"
+                    onAction="#aoEntrar">
+                <VBox.margin><Insets top="12"/></VBox.margin>
+            </Button>
+
+            <Label fx:id="erroLabel" wrapText="true" maxWidth="Infinity" styleClass="caixa-erro"/>
+
+            <HBox alignment="CENTER" spacing="10.0">
+                <VBox.margin><Insets top="6" bottom="6"/></VBox.margin>
+                <Separator HBox.hgrow="ALWAYS"/>
+                <Label text="ou" styleClass="separador-login"/>
+                <Separator HBox.hgrow="ALWAYS"/>
+            </HBox>
+
+            <Button fx:id="modoFornecedorButton" text="É fornecedor? Entrar com o código"
+                    maxWidth="Infinity" styleClass="botao-secundario" onAction="#aoMudarModo"/>
+
+            <HBox alignment="CENTER" spacing="2.0">
+                <VBox.margin><Insets top="14"/></VBox.margin>
+                <Label text="É cliente?" styleClass="subtitulo-login"/>
+                <Button text="Deixar uma sugestão ou queixa" styleClass="botao-link"
+                        onAction="#aoSugestaoCliente"/>
+            </HBox>
+        </VBox>
+    </StackPane>
+</HBox>

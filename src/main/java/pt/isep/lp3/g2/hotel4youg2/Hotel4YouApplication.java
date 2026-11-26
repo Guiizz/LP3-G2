@@ -22,11 +22,13 @@ public class Hotel4YouApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(Hotel4YouApplication.class.getResource("view/login-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 360, 420);
+        Scene scene = new Scene(fxmlLoader.load(), 1100, 700);
         Navegador.aplicarEstilo(scene);
         stage.getIcons().add(new Image(Hotel4YouApplication.class.getResourceAsStream("images/simbolo.png")));
         stage.setTitle("Hotel4You · Entrar");
         stage.setScene(scene);
+        stage.setMinWidth(900);
+        stage.setMinHeight(620);
         stage.show();
     }
 }
