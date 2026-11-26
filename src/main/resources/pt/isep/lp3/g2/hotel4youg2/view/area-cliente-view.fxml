@@ -18,8 +18,8 @@
                 <Insets top="20.0" right="15.0" bottom="20.0" left="15.0"/>
             </padding>
             <HBox alignment="CENTER">
-                <ImageView fitWidth="80" preserveRatio="true" smooth="true">
-                    <image><Image url="@../images/simbolo_branco.png"/></image>
+                <ImageView fitWidth="130" preserveRatio="true" smooth="true">
+                    <image><Image url="@../images/logo_branco.png"/></image>
                 </ImageView>
             </HBox>
             <Label fx:id="clienteLabel" wrapText="true"/>
