@@ -19,7 +19,9 @@ import java.io.IOException;
  * Controlador do ecrã onde o pessoal do hotel vê as entregas dos fornecedores e aceita ou recusa
  * as que estão pendentes (US49). Filtra as entregas por estado e abre cada uma como uma fatura (US54).
  */
-public class DecidirEntregasController {
+public class DecidirEntregasController implements AtualizadorDeTabelas.Ecra {
+
+    private static final AtualizadorDeTabelas.Chave<ResumoEntregaHotel> PELO_ID = new IdDaEntrega();
 
     private final EntregaBLL entregaBLL = new EntregaBLL();
 
@@ -40,6 +42,12 @@ public class DecidirEntregasController {
                 EstadoEntrega.RECUSADA.name());
         // escolher o valor do filtro dispara o aoFiltrar, que já preenche a tabela
         filtroCombo.setValue(EntregaBLL.TODAS);
+        AtualizadorDeTabelas.ligar(ecra, this);
+    }
+
+    @Override
+    public void recarregar() {
+        atualizar();
     }
 
     @FXML
@@ -102,12 +110,6 @@ public class DecidirEntregasController {
         atualizar();
     }
 
-    @FXML
-    private void aoAtualizar() {
-        atualizar();
-        mensagemLabel.setText("");
-    }
-
     // a entrega escolhida na tabela, se ainda estiver pendente; senão avisa e devolve null
     private ResumoEntregaHotel escolherPendente() {
         ResumoEntregaHotel escolhida = tabela.getSelectionModel().getSelectedItem();
@@ -125,7 +127,7 @@ public class DecidirEntregasController {
     private void atualizar() {
         try {
             EstadoEntrega estado = EntregaBLL.estadoDoFiltro(filtroCombo.getValue());
-            tabela.getItems().setAll(entregaBLL.listarParaHotel(Sessao.getUtilizador(), estado));
+            AtualizadorDeTabelas.mostrar(tabela, entregaBLL.listarParaHotel(Sessao.getUtilizador(), estado), PELO_ID);
         } catch (IllegalStateException e) {
             mostrarMensagem(e.getMessage(), "red");
         } catch (DataAccessException e) {
@@ -135,5 +137,12 @@ public class DecidirEntregasController {
 
     private void mostrarMensagem(String texto, String cor) {
         Mensagens.mostrar(mensagemLabel, texto, cor);
+    }
+
+    private static class IdDaEntrega implements AtualizadorDeTabelas.Chave<ResumoEntregaHotel> {
+        @Override
+        public Object de(ResumoEntregaHotel entrega) {
+            return entrega.getEntregaId();
+        }
     }
 }

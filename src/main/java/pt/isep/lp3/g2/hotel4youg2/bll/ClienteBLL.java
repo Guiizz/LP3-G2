@@ -4,9 +4,12 @@ import pt.isep.lp3.g2.hotel4youg2.dal.ClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.exception.ValidacaoException;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.CampoCliente;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -200,6 +203,53 @@ public class ClienteBLL {
         nif = limpar(nif);
         validarNif(nif);
         return clienteDAL.procurarPorNif(nif);
+    }
+
+    public List<Cliente> listar() {
+        return clienteDAL.pesquisarClientes("");
+    }
+
+    public List<Cliente> filtrar(List<Cliente> clientes, String texto) {
+        return filtrar(clientes, texto, null);
+    }
+
+    public List<Cliente> filtrar(List<Cliente> clientes, String texto, CampoCliente campo) {
+        String procurado = semAcentos(limpar(texto));
+        List<Cliente> encontrados = new ArrayList<>();
+        for (Cliente cliente : clientes) {
+            if (procurado == null || corresponde(cliente, procurado, campo)) {
+                encontrados.add(cliente);
+            }
+        }
+        return encontrados;
+    }
+
+    private boolean corresponde(Cliente cliente, String procurado, CampoCliente campo) {
+        if (campo == null) {
+            return contem(cliente.getNome(), procurado) || contem(cliente.getNif(), procurado)
+                    || contem(cliente.getTelemovel(), procurado) || contem(cliente.getEmail(), procurado);
+        }
+        switch (campo) {
+            case NOME:
+                return contem(cliente.getNome(), procurado);
+            case NIF:
+                return contem(cliente.getNif(), procurado);
+            case TELEFONE:
+                return contem(cliente.getTelemovel(), procurado);
+            default:
+                return contem(cliente.getEmail(), procurado);
+        }
+    }
+
+    private boolean contem(String campo, String procurado) {
+        return campo != null && semAcentos(campo).contains(procurado);
+    }
+
+    private String semAcentos(String texto) {
+        if (texto == null) {
+            return null;
+        }
+        return Normalizer.normalize(texto, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase();
     }
 
     private void validarNif(String nif) {

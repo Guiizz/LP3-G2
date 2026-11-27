@@ -13,9 +13,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
 /**
  * Controlador do ecrã "Pedidos dos clientes": a receção aceita ou recusa os pedidos extra.
  */
-public class PedidosExtraController {
+public class PedidosExtraController implements AtualizadorDeTabelas.Ecra {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
+    private static final AtualizadorDeTabelas.Chave<PedidoExtra> PELO_ID = new IdDoPedido();
 
     private final PedidoExtraBLL pedidoExtraBLL = new PedidoExtraBLL();
 
@@ -29,11 +30,11 @@ public class PedidosExtraController {
     @FXML
     private void initialize() {
         carregar();
+        AtualizadorDeTabelas.ligar(tabela, this);
     }
 
-    @FXML
-    private void aoAtualizar() {
-        mensagemLabel.setText("");
+    @Override
+    public void recarregar() {
         carregar();
     }
 
@@ -81,13 +82,20 @@ public class PedidosExtraController {
 
     private void carregar() {
         try {
-            tabela.getItems().setAll(pedidoExtraBLL.listarPendentes(Sessao.getUtilizador()));
+            AtualizadorDeTabelas.mostrar(tabela, pedidoExtraBLL.listarPendentes(Sessao.getUtilizador()), PELO_ID);
         } catch (IllegalStateException e) {
             tabela.getItems().clear();
             Mensagens.erro(mensagemLabel, e.getMessage());
         } catch (DataAccessException e) {
             tabela.getItems().clear();
             Mensagens.erro(mensagemLabel, ERRO_BD);
+        }
+    }
+
+    private static class IdDoPedido implements AtualizadorDeTabelas.Chave<PedidoExtra> {
+        @Override
+        public Object de(PedidoExtra pedido) {
+            return pedido.getId();
         }
     }
 }

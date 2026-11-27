@@ -22,6 +22,10 @@ public class ContaClienteController {
     @FXML
     private Label codigoLabel;
 
+    public void preencherNif(String nif) {
+        nifField.setText(nif);
+    }
+
     @FXML
     private void aoCriarConta() {
         codigoLabel.setText("");

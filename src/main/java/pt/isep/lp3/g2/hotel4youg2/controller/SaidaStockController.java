@@ -17,7 +17,10 @@ import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
  * Controlador do ecrã "Saída de materiais" (US42): mostra o stock de cada material e regista as saídas,
  * com o tipo (temporária ou definitiva) e o motivo, e dá como devolvidas as saídas temporárias (US77).
  */
-public class SaidaStockController {
+public class SaidaStockController implements AtualizadorDeTabelas.Ecra {
+
+    private static final AtualizadorDeTabelas.Chave<MaterialStock> PELO_MATERIAL = new IdDoMaterial();
+    private static final AtualizadorDeTabelas.Chave<SaidaStock> PELA_SAIDA = new IdDaSaida();
 
     private final StockBLL stockBLL = new StockBLL();
 
@@ -41,6 +44,12 @@ public class SaidaStockController {
         tipoCombo.getItems().setAll(TipoSaida.values());
         motivoCombo.getItems().setAll(MotivoSaida.escolhiveis());
         aoEscolherTipo();
+        atualizar();
+        AtualizadorDeTabelas.ligar(tabela, this);
+    }
+
+    @Override
+    public void recarregar() {
         atualizar();
     }
 
@@ -96,8 +105,9 @@ public class SaidaStockController {
 
     private void atualizar() {
         try {
-            tabela.getItems().setAll(stockBLL.listar(Sessao.getUtilizador()));
-            porDevolverTabela.getItems().setAll(stockBLL.listarPorDevolver(Sessao.getUtilizador()));
+            AtualizadorDeTabelas.mostrar(tabela, stockBLL.listar(Sessao.getUtilizador()), PELO_MATERIAL);
+            AtualizadorDeTabelas.mostrar(porDevolverTabela, stockBLL.listarPorDevolver(Sessao.getUtilizador()),
+                    PELA_SAIDA);
         } catch (IllegalStateException e) {
             tabela.getItems().clear();
             porDevolverTabela.getItems().clear();
@@ -111,5 +121,19 @@ public class SaidaStockController {
 
     private void mostrarMensagem(String texto, String cor) {
         Mensagens.mostrar(mensagemLabel, texto, cor);
+    }
+
+    private static class IdDoMaterial implements AtualizadorDeTabelas.Chave<MaterialStock> {
+        @Override
+        public Object de(MaterialStock material) {
+            return material.getMaterialId();
+        }
+    }
+
+    private static class IdDaSaida implements AtualizadorDeTabelas.Chave<SaidaStock> {
+        @Override
+        public Object de(SaidaStock saida) {
+            return saida.getId();
+        }
     }
 }

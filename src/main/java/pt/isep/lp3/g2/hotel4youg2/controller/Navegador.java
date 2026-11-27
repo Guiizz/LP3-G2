@@ -147,6 +147,7 @@ public final class Navegador {
         janela.initOwner(janelaPrincipal.getScene().getWindow());
         janela.initModality(Modality.WINDOW_MODAL);
         janela.showAndWait();
+        AtualizadorDeTabelas.atualizarAbertos();
     }
 
     /**

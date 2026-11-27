@@ -18,7 +18,6 @@
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Label text="Pedidos dos clientes" styleClass="titulo"/>
-        <Button text="Atualizar" onAction="#aoAtualizar"/>
     </HBox>
     <Label text="Pedidos de serviços e materiais à espera de decisão. O serviço aceite entra na reserva; o material aceite sai do stock (o não consumível volta no check-out)."
            wrapText="true" maxWidth="760"/>
