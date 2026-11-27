@@ -33,9 +33,10 @@ import java.util.Optional;
  * abre os detalhes de cada reserva (US56), faz o check-in e o check-out, e deixa o gestor cancelar (US29)
  * e apagar as reservas sem check-in (US57).
  */
-public class GerirReservasController {
+public class GerirReservasController implements AtualizadorDeTabelas.Ecra {
 
     private static final String ERRO_BD = "Não foi possível comunicar com a base de dados. Tente novamente.";
+    private static final AtualizadorDeTabelas.Chave<Reserva> PELO_ID = new IdDaReserva();
 
     private final ReservaBLL reservaBLL = new ReservaBLL();
 
@@ -86,6 +87,12 @@ public class GerirReservasController {
         separadores.getSelectionModel().selectedIndexProperty().addListener(new AoMudarDeSeparador());
         pesquisaField.textProperty().addListener(new AoPesquisar());
         mostrarAcoes();
+        carregar();
+        AtualizadorDeTabelas.ligar(ecra, this);
+    }
+
+    @Override
+    public void recarregar() {
         carregar();
     }
 
@@ -273,9 +280,12 @@ public class GerirReservasController {
 
     private void mostrarReservas() {
         String pesquisa = pesquisaField.getText();
-        tabelaPorFazer.getItems().setAll(ReservaBLL.filtrar(todas, SeparadorReserva.POR_FAZER, pesquisa));
-        tabelaEmCurso.getItems().setAll(ReservaBLL.filtrar(todas, SeparadorReserva.EM_CURSO, pesquisa));
-        tabelaHistorico.getItems().setAll(ReservaBLL.filtrar(todas, SeparadorReserva.HISTORICO, pesquisa));
+        AtualizadorDeTabelas.mostrar(tabelaPorFazer, ReservaBLL.filtrar(todas, SeparadorReserva.POR_FAZER, pesquisa),
+                PELO_ID);
+        AtualizadorDeTabelas.mostrar(tabelaEmCurso, ReservaBLL.filtrar(todas, SeparadorReserva.EM_CURSO, pesquisa),
+                PELO_ID);
+        AtualizadorDeTabelas.mostrar(tabelaHistorico, ReservaBLL.filtrar(todas, SeparadorReserva.HISTORICO, pesquisa),
+                PELO_ID);
     }
 
     private SeparadorReserva separadorAberto() {
@@ -323,6 +333,13 @@ public class GerirReservasController {
     private void mostrarSe(Node no, boolean visivel) {
         no.setVisible(visivel);
         no.setManaged(visivel);
+    }
+
+    private static class IdDaReserva implements AtualizadorDeTabelas.Chave<Reserva> {
+        @Override
+        public Object de(Reserva reserva) {
+            return reserva.getId();
+        }
     }
 
     private class AoMudarDeSeparador implements ChangeListener<Number> {

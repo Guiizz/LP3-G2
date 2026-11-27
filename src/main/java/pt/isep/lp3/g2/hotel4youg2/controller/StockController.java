@@ -19,7 +19,9 @@ import java.util.List;
  * permite pesquisar e mostra o histórico de movimentos do material escolhido, com o motivo de cada saída e com
  * filtro por entradas, saídas temporárias, saídas definitivas e devoluções (US77).
  */
-public class StockController {
+public class StockController implements AtualizadorDeTabelas.Ecra {
+
+    private static final AtualizadorDeTabelas.Chave<MaterialStock> PELO_MATERIAL = new IdDoMaterial();
 
     private final StockBLL stockBLL = new StockBLL();
 
@@ -40,12 +42,19 @@ public class StockController {
     private void initialize() {
         tipoCombo.getItems().setAll(TipoMovimento.values());
         aoPesquisar();
+        AtualizadorDeTabelas.ligar(materiaisTabela, this);
+    }
+
+    @Override
+    public void recarregar() {
+        aoPesquisar();
     }
 
     @FXML
     private void aoPesquisar() {
         try {
-            materiaisTabela.getItems().setAll(stockBLL.pesquisar(Sessao.getUtilizador(), pesquisaField.getText()));
+            AtualizadorDeTabelas.mostrar(materiaisTabela,
+                    stockBLL.pesquisar(Sessao.getUtilizador(), pesquisaField.getText()), PELO_MATERIAL);
             Mensagens.info(mensagemLabel, "");
         } catch (IllegalStateException e) {
             materiaisTabela.getItems().clear();
@@ -90,6 +99,13 @@ public class StockController {
         } catch (DataAccessException e) {
             movimentosTabela.getItems().clear();
             Mensagens.erro(mensagemLabel, "Não foi possível carregar o histórico. Tente novamente.");
+        }
+    }
+
+    private static class IdDoMaterial implements AtualizadorDeTabelas.Chave<MaterialStock> {
+        @Override
+        public Object de(MaterialStock material) {
+            return material.getMaterialId();
         }
     }
 }

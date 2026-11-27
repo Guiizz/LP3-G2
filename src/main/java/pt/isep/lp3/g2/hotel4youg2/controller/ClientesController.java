@@ -20,9 +20,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientesController {
+public class ClientesController implements AtualizadorDeTabelas.Ecra {
 
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final AtualizadorDeTabelas.Chave<Cliente> PELO_ID = new IdDoCliente();
 
     private final ClienteBLL clienteBLL = new ClienteBLL();
     private List<Cliente> todos = new ArrayList<>();
@@ -46,6 +47,12 @@ public class ClientesController {
     private void initialize() {
         campoCombo.getItems().setAll(CampoCliente.values());
         carregar();
+        AtualizadorDeTabelas.ligar(ecra, this);
+    }
+
+    @Override
+    public void recarregar() {
+        carregar();
     }
 
     private void carregar() {
@@ -60,8 +67,13 @@ public class ClientesController {
     @FXML
     private void aoFiltrar() {
         List<Cliente> visiveis = clienteBLL.filtrar(todos, filtroField.getText(), campoCombo.getValue());
-        clientesTabela.getItems().setAll(visiveis);
-        detalhesLabel.setText("");
+        AtualizadorDeTabelas.mostrar(clientesTabela, visiveis, PELO_ID);
+        Cliente escolhido = clientesTabela.getSelectionModel().getSelectedItem();
+        if (escolhido == null) {
+            detalhesLabel.setText("");
+        } else {
+            mostrarDetalhes(escolhido);
+        }
         boolean ninguem = visiveis.isEmpty() && !filtroField.getText().isBlank();
         registarButton.setVisible(ninguem);
         registarButton.setManaged(ninguem);
@@ -142,7 +154,6 @@ public class ClientesController {
                 registo.preencherNif(texto);
             }
             Navegador.abrirFormulario((Parent) loader.getRoot(), "Registar cliente");
-            carregar();
         } catch (IOException e) {
             Mensagens.erro(mensagemLabel, "Não foi possível abrir o registo de cliente.");
         }
@@ -161,5 +172,12 @@ public class ClientesController {
             return "-";
         }
         return texto;
+    }
+
+    private static class IdDoCliente implements AtualizadorDeTabelas.Chave<Cliente> {
+        @Override
+        public Object de(Cliente cliente) {
+            return cliente.getId();
+        }
     }
 }

@@ -73,7 +73,6 @@
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <Button text="Aceitar" onAction="#aoAceitar"/>
         <Button text="Recusar" onAction="#aoRecusar"/>
-        <Button text="Atualizar a lista" onAction="#aoAtualizar"/>
     </HBox>
 
     <Label fx:id="mensagemLabel" wrapText="true"/>
