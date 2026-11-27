@@ -1,6 +1,7 @@
 package pt.isep.lp3.g2.hotel4youg2.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -30,6 +31,20 @@ public class ConsultarReservasController {
     private TableView<Reserva> reservasTabela;
     @FXML
     private Label mensagemLabel;
+    @FXML
+    private Button voltarButton;
+
+    public void mostrarDoCliente(String nif) {
+        voltarButton.setVisible(true);
+        voltarButton.setManaged(true);
+        nifField.setText(nif);
+        aoProcurar();
+    }
+
+    @FXML
+    private void aoVoltar() {
+        Navegador.voltar();
+    }
 
     @FXML
     private void aoEscolherCliente() {
