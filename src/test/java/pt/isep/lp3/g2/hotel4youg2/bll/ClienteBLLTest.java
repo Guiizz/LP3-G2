@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pt.isep.lp3.g2.hotel4youg2.dal.interfaces.IClienteDAL;
 import pt.isep.lp3.g2.hotel4youg2.model.Cliente;
+import pt.isep.lp3.g2.hotel4youg2.model.enums.CampoCliente;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -109,6 +110,12 @@ public class ClienteBLLTest {
 
     private ClienteDALFalsa dal;
     private ClienteBLL instance;
+    private final Cliente anaSilva = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
+    private final Cliente joaoCosta = new Cliente(9, "João Costa", null, "234567891", null, null, ADULTO,
+            "joao@mail.pt");
+    private final Cliente ruiAntunes = new Cliente(10, "Rui Antunes", null, "345678912", null, "933333333", ADULTO,
+            "rui@hotel.pt");
+    private final List<Cliente> lista = List.of(anaSilva, joaoCosta, ruiAntunes);
 
     @BeforeEach
     public void setUp() {
@@ -276,6 +283,144 @@ public class ClienteBLLTest {
         System.out.println("pesquisarPorNif (espaços à volta do NIF)");
         Cliente expResult = new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null);
         Cliente result = instance.pesquisarPorNif("  123456789 ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testListar() {
+        System.out.println("listar (todos os clientes, sem termo de pesquisa)");
+        dal.clientes.add(joaoCosta);
+        List<Object> expResult = Arrays.asList(List.of(
+                new Cliente(7, "Ana Silva", null, "123456789", null, "912345678", ADULTO, null), joaoCosta), "");
+        List<Object> result = Arrays.asList(instance.listar(), dal.ultimoTermo);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarPeloNome() {
+        System.out.println("filtrar (parte do nome, sem contar maiúsculas nem espaços)");
+        List<Cliente> expResult = List.of(anaSilva);
+        List<Cliente> result = instance.filtrar(lista, "  SILVA ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarSemAcentos() {
+        System.out.println("filtrar (joao encontra o João)");
+        List<Cliente> expResult = List.of(joaoCosta);
+        List<Cliente> result = instance.filtrar(lista, "joao");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarComAcentos() {
+        System.out.println("filtrar (Joã encontra o João)");
+        List<Cliente> expResult = List.of(joaoCosta);
+        List<Cliente> result = instance.filtrar(lista, "Joã");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarPeloNif() {
+        System.out.println("filtrar (pelo NIF)");
+        List<Cliente> expResult = List.of(ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "345678912");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarPeloTelefone() {
+        System.out.println("filtrar (pelo telefone)");
+        List<Cliente> expResult = List.of(ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "933");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarPeloEmail() {
+        System.out.println("filtrar (pelo email)");
+        List<Cliente> expResult = List.of(ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "@hotel");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarClientesSemEmail() {
+        System.out.println("filtrar (um cliente sem email não dá erro e não aparece)");
+        List<Cliente> expResult = List.of(joaoCosta, ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "@");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarVazioMostraTodos() {
+        System.out.println("filtrar (texto vazio mostra todos, pela mesma ordem)");
+        List<Cliente> expResult = List.of(anaSilva, joaoCosta, ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "   ");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarNuloMostraTodos() {
+        System.out.println("filtrar (sem texto mostra todos)");
+        List<Cliente> expResult = List.of(anaSilva, joaoCosta, ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarSemResultados() {
+        System.out.println("filtrar (ninguém corresponde)");
+        List<Cliente> expResult = new ArrayList<>();
+        List<Cliente> result = instance.filtrar(lista, "Zé");
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarEmTodosOsCampos() {
+        System.out.println("filtrar (sem campo escolhido procura no NIF e no telefone)");
+        List<Cliente> expResult = List.of(anaSilva, ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "912", null);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarSoNoNome() {
+        System.out.println("filtrar (só no nome, o email do Rui não conta)");
+        List<Cliente> expResult = new ArrayList<>();
+        List<Cliente> result = instance.filtrar(lista, "hotel", CampoCliente.NOME);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarSoNoNif() {
+        System.out.println("filtrar (só no NIF, o telefone da Ana não conta)");
+        List<Cliente> expResult = List.of(ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "912", CampoCliente.NIF);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarSoNoTelefone() {
+        System.out.println("filtrar (só no telefone, o NIF do Rui não conta)");
+        List<Cliente> expResult = List.of(anaSilva);
+        List<Cliente> result = instance.filtrar(lista, "912", CampoCliente.TELEFONE);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarSoNoEmail() {
+        System.out.println("filtrar (só no email, sem dar erro em quem não tem email)");
+        List<Cliente> expResult = List.of(ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "HOTEL", CampoCliente.EMAIL);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testFiltrarCampoSemTextoMostraTodos() {
+        System.out.println("filtrar (campo escolhido mas sem texto mostra todos)");
+        List<Cliente> expResult = List.of(anaSilva, joaoCosta, ruiAntunes);
+        List<Cliente> result = instance.filtrar(lista, "", CampoCliente.EMAIL);
         assertEquals(expResult, result);
     }
 

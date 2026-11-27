@@ -18,7 +18,10 @@
         <Insets top="15" right="15" bottom="15" left="15"/>
     </padding>
 
-    <Label text="Reservas de um cliente" styleClass="titulo"/>
+    <HBox spacing="10.0" alignment="CENTER_LEFT">
+        <Button fx:id="voltarButton" text="← Voltar" onAction="#aoVoltar" visible="false" managed="false"/>
+        <Label text="Reservas de um cliente" styleClass="titulo"/>
+    </HBox>
 
     <HBox spacing="10.0" alignment="CENTER_LEFT">
         <TextField fx:id="nifField" promptText="NIF do cliente" prefWidth="140"/>
