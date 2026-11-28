@@ -4,8 +4,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import pt.isep.lp3.g2.hotel4youg2.bll.FuncionarioBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.LigacaoBLL;
 import pt.isep.lp3.g2.hotel4youg2.bll.Permissoes;
+import pt.isep.lp3.g2.hotel4youg2.exception.DataAccessException;
 import pt.isep.lp3.g2.hotel4youg2.model.Utilizador;
 import pt.isep.lp3.g2.hotel4youg2.model.enums.Perfil;
 import pt.isep.lp3.g2.hotel4youg2.util.Sessao;
@@ -20,6 +22,7 @@ import java.util.List;
 public class InicialController {
 
     private final LigacaoBLL ligacaoBLL = new LigacaoBLL();
+    private final FuncionarioBLL funcionarioBLL = new FuncionarioBLL();
 
     @FXML
     private BorderPane raiz;
@@ -52,11 +55,14 @@ public class InicialController {
     private Button estatisticasButton;
 
     @FXML
+    private Button inicioButton;
+
+    @FXML
     private void initialize() {
         Navegador.iniciar(raiz);
         Utilizador utilizador = Sessao.getUtilizador();
         if (utilizador != null) {
-            utilizadorLabel.setText(utilizador.getNomeUtilizador() + " (" + utilizador.getPerfil() + ")");
+            utilizadorLabel.setText(nomeParaMostrar(utilizador) + "\n" + utilizador.getPerfil().getDescricao());
         }
         boolean gestor = Permissoes.eGestor(utilizador);
         mostrar(servicosButton, gestor);
@@ -64,6 +70,8 @@ public class InicialController {
         mostrar(estatisticasButton, gestor);
         if (utilizador != null && utilizador.getPerfil() == Perfil.RESTAURACAO) {
             mostrarSoOCartao();
+        } else if (Permissoes.podeGerirReservas(utilizador)) {
+            mostrarInicio();
         }
     }
 
@@ -72,6 +80,7 @@ public class InicialController {
         mostrar(reservasButton, false);
         mostrar(quartosButton, false);
         mostrar(stockButton, false);
+        mostrar(inicioButton, false);
         try {
             Navegador.mostrar("planta-view.fxml");
         } catch (IOException e) {
@@ -79,9 +88,30 @@ public class InicialController {
         }
     }
 
+    private void mostrarInicio() {
+        try {
+            Navegador.mostrar("inicio-view.fxml");
+        } catch (IOException e) {
+            estadoLabel.setText("Não foi possível abrir o Início.");
+        }
+    }
+
+    private String nomeParaMostrar(Utilizador utilizador) {
+        try {
+            return funcionarioBLL.nomeParaMostrar(utilizador);
+        } catch (DataAccessException e) {
+            return utilizador.getNomeUtilizador();
+        }
+    }
+
     @FXML
     private void aoTestarLigacao() {
         estadoLabel.setText(ligacaoBLL.testarLigacao());
+    }
+
+    @FXML
+    private void aoAbrirInicio() throws IOException {
+        Navegador.mostrar("inicio-view.fxml");
     }
 
     @FXML

@@ -83,6 +83,11 @@ public final class Navegador {
         janelaPrincipal.setCenter(carregar(ficheiro).getRoot());
     }
 
+    public static void mostrar(Parent ecra) {
+        esquecerAnteriores();
+        janelaPrincipal.setCenter(ecra);
+    }
+
     /**
      * Mostra um ecrã de detalhe no lugar do ecrã atual, dentro do mesmo {@code BorderPane}
      * (numa área do menu, o submenu continua à vista). O ecrã atual fica guardado para se

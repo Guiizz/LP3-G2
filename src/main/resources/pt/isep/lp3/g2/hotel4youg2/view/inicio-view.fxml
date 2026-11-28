@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="inicio-scroll" xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="pt.isep.lp3.g2.hotel4youg2.controller.InicioController">
+    <VBox spacing="22.0">
+        <padding><Insets top="32.0" right="36.0" bottom="32.0" left="36.0"/></padding>
+
+        <HBox alignment="CENTER_LEFT" spacing="14.0">
+            <VBox spacing="2.0">
+                <Label fx:id="saudacaoLabel" styleClass="titulo"/>
+                <Label fx:id="dataLabel" styleClass="inicio-data"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="ligacaoLabel"/>
+            <Button text="+  Criar reserva" onAction="#aoCriarReserva"/>
+        </HBox>
+
+        <HBox spacing="16.0">
+            <VBox styleClass="inicio-cartao" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                <Label text="Check-ins hoje" styleClass="inicio-rotulo"/>
+                <Label fx:id="checkinsLabel" styleClass="inicio-numero"/>
+                <Button text="Ver por fazer →" onAction="#aoAbrirCheckins" styleClass="botao-ligacao"/>
+            </VBox>
+            <VBox styleClass="inicio-cartao" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                <Label text="Check-outs hoje" styleClass="inicio-rotulo"/>
+                <Label fx:id="checkoutsLabel" styleClass="inicio-numero"/>
+                <Button text="Ver em curso →" onAction="#aoAbrirCheckouts" styleClass="botao-ligacao"/>
+            </VBox>
+            <VBox styleClass="inicio-cartao" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                <Label text="Pedidos por decidir" styleClass="inicio-rotulo"/>
+                <Label fx:id="pedidosLabel" styleClass="inicio-numero"/>
+                <Button text="Abrir pedidos →" onAction="#aoAbrirPedidos" styleClass="botao-ligacao"/>
+            </VBox>
+            <VBox styleClass="inicio-cartao" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                <Label text="Entregas por decidir" styleClass="inicio-rotulo"/>
+                <Label fx:id="entregasLabel" styleClass="inicio-numero"/>
+                <Button text="Abrir entregas →" onAction="#aoAbrirEntregas" styleClass="botao-ligacao"/>
+            </VBox>
+        </HBox>
+
+        <HBox spacing="16.0">
+            <VBox styleClass="inicio-painel" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="560">
+                <HBox alignment="CENTER_LEFT" styleClass="inicio-painel-cabecalho">
+                    <VBox spacing="2.0">
+                        <Label text="Hoje na receção" styleClass="inicio-painel-titulo"/>
+                        <Label fx:id="chegadasLabel" styleClass="inicio-detalhe"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Ver reservas" onAction="#aoAbrirCheckins" styleClass="botao-ligacao"/>
+                </HBox>
+                <VBox fx:id="listaHoje"/>
+            </VBox>
+            <VBox styleClass="inicio-painel" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefWidth="440">
+                <HBox alignment="CENTER_LEFT" styleClass="inicio-painel-cabecalho">
+                    <Label text="Atalhos" styleClass="inicio-painel-titulo"/>
+                </HBox>
+                <GridPane fx:id="atalhosGrid" hgap="12.0" vgap="12.0">
+                    <padding><Insets top="16.0" right="20.0" bottom="20.0" left="20.0"/></padding>
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50.0"/>
+                        <ColumnConstraints percentWidth="50.0"/>
+                    </columnConstraints>
+                </GridPane>
+            </VBox>
+        </HBox>
+
+        <Label fx:id="mensagemLabel" wrapText="true"/>
+    </VBox>
+</ScrollPane>

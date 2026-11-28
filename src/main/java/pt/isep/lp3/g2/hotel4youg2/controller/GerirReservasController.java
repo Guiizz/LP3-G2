@@ -89,6 +89,21 @@ public class GerirReservasController {
         carregar();
     }
 
+    public void abrirSeparador(SeparadorReserva separador) {
+        separadores.getSelectionModel().select(separador.ordinal());
+    }
+
+    public void abrirReserva(Reserva reserva, SeparadorReserva separador) {
+        abrirSeparador(separador);
+        TableView<Reserva> tabela = separador == SeparadorReserva.EM_CURSO ? tabelaEmCurso : tabelaPorFazer;
+        for (Reserva linha : tabela.getItems()) {
+            if (linha.getId() == reserva.getId()) {
+                tabela.getSelectionModel().select(linha);
+                tabela.scrollTo(linha);
+            }
+        }
+    }
+
     @FXML
     private void aoCancelar() {
         Reserva escolhida = escolhida();

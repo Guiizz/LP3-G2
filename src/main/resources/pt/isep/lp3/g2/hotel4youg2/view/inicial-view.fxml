@@ -25,6 +25,14 @@
             <Label fx:id="utilizadorLabel"/>
             <Region prefHeight="10.0"/>
 
+            <Button fx:id="inicioButton" text="Início" onAction="#aoAbrirInicio" maxWidth="Infinity" graphicTextGap="10">
+                <graphic>
+                    <ImageView fitWidth="18" fitHeight="18" preserveRatio="true" smooth="true">
+                        <image><Image url="@../images/icons/inicio_branco.png"/></image>
+                    </ImageView>
+                </graphic>
+            </Button>
+
             <Button fx:id="clientesButton" text="Clientes" onAction="#aoAbrirClientes" maxWidth="Infinity" graphicTextGap="10">
                 <graphic>
                     <ImageView fitWidth="18" fitHeight="18" preserveRatio="true" smooth="true">

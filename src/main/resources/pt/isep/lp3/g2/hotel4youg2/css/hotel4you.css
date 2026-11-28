@@ -492,3 +492,142 @@
 .button.botao-link:focused {
     -fx-border-color: -caramelo;
 }
+/* Início (US99) */
+.inicio-scroll,
+.inicio-scroll > .viewport {
+    -fx-background-color: -marfim-fundo;
+}
+.inicio-scroll {
+    -fx-padding: 0;
+    -fx-background-insets: 0;
+}
+.inicio-data {
+    -fx-text-fill: -texto-secundario;
+    -fx-font-size: 15px;
+}
+.estado-ligada,
+.estado-desligada {
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+    -fx-padding: 8 16;
+}
+.estado-ligada {
+    -fx-background-color: #E6F2E7;
+    -fx-text-fill: -sucesso;
+}
+.estado-desligada {
+    -fx-background-color: #F9E3E1;
+    -fx-text-fill: -erro;
+}
+
+.inicio-cartao,
+.inicio-painel {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-color: -linha;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(92, 61, 46, 0.08), 12, 0, 0, 2);
+}
+.inicio-cartao {
+    -fx-padding: 18 22;
+    -fx-spacing: 4;
+}
+.inicio-rotulo {
+    -fx-text-fill: -texto-secundario;
+    -fx-font-size: 14px;
+}
+.inicio-numero {
+    -fx-font-family: "Cormorant Garamond";
+    -fx-font-size: 44px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -cafe;
+}
+.inicio-numero.numero-zero {
+    -fx-text-fill: -taupe;
+}
+
+.botao-ligacao {
+    -fx-background-color: transparent;
+    -fx-text-fill: -cafe;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+.botao-ligacao:hover,
+.botao-ligacao:pressed,
+.botao-ligacao:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-underline: true;
+}
+
+.inicio-painel-cabecalho {
+    -fx-padding: 16 22;
+    -fx-border-color: transparent transparent -linha transparent;
+}
+.inicio-painel-titulo {
+    -fx-font-family: "Cormorant Garamond";
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -cafe;
+}
+.inicio-linha {
+    -fx-padding: 12 22;
+    -fx-border-color: transparent transparent -linha-clara transparent;
+}
+.inicio-quarto {
+    -fx-background-color: -marfim;
+    -fx-background-radius: 8;
+    -fx-text-fill: -cafe;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-min-width: 56;
+    -fx-min-height: 44;
+    -fx-alignment: center;
+}
+.inicio-nome {
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-text-fill: -cafe;
+}
+.inicio-detalhe {
+    -fx-text-fill: -texto-secundario;
+}
+.inicio-vazio {
+    -fx-text-fill: -texto-secundario;
+    -fx-padding: 18 22;
+}
+
+.botao-contorno {
+    -fx-background-color: white;
+    -fx-text-fill: -cafe;
+    -fx-border-color: -cafe;
+    -fx-border-width: 1.5;
+}
+.botao-contorno:hover {
+    -fx-background-color: -cafe;
+    -fx-text-fill: -marfim;
+}
+.botao-contorno:pressed {
+    -fx-background-color: -cafe-pressionado;
+    -fx-text-fill: -marfim;
+}
+
+.inicio-atalho {
+    -fx-background-color: white;
+    -fx-text-fill: -cafe;
+    -fx-border-color: -linha;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 16 18;
+    -fx-font-size: 15px;
+    -fx-graphic-text-gap: 12;
+    -fx-pref-height: 96;
+}
+.inicio-atalho:hover {
+    -fx-background-color: -marfim;
+    -fx-border-color: -taupe;
+}
+.inicio-atalho:pressed {
+    -fx-background-color: -linha-clara;
+}
