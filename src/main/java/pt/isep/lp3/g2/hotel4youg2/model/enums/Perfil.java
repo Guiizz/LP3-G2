@@ -1,14 +1,22 @@
 package pt.isep.lp3.g2.hotel4youg2.model.enums;
 
-/**
- * Perfis de acesso dos utilizadores da aplicação.
- * O perfil decide que funcionalidades cada utilizador pode usar.
- */
 public enum Perfil {
-    /** Gere o hotel: tarifas, contas de funcionários, etc. */
-    GESTOR,
-    /** Trata dos clientes e das reservas na receção. */
-    RECECIONISTA,
-    /** Funcionário da restauração: só entra na cozinha e no restaurante. */
-    RESTAURACAO
+    GESTOR("Gestor"),
+    RECECIONISTA("Rececionista"),
+    RESTAURACAO("Restauração");
+
+    private final String descricao;
+
+    Perfil(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    @Override
+    public String toString() {
+        return descricao;
+    }
 }

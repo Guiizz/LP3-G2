@@ -207,6 +207,25 @@ public class FuncionarioBLL {
         return texto;
     }
 
+    public String nomeParaMostrar(Utilizador utilizador) {
+        if (utilizador == null) {
+            return "";
+        }
+        Funcionario funcionario = funcionarioDAL.procurarPorId(utilizador.getFuncionarioId());
+        if (funcionario == null || funcionario.getNome() == null || funcionario.getNome().isBlank()) {
+            return utilizador.getNomeUtilizador();
+        }
+        return nomeCurto(funcionario.getNome());
+    }
+
+    public static String nomeCurto(String nomeCompleto) {
+        String[] partes = nomeCompleto.trim().split("\\s+");
+        if (partes.length == 1) {
+            return partes[0];
+        }
+        return partes[0] + " " + partes[partes.length - 1];
+    }
+
     private static String limpar(String texto) {
         if (texto == null || texto.isBlank()) {
             return null;
