@@ -27,7 +27,7 @@ public class AreaClienteController {
         Navegador.iniciar(raiz);
         ContaCliente conta = Sessao.getContaCliente();
         if (conta != null) {
-            clienteLabel.setText(conta.getNome() + " (cliente)");
+            clienteLabel.setText(conta.getNome() + "\nCliente");
             boasVindasLabel.setText("Bem-vindo, " + conta.getNome());
         }
     }

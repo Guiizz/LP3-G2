@@ -42,6 +42,15 @@ public class LigacaoBLL {
         }
     }
 
+    public boolean estaLigada() {
+        try {
+            ligacaoDAL.testar();
+            return true;
+        } catch (DataAccessException e) {
+            return false;
+        }
+    }
+
     /**
      * Começa a abrir a ligação à base de dados em segundo plano, logo no ecrã de entrada,
      * para a primeira consulta não ter de esperar por ela (US51).

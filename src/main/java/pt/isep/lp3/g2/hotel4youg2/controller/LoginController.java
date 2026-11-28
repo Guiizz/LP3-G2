@@ -252,8 +252,7 @@ public class LoginController {
     private void entrarComoFuncionario(Utilizador utilizador) throws IOException {
         Sessao.iniciar(utilizador);
         cancelarReservasSemCheckin();
-        abrirJanela("inicial-view.fxml", "Hotel4You · Bem-vindo, " + utilizador.getNomeUtilizador()
-                + " (" + utilizador.getPerfil() + ")");
+        abrirJanela("inicial-view.fxml", "Hotel4You");
     }
 
     private void entrarComoCliente(ContaCliente conta) throws IOException {

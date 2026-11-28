@@ -63,4 +63,17 @@ public class OpcaoMenuTest {
                 .endsWith("/pt/isep/lp3/g2/hotel4youg2/view/gerir-reservas-view.fxml");
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testGetIcone() {
+        System.out.println("getIcone");
+        OpcaoMenu comIcone = new OpcaoMenu("Pesquisar cliente", "pesquisar-cliente-view.fxml", false, "pesquisar.png");
+        assertEquals("pesquisar.png", comIcone.getIcone());
+    }
+
+    @Test
+    public void testSemIcone() {
+        System.out.println("getIcone (sem ícone)");
+        assertEquals(null, ecra.getIcone());
+    }
 }

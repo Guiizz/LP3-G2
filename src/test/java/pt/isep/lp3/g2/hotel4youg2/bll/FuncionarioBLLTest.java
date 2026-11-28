@@ -512,4 +512,16 @@ public class FuncionarioBLLTest {
         String result = erroAoEditar(gestor, conta, ana(), Perfil.RECECIONISTA);
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testNomeCurto() {
+        System.out.println("nomeCurto (primeiro e último nome)");
+        assertEquals("Ana Ribeiro", FuncionarioBLL.nomeCurto("Ana Maria Costa Ribeiro"));
+    }
+
+    @Test
+    public void testNomeCurtoSoUmNome() {
+        System.out.println("nomeCurto (só um nome)");
+        assertEquals("Ana", FuncionarioBLL.nomeCurto("  Ana  "));
+    }
 }

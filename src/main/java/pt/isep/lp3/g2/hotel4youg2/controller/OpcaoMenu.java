@@ -8,18 +8,21 @@ public class OpcaoMenu {
     private final String texto;
     private final String ficheiro;
     private final boolean formulario;
+    private final String icone;
 
-    /**
-     * Cria uma opção do submenu.
-     *
-     * @param texto      o texto do botão
-     * @param ficheiro   o nome do ficheiro FXML do ecrã
-     * @param formulario {@code true} se o ecrã abre em pop-up; {@code false} se abre dentro da área
-     */
     public OpcaoMenu(String texto, String ficheiro, boolean formulario) {
+        this(texto, ficheiro, formulario, null);
+    }
+
+    public OpcaoMenu(String texto, String ficheiro, boolean formulario, String icone) {
         this.texto = texto;
         this.ficheiro = ficheiro;
         this.formulario = formulario;
+        this.icone = icone;
+    }
+
+    public String getIcone() {
+        return icone;
     }
 
     public String getTexto() {

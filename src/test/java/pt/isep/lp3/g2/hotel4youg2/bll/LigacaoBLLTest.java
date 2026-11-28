@@ -77,4 +77,17 @@ public class LigacaoBLLTest {
         int result = ligacaoDAL.preparacoes;
         assertEquals(expResult, result);
     }
+
+    @Test
+    public void testEstaLigada() {
+        System.out.println("estaLigada (a base de dados responde)");
+        assertEquals(true, instance.estaLigada());
+    }
+
+    @Test
+    public void testNaoEstaLigada() {
+        System.out.println("estaLigada (a base de dados não responde)");
+        ligacaoDAL.erro = new DataAccessException("Erro ao ligar");
+        assertEquals(false, instance.estaLigada());
+    }
 }
