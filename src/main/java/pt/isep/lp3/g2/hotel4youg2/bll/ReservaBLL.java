@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -389,6 +390,67 @@ public class ReservaBLL {
             resultado.sort(new EntradaMaisProximaPrimeiro());
         }
         return resultado;
+    }
+
+    public static int contarCheckinsDeHoje(List<Reserva> reservas, LocalDate hoje) {
+        int total = 0;
+        for (Reserva reserva : reservas) {
+            if (eCheckinDeHoje(reserva, hoje)) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    public static int contarCheckoutsDeHoje(List<Reserva> reservas, LocalDate hoje) {
+        int total = 0;
+        for (Reserva reserva : reservas) {
+            if (eCheckoutDeHoje(reserva, hoje)) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    public static int contarChegadasDeHoje(List<Reserva> reservas, LocalDate hoje) {
+        int total = 0;
+        for (Reserva reserva : reservas) {
+            if (reserva.getCheckinEm() != null && reserva.getCheckinEm().toLocalDate().equals(hoje)) {
+                total++;
+            }
+        }
+        return total;
+    }
+
+    public static boolean eCheckinDeHoje(Reserva reserva, LocalDate hoje) {
+        return reserva.getEstado() == EstadoReserva.CONFIRMADA && reserva.getDataEntrada().equals(hoje);
+    }
+
+    public static boolean eCheckoutDeHoje(Reserva reserva, LocalDate hoje) {
+        return reserva.getEstado() == EstadoReserva.EM_CURSO && !reserva.getDataSaida().isAfter(hoje);
+    }
+
+    public static List<Reserva> listarHojeNaRececao(List<Reserva> reservas, LocalDate hoje) {
+        List<Reserva> resultado = new ArrayList<>();
+        for (Reserva reserva : reservas) {
+            if (eCheckinDeHoje(reserva, hoje) || eCheckoutDeHoje(reserva, hoje)) {
+                resultado.add(reserva);
+            }
+        }
+        return resultado;
+    }
+
+    public static String descricaoDeHoje(Reserva reserva, LocalDate hoje) {
+        DateTimeFormatter diaMes = DateTimeFormatter.ofPattern("dd/MM");
+        if (eCheckinDeHoje(reserva, hoje)) {
+            String hospedes = reserva.getNumHospedes() == 1 ? "1 hóspede" : reserva.getNumHospedes() + " hóspedes";
+            String noites = reserva.getNoites() == 1 ? "1 noite" : reserva.getNoites() + " noites";
+            return hospedes + " · " + noites + " · até " + reserva.getDataSaida().format(diaMes);
+        }
+        if (reserva.getDataSaida().equals(hoje)) {
+            return "Saída hoje";
+        }
+        return "Saída atrasada desde " + reserva.getDataSaida().format(diaMes);
     }
 
     private static boolean corresponde(Reserva reserva, String termo) {

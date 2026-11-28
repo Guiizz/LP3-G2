@@ -1909,4 +1909,101 @@ public class ReservaBLLTest {
             assertEquals(expResult, result);
         }
     }
+
+    @Test
+    public void testContarCheckinsDeHoje() {
+        System.out.println("contar check-ins de hoje (só as confirmadas que entram hoje)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        List<Reserva> reservas = new ArrayList<>();
+        reservas.add(reservaDaAna(1, hoje, EstadoReserva.CONFIRMADA));
+        reservas.add(reservaDaAna(2, hoje, EstadoReserva.CANCELADA));
+        reservas.add(reservaDaAna(3, hoje.plusDays(1), EstadoReserva.CONFIRMADA));
+        int expResult = 1;
+        int result = ReservaBLL.contarCheckinsDeHoje(reservas, hoje);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testContarCheckoutsDeHoje() {
+        System.out.println("contar check-outs de hoje (em curso que saem hoje ou já deviam ter saído)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        List<Reserva> reservas = new ArrayList<>();
+        reservas.add(reservaDaAna(1, hoje.minusDays(2), EstadoReserva.EM_CURSO));
+        reservas.add(reservaDaAna(2, hoje.minusDays(3), EstadoReserva.EM_CURSO));
+        reservas.add(reservaDaAna(3, hoje.minusDays(1), EstadoReserva.EM_CURSO));
+        reservas.add(reservaDaAna(4, hoje.minusDays(2), EstadoReserva.CONCLUIDA));
+        int expResult = 2;
+        int result = ReservaBLL.contarCheckoutsDeHoje(reservas, hoje);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testContarChegadasDeHoje() {
+        System.out.println("contar chegadas de hoje (check-in feito hoje)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        Reserva chegouHoje = reservaDaAna(1, hoje, EstadoReserva.EM_CURSO);
+        chegouHoje.setCheckinEm(LocalDateTime.of(2026, 11, 26, 15, 30));
+        Reserva chegouOntem = reservaDaAna(2, hoje.minusDays(1), EstadoReserva.EM_CURSO);
+        chegouOntem.setCheckinEm(LocalDateTime.of(2026, 11, 25, 16, 0));
+        List<Reserva> reservas = new ArrayList<>();
+        reservas.add(chegouHoje);
+        reservas.add(chegouOntem);
+        reservas.add(reservaDaAna(3, hoje, EstadoReserva.CONFIRMADA));
+        int expResult = 1;
+        int result = ReservaBLL.contarChegadasDeHoje(reservas, hoje);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testContarSemReservas() {
+        System.out.println("contar sem reservas dá zero");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        List<Reserva> reservas = new ArrayList<>();
+        assertEquals(0, ReservaBLL.contarCheckinsDeHoje(reservas, hoje));
+        assertEquals(0, ReservaBLL.contarCheckoutsDeHoje(reservas, hoje));
+        assertEquals(0, ReservaBLL.contarChegadasDeHoje(reservas, hoje));
+    }
+
+    @Test
+    public void testListarHojeNaRececao() {
+        System.out.println("listarHojeNaRececao (check-ins e check-outs por fazer hoje)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        List<Reserva> reservas = new ArrayList<>();
+        reservas.add(reservaDaAna(1, hoje, EstadoReserva.CONFIRMADA));
+        reservas.add(reservaDaAna(2, hoje.minusDays(2), EstadoReserva.EM_CURSO));
+        reservas.add(reservaDaAna(3, hoje.plusDays(1), EstadoReserva.CONFIRMADA));
+        reservas.add(reservaDaAna(4, hoje.minusDays(1), EstadoReserva.EM_CURSO));
+        List<Reserva> expResult = new ArrayList<>();
+        expResult.add(reservas.get(0));
+        expResult.add(reservas.get(1));
+        List<Reserva> result = ReservaBLL.listarHojeNaRececao(reservas, hoje);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDescricaoDeHojeCheckin() {
+        System.out.println("descricaoDeHoje (check-in)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        String expResult = "1 hóspede · 2 noites · até 28/11";
+        String result = ReservaBLL.descricaoDeHoje(reservaDaAna(1, hoje, EstadoReserva.CONFIRMADA), hoje);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDescricaoDeHojeSaidaHoje() {
+        System.out.println("descricaoDeHoje (sai hoje)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        String expResult = "Saída hoje";
+        String result = ReservaBLL.descricaoDeHoje(reservaDaAna(1, hoje.minusDays(2), EstadoReserva.EM_CURSO), hoje);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testDescricaoDeHojeSaidaAtrasada() {
+        System.out.println("descricaoDeHoje (saída atrasada)");
+        LocalDate hoje = LocalDate.of(2026, 11, 26);
+        String expResult = "Saída atrasada desde 25/11";
+        String result = ReservaBLL.descricaoDeHoje(reservaDaAna(1, hoje.minusDays(3), EstadoReserva.EM_CURSO), hoje);
+        assertEquals(expResult, result);
+    }
 }
